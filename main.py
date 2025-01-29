@@ -1214,6 +1214,7 @@ async def get_answer_quiz(current_user: UserCreate = Depends(get_current_active_
             set_answer = []
             temp_set = []
             for i,answer in enumerate(results):
+                temp_set.append()
                 if len(temp_set) == 5 or i == len(answer) -1:
                     set_answer.append({'set': temp_set})
                     temp_set = []
