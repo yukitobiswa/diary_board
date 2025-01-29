@@ -24,7 +24,7 @@ from fastapi import Request
 import asyncio
 from fastapi.responses import JSONResponse
 # Database URL
-DATABASE_URL = "mysql+pymysql://root:yuki0108@127.0.0.1/demo"
+DATABASE_URL = "mysql+pymysql://root:6213ryoy@127.0.0.1/demo"
 # FastAPI app
 app = FastAPI()
 logger = logging.getLogger(__name__)
@@ -368,6 +368,29 @@ async def team_register(team: TeamCreate):
         logging.error(f"Error during registration: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Error during registration: {str(e)}")
     
+country_map = {
+    1: 'Japan',  # 日本
+    2: 'United States',  # アメリカ
+    3: 'Portugal',  # ポルトガル
+    4: 'Spain',  # スペイン
+    5: 'China',  # 中国（簡体）
+    6: 'Taiwan',  # 台湾（繁体）
+    7: 'South Korea',  # 韓国
+    8: 'Philippines',  # フィリピン
+    9: 'Vietnam',  # ベトナム
+    10: 'Indonesia',  # インドネシア
+    11: 'Nepal',  # ネパール
+    12: 'France',  # フランス
+    13: 'Germany',  # ドイツ
+    14: 'Italy',  # イタリア
+    15: 'Russia',  # ロシア
+    16: 'India',  # インド
+    17: 'Brazil',  # ブラジル
+    18: 'Mexico',  # メキシコ
+    19: 'Turkey',  # トルコ
+    20: 'Australia',  # オーストラリア
+    21: 'Peru',  # ペルー
+}
 @app.post("/generate_quiz")
 async def generate_quiz(category: Category, current_user: UserCreate = Depends(get_current_active_user)):
     try:
@@ -380,12 +403,16 @@ async def generate_quiz(category: Category, current_user: UserCreate = Depends(g
             # 日記が存在しない場合の処理
             if result is None:
                 return JSONResponse(status_code=404, content={"error": "No diary found."})
-            
+            user_with_team = session.query(UserTable).filter(UserTable.user_id == current_user.user_id).first()
+            team = session.query(TeamTable).filter(TeamTable.team_id == user_with_team.team_id).first()
+            print(f"Team Name: {team.team_name}, Country: {team.country_id}")
+            country = country_map[team.country_id]
+            age = team.age
             # クイズを生成
-            quizzes = make_quiz(result.content, category.category1, category.category2, )
+            quizzes = make_quiz(result.content, category.category1, category.category2,country,age)
 
             # クイズが生成されなかった場合の処理
-            if not quizzes:
+            if len(quizzes) < 7:
                 return JSONResponse(status_code=404, content={"error": "No quizzes generated."})
             # 既存のキャッシュを削除（同じユーザーの古いキャッシュがある場合）
             session.query(CashQuizTable).filter(CashQuizTable.user_id == current_user.user_id).delete()
