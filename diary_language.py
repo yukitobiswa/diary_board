@@ -19,7 +19,7 @@ languages = {
 
 def translate_diary(title, content, main_language):
     translations_list = []
-    gnmt = TranslationClient('http://langrid.org/service_manager/wsdl/kyoto1.langrid:GoogleTranslateNMT',
+    gnmt = TranslationClient('https://langrid.org/service_manager/wsdl/kyoto1.langrid:GoogleTranslateNMT',
                              lg_config['userid'], lg_config['password'])
     lang = languages[main_language]
     for target_lang_id in languages:
