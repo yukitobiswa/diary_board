@@ -1,24 +1,59 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import Profile from './components/StartPage';
+import Login from './components/Login';
+import NewLogin from './components/newlogin';
+import ChatApp from './components/Chat';
+import Quiz1 from './components/Quiz1';
+import Quiz2 from './components/Quiz2';
+import Question1 from './components/Question1';
+import Question2 from './components/Question2';
+import Question3 from './components/Question3';
+import Question4 from './components/Question4';
+import Question5 from './components/Question5';
+import Answer1 from './components/Answer1';
+import Answer2 from './components/Answer2';
+import Answer3 from './components/Answer3';
+import Answer4 from './components/Answer4';
+import Answer5 from './components/Answer5';
+import Result from './components/Result';
+import Setting from './components/Setting';
+import Group from './components/Group';
+import Log from './components/log';
+import StartPage from './components/StartPage';
+import Ranking from './components/Ranking';
 
+// This is a main App component
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <div>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<Profile />} />
+          <Route path="/newlogin" element={<NewLogin />} />
+          <Route path="/Chat" element={<ChatApp />} />
+          <Route path="/Quiz1" element={<Quiz1 />} />
+          <Route path="/Quiz2" element={<Quiz2 />} />
+          <Route path="/Question1/:diaryId" element={<Question1 />} /> {/* diaryIdを受け取るように変更 */}
+          <Route path="/Question2/:diaryId" element={<Question2 />} />
+          <Route path="/Question3/:diaryId" element={<Question3 />} />
+          <Route path="/Question4/:diaryId" element={<Question4 />} />
+          <Route path="/Question5/:diaryId" element={<Question5 />} />
+          <Route path="/Answer1/:diaryId" element={<Answer1 />} />
+          <Route path="/Answer2/:diaryId" element={<Answer2 />} />
+          <Route path="/Answer3/:diaryId" element={<Answer3 />} />
+          <Route path="/Answer4/:diaryId" element={<Answer4 />} />
+          <Route path="/Answer5/:diaryId" element={<Answer5 />} />
+          <Route path="/log" element={<Log />} />
+          <Route path="/Result" element={<Result />} />
+          <Route path="/Setting" element={<Setting />} />
+          <Route path="/register" element={<Group />} />
+          <Route path="/StartPage" element={<StartPage />} />
+          <Route path="/Ranking" element={<Ranking/>}/>
+        </Routes>
+      </div>
+    </Router>
   );
 }
 
