@@ -501,7 +501,6 @@ def add_reaction(reaction: ReactionRequest):
     except Exception as e:
         logging.error(f"Error adding reaction: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error adding reaction: {str(e)}")
-
 @app.post("/add_diary")
 async def add_diary(diary: DiaryCreate, current_user: UserCreate = Depends(get_current_active_user)):
     """
@@ -557,7 +556,12 @@ async def add_diary(diary: DiaryCreate, current_user: UserCreate = Depends(get_c
             
             session.add_all(translated_entries)  # 複数のエントリを一括追加
             session.commit()  # データを確定
-            
+
+            # Update the user's diary_count
+            current_user.diary_count += 1
+            session.merge(current_user)  # Save the updated user record
+            session.commit()  # Confirm the changes
+
             logging.info(
                 f"Diary added successfully: user_id={current_user.user_id}, diary_id={diary_id}"
             )
