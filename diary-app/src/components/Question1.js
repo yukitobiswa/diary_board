@@ -1,45 +1,50 @@
-
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
+
 const Question1 = () => {
   const { diaryId } = useParams(); // URLからdiaryIdを取得
-  const [quiz, setQuiz] = useState(); // クイズデータを保存する状態
+  const [quiz, setQuiz] = useState(null); // クイズデータを保存する状態
   const [selectedOption, setSelectedOption] = useState(null);
   const [selectAnswer, setSelectAnswer] = useState(null);
+  const [isAlreadyAnswered, setIsAlreadyAnswered] = useState(null); // クイズが既に回答済みかを保存
   const navigate = useNavigate();
+
   // クイズが既に回答済みかを確認する関数
   const alreadyQuiz = async () => {
     try {
       const token = localStorage.getItem("access_token"); // トークンを取得
       const response = await axios.get(`http://localhost:8000/already_quiz/${diaryId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       console.log("Already quiz response:", response.data);
       return response.data.already; // true なら既に回答済み、false なら未回答
     } catch (err) {
       console.error("既存クイズ確認エラー:", err);
-      return true; // エラーの場合、既に回答済みと見なす
+      return false; // エラー時に false を返して二重 alert を防ぐ
     }
   };
+
   // クイズを取得する関数
   const fetchQuiz = async () => {
+    if (isAlreadyAnswered !== null) return; // すでにチェック済みなら再実行しない
+
     try {
-      const already = await alreadyQuiz(); // クイズが既に回答済みか確認
+      const already = await alreadyQuiz();
+      setIsAlreadyAnswered(already); // 状態を保存
+
       if (already) {
         alert("この日記のクイズは既に回答済みです。");
-        navigate("/Chat"); // ホーム画面など適切なページへリダイレクト
+        navigate("/Chat");
         return;
       }
-      const token = localStorage.getItem("access_token"); // トークンを取得
+
+      const token = localStorage.getItem("access_token");
       const response = await axios.get(`http://localhost:8000/get_same_quiz/${diaryId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-      console.log(response); // デバッグ用にレスポンスを表示
+
+      console.log(response);
       const quizzes = response.data.quizzes;
       if (quizzes && quizzes.length > 0) {
         // quiz_idが最小のクイズを取得
@@ -54,6 +59,7 @@ const Question1 = () => {
       console.error("クイズ取得エラー:", err);
     }
   };
+
   useEffect(() => {
     fetchQuiz();
   }, [diaryId]);
@@ -62,31 +68,33 @@ const Question1 = () => {
     setSelectedOption(key); // 選択肢を状態にセット
     setSelectAnswer(key);
   };
+
   const submitAnswer = async () => {
     if (selectAnswer == null) {
       alert("答えを選択してください。");
-      return false; // 選択されていない場合はfalseを返す
+      return false; // 選択されていない場合は false を返す
     }
+
     const token = localStorage.getItem("access_token");
     const answerData = {
       quiz_id: quiz.quiz_id,
       diary_id: quiz.diary_id,
       choices: selectAnswer,
     };
+
     console.log("送信するデータ:", answerData); // デバッグ用にデータを表示
     try {
       await axios.post("http://localhost:8000/create_answer", answerData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       console.log("答えが正常に送信されました");
-      return true; // 成功した場合はtrueを返す
+      return true; // 成功した場合は true を返す
     } catch (err) {
       console.error("クイズの送信エラー:", err);
-      return false; // エラーが発生した場合はfalseを返す
+      return false; // エラーが発生した場合は false を返す
     }
   };
+
   const handleSubmit = async () => {
     const success = await submitAnswer();
     if (success) {
@@ -95,9 +103,11 @@ const Question1 = () => {
       alert("答えを選択してください。");
     }
   };
+
   if (!quiz) {
     return <div>Loading...</div>; // クイズデータが取得されるまでローディング表示
   }
+
   return (
     <div style={styles.container}>
       <h3>Q1 <u>{quiz.question}</u></h3>
@@ -123,6 +133,7 @@ const Question1 = () => {
     </div>
   );
 };
+
 const styles = {
   container: {
     fontFamily: "Arial, sans-serif",
@@ -158,4 +169,5 @@ const styles = {
     transition: "background-color 0.3s", // ホバー時の変化を滑らかに
   },
 };
+
 export default Question1;
