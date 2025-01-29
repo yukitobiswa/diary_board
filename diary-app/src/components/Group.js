@@ -1,47 +1,70 @@
-import React, { useEffect, useState } from "react"; // useEffectを一箇所にまとめる
-import axios from "axios";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+
 const GroupsPage = () => {
   const [groupName, setGroupName] = useState("");
   const [invitePassword, setInvitePassword] = useState("");
+  const [countryId, setCountryId] = useState(1);  // 初期値は日本
+  const [age, setAge] = useState(10);  // 初期値は10
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
-  // グループ作成処理
-  const handleCreateGroup = () => {
-    console.log("グループ名:", invitePassword);
-    console.log("招待パスワード:", groupName);
-    // axiosでJSONデータを送信
-    axios
-      .post(
-        "http://localhost:8000/team_register", // APIエンドポイント
-        {
-          team_id: invitePassword, // グループ名
-          team_name: groupName, // 招待パスワード
-        },
-        {
-          headers: { "Content-Type": "application/json" }, // JSON形式で送信
-        }
-      )
-      .then((response) => {
-        if (response.data.message) {
-          setSuccessMessage("グループが正常に作成されました！");
-          setErrorMessage("");
-          navigate("/startpage"); 
-        } else {
-          setErrorMessage("グループが正常に作成されました！");
-          setSuccessMessage("");
-        }
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-        setErrorMessage("グループ作成中にエラーが発生しました。");
-        setSuccessMessage("");
-      });
+
+  const country_map = {
+    1: "Japan",  // 日本
+    2: "United States",  // アメリカ
+    3: "Portugal",  // ポルトガル
+    4: "Spain",  // スペイン
+    5: "China",  // 中国（簡体）
+    6: "Taiwan",  // 台湾（繁体）
+    7: "South Korea",  // 韓国
+    8: "Philippines",  // フィリピン
+    9: "Vietnam",  // ベトナム
+    10: "Indonesia",  // インドネシア
+    11: "Nepal",  // ネパール
+    12: "France",  // フランス
+    13: "Germany",  // ドイツ
+    14: "Italy",  // イタリア
+    15: "Russia",  // ロシア
+    16: "India",  // インド
+    17: "Brazil",  // ブラジル
+    18: "Mexico",  // メキシコ
+    19: "Turkey",  // トルコ
+    20: "Australia",  // オーストラリア
+    21: "Peru",  // ペルー
   };
 
+  const handleCreateGroup = async () => {
+    try {
+      // リクエストデータ
+      const teamData = {
+        team_id: groupName,
+        team_name: invitePassword,
+        country_id: countryId,
+        age: age,
+      };
+  
+      // データをコンソールに表示
+      console.log("送信するデータ:", teamData);
+  
+      // FastAPI エンドポイントに POST リクエストを送信
+      const response = await axios.post('http://localhost:8000/team_register', teamData);
+      setSuccessMessage(response.data.message);
+      setErrorMessage("");
+  
+      // 成功したらページ遷移
+      navigate("/startpage");
+    } catch (error) {
+      console.error("Error:", error);
+      setErrorMessage("グループ作成に失敗しました。");
+      setSuccessMessage("");
+    }
+  };
+  
+
   const handleGoBack = () => {
-    navigate("/startpage"); // 新規登録画面に遷移
+    navigate("/startpage");
   };
 
   return (
@@ -101,6 +124,46 @@ const GroupsPage = () => {
           style={{
             width: "100%",
             padding: "10px",
+            marginBottom: "15px",
+            borderRadius: "5px",
+            border: "1px solid #ccc",
+          }}
+        />
+
+        {/* 国選択 */}
+        <label style={{ fontWeight: "bold", marginBottom: "5px", display: "block" }}>
+          国を選択
+        </label>
+        <select
+          value={countryId}
+          onChange={(e) => setCountryId(Number(e.target.value))}
+          style={{
+            width: "100%",
+            padding: "10px",
+            marginBottom: "15px",
+            borderRadius: "5px",
+            border: "1px solid #ccc",
+          }}
+        >
+          {Object.entries(country_map).map(([id, name]) => (
+            <option key={id} value={id}>
+              {name}
+            </option>
+          ))}
+        </select>
+
+        {/* 年齢入力 */}
+        <label style={{ fontWeight: "bold", marginBottom: "5px", display: "block" }}>
+          年齢
+        </label>
+        <input
+          type="number"
+          value={age}
+          onChange={(e) => setAge(Number(e.target.value))}
+          placeholder="年齢を入力"
+          style={{
+            width: "100%",
+            padding: "10px",
             marginBottom: "20px",
             borderRadius: "5px",
             border: "1px solid #ccc",
@@ -121,7 +184,7 @@ const GroupsPage = () => {
               cursor: "pointer",
             }}
           >
-          作成
+            作成
           </button>
         </div>
 
@@ -142,9 +205,8 @@ const GroupsPage = () => {
           </button>
         </div>
       </div>
-
-     
     </div>
   );
 };
+
 export default GroupsPage;
