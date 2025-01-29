@@ -290,7 +290,7 @@ async def user_register(user: UserCreate):
         raise HTTPException(status_code=422, detail=f"Error during registration: {str(e)}")
     
 @app.get("/get_profile")
-async def get_profile(current_user: UserTable = Depends(get_current_active_user)):
+async def get_profile(current_user: UserCreate = Depends(get_current_active_user)):
     # 数字と言語コードのマッピング
     language_map = {
         1: "ja",  # 日本語
@@ -1118,7 +1118,7 @@ async def already_quiz(
         raise HTTPException(status_code=500, detail=f"Error checking quiz status: {str(e)}")
 
 @app.get("/get_answer")
-async def get_answer(current_user: UserTable = Depends(get_current_active_user)):
+async def get_answer(current_user: UserCreate = Depends(get_current_active_user)):
     try:
         with SessionLocal() as session:
             # Get the last 5 answers for the current user, ordered by diary_id descending
@@ -1144,7 +1144,7 @@ async def get_answer(current_user: UserTable = Depends(get_current_active_user))
         raise HTTPException(status_code=400, detail=f"Error during getting answers: {str(e)}")
     
 @app.post("/create_answer_set")
-async def create_answer_set(current_user: UserTable = Depends(get_current_active_user)):
+async def create_answer_set(current_user: UserCreate = Depends(get_current_active_user)):
     try:
         answer_time = datetime.now()
         with SessionLocal() as session:
@@ -1169,7 +1169,7 @@ async def create_answer_set(current_user: UserTable = Depends(get_current_active
         raise HTTPException(status_code=400, detail=f"Error during creating answer: {str(e)}")
     
 @app.post("/update_answer")
-async def update_answer(current_user: UserTable = Depends(get_current_active_user)):
+async def update_answer(current_user: UserCreate = Depends(get_current_active_user)):
     try:
         with SessionLocal() as session:
             # 現在のユーザーの最新5件の解答を降順で取得
@@ -1224,7 +1224,7 @@ async def update_answer(current_user: UserTable = Depends(get_current_active_use
         raise HTTPException(status_code=400, detail=f"エラー: {str(e)}")
 
 @app.get("/get_ranking")
-async def get_ranking(current_user: UserTable = Depends(get_current_active_user)):
+async def get_ranking(current_user: UserCreate = Depends(get_current_active_user)):
     try:
         with SessionLocal() as session:
             # answer_countで降順に並べて上位5人を取得
