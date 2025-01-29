@@ -112,7 +112,8 @@ b TEXT NOT NULL,
 c TEXT NOT NULL,
 d TEXT NOT NULL,
 PRIMARY KEY (cash_quiz_id, diary_id),
-FOREIGN KEY (user_id,diary_id) REFERENCES diary(user_id,diary_id)
+FOREIGN KEY (diary_id) REFERENCES diary(diary_id),
+FOREIGN KEY (user _id) REFERENCES user(user_id)
 );
 
 INSERT INTO language (language_name) VALUES ('日本語'),('英語'),('ポルトガル語'),('スペイン語'),('中国語（簡）'),('中国語（繁）'),('韓国語'),('タガログ語'),
