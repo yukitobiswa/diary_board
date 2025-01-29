@@ -1209,14 +1209,30 @@ async def get_answer_quiz(current_user: UserCreate = Depends(get_current_active_
     try:
         with SessionLocal() as session:
             results = session.query(AnswerTable).filter(AnswerTable.user_id == current_user.user_id) \
-                .order_by(AnswerTable.answer_date.desc()).all()
+                .order_by(AnswerTable.answer_date.asc()).all()
 
             set_answer = []
             temp_set = []
+            set_num = 1
             for i,answer in enumerate(results):
-                temp_set.append()
-                if len(temp_set) == 5 or i == len(answer) -1:
-                    set_answer.append({'set': temp_set})
+                quiz_result = session.query(MQuizTable).filter(MQuizTable.diary_id == answer.diary_id,MQuizTable.quiz_id == answer.quiz_id,MQuizTable.language_id==current_user.main_language).first()
+                temp_set.append({'user_id':answer.user_id,
+                                'quiz_id':answer.quiz_id,
+                                'diary_id':answer.diary_id,
+                                'answer_date':answer.answer_date.strftime('%Y-%m-%d %H:%M:%S'),
+                                'judgement':answer.judgement,
+                                'question':quiz_result.question,
+                                })
+                if len(temp_set) == 5 or i == len(results) -1:
+                    set_result = session.query(ASetTable).filter(ASetTable.user_id==current_user.user_id,ASetTable.diary_id==answer.diary_id).first()
+                    set_title = session.query(DiaryTable).filter(DiaryTable.diary_id==answer.diary_id).first()
+                    pre_answer = {
+                        "title":set_title.title,
+                        "correct_set":set_result.correct_set,
+                        "questions":temp_set,
+                    }
+                    set_answer.append({set_num: pre_answer})
+                    set_num += 1
                     temp_set = []
                     
         return JSONResponse(content={
@@ -1241,7 +1257,7 @@ async def create_answer_set(current_user: UserCreate = Depends(get_current_activ
                 user_id=current_user.user_id,
                 diary_id=diary_id,
                 answer_time=answer_time,
-                correct_set = (correct_count/5)
+                correct_set = (correct_count)
 
             )
             session.add(new_answer_set)
