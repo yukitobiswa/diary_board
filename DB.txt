@@ -20,7 +20,8 @@ password varchar(64) not null,
 name varchar(32) not null,
 main_language int not null,
 learn_language int not null,
-answer_count int 
+answer_count int,
+diary_count int,
 FOREIGN KEY (team_id) REFERENCES team(team_id),
 FOREIGN KEY (main_language) REFERENCES language(language_id),
 FOREIGN KEY (learn_language) REFERENCES language(language_id));
