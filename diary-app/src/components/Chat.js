@@ -132,8 +132,11 @@ const ChatApp = () => {
       case "クイズランキング":
         navigate("/Ranking");
         break;
-      case "履歴":
+      case "日記一覧":
         navigate("/log");
+        break;
+      case "クイズ履歴":
+        navigate("/Quiz_log")
         break;
       case "設定":
         navigate("/Setting");
@@ -214,7 +217,7 @@ const ChatApp = () => {
               <br />
               メニュー</h3>
             <ul style={{ listStyleType: "none", padding: 0 }}>
-              {["クイズランキング", "履歴", "設定", "ログアウト"].map((item) => (
+              {["クイズランキング","日記一覧", "クイズ履歴", "設定", "ログアウト"].map((item) => (
                 <li
                   key={item}
                   onClick={() => handleMenuItemClick(item)}

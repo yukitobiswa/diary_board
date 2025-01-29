@@ -1201,6 +1201,29 @@ async def get_answer(current_user: UserCreate = Depends(get_current_active_user)
         logging.error(f"Error during getting answers: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Error during getting answers: {str(e)}")
     
+@app.get("/get_answer_quiz")
+async def get_answer_quiz(current_user: UserCreate = Depends(get_current_active_user)):
+    try:
+        with SessionLocal() as session:
+            results = session.query(AnswerTable).filter(AnswerTable.user_id == current_user.user_id) \
+                .order_by(AnswerTable.answer_date.desc()).all()
+
+            set_answer = []
+            temp_set = []
+            for i,answer in enumerate(results):
+                if len(temp_set) == 5 or i == len(answer) -1:
+                    set_answer.append({'set': temp_set})
+                    temp_set = []
+                    
+        return JSONResponse(content={
+            "correct_count": set_answer,
+        })
+
+    except Exception as e:
+        logging.error(f"Error during getting answers: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Error during getting answers: {str(e)}")
+    
+
 @app.post("/create_answer_set")
 async def create_answer_set(current_user: UserCreate = Depends(get_current_active_user)):
     try:
@@ -1301,9 +1324,8 @@ async def get_ranking(current_user: UserCreate = Depends(get_current_active_user
     except Exception as e:
         logger.error(f"Error fetching ranking: {str(e)}")  # エラーの詳細をログに記録
         raise HTTPException(status_code=500, detail="Internal Server Error")
-# @app.get("/get_history")
-# async def get_history(current_user:UserTable =Depends(get_current_active_user)):
-#     try:
+
+
 @app.exception_handler(404)
 async def page_not_found(request: Request, exc):
     return JSONResponse(status_code=404, content={"error": "Page not found"})

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-const Quiz_Log = () => {
+const Quiz_log = () => {
   const [messages, setMessages] = useState([]);
   const [openDiaryId, setOpenDiaryId] = useState(null); // 開かれた日記IDを管理
   const navigate = useNavigate();
@@ -80,7 +80,7 @@ const Quiz_Log = () => {
 
   return (
     <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-      <h2 style={{ textAlign: "center" }}>履歴ページ</h2>
+      <h2 style={{ textAlign: "center" }}>クイズ履歴</h2>
 
       {/* 戻るボタン */}
       <button
@@ -180,4 +180,4 @@ const Quiz_Log = () => {
   );
 };
 
-export default Quiz_Log;
+export default Quiz_log;
