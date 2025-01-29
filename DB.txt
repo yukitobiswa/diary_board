@@ -1,0 +1,272 @@
+<<<<<<< HEAD
+<<<<<<< HEAD
+ユーザ : DBmember
+database名 : diaryboard
+password : DiaryBoardpassword
+
+
+team 
+create table team (
+team_id varchar(128)  PRIMARY KEY,
+team_name VARCHAR(128) NOT NULL,
+team_time DATETIME NOT NULL
+);
+
+user
+create table user(
+user_id varchar(128) PRIMARY KEY,
+team_id varchar(128),
+password varchar(64) not null,
+name varchar(32) not null,
+main_language int not null,
+learn_language int not null,
+answer_count int 
+FOREIGN KEY (team_id) REFERENCES team(team_id),
+FOREIGN KEY (main_language) REFERENCES language(language_id),
+FOREIGN KEY (learn_language) REFERENCES language(language_id));
+
+language
+create table language(
+language_id int auto_increment primary key,
+language_name varchar(16));
+
+diary
+create table diary(
+diary_id int auto_increment not null,
+user_id varchar(128) not null,
+title varchar(128) not null,
+diary_time datetime not null,
+main_language int not null,
+content text not null,
+PRIMARY KEY(diary_id),
+FOREIGN KEY (user_id) REFERENCES user(user_id),
+FOREIGN KEY (main_language) REFERENCES language(language_id)
+);
+
+quiz
+create table quiz(
+quiz_id int not null,
+diary_id int not null,
+question text not null,
+correct char(1) not null,
+a text not null,
+b text not null,
+c text not null,
+d text not null,
+PRIMARY KEY(quiz_id,diary_id),
+FOREIGN KEY (diary_id) REFERENCES diary(diary_id)
+);
+
+answer
+create table answer(
+user_id varchar(128),
+quiz_id int,
+diary_id int,
+language_id int not null,
+answer_date datetime not null,
+choices char(1) not null,
+judgement int not null,
+PRIMARY KEY(user_id,quiz_id,diary_id),
+FOREIGN KEY (quiz_id,diary_id) REFERENCES quiz(quiz_id,diary_id),
+FOREIGN KEY (language_id) REFERENCES language(language_id)
+);
+
+multilingual_diary
+create table multilingual_diary(
+diary_id int,
+user_id varchar(128) not null,
+language_id int not null,
+title varchar(128) not null,
+diary_time datetime not null,
+content text not null,
+primary key(diary_id,user_id,language_id),
+FOREIGN KEY (user_id) REFERENCES user(user_id),
+FOREIGN KEY (language_id) REFERENCES language(language_id)
+);
+
+multilingual_quiz
+create table multilingual_quiz(
+quiz_id int,
+diary_id int ,
+language_id int,
+question text not null,
+correct char(1) not null,
+a text not null,
+b text not null,
+c text not null,
+d text not null,
+PRIMARY KEY(quiz_id,diary_id,language_id),
+FOREIGN KEY (language_id) REFERENCES language(language_id),
+FOREIGN KEY (diary_id) REFERENCES diary(diary_id)
+);
+
+CREATE TABLE cash_quiz (
+cash_quiz_id INT NOT NULL,
+diary_id INT NOT NULL,
+user_id varchar(128) NOT NULL,
+question TEXT NOT NULL,
+correct CHAR(1) NOT NULL,
+a TEXT NOT NULL,
+b TEXT NOT NULL,
+c TEXT NOT NULL,
+d TEXT NOT NULL,
+PRIMARY KEY (cash_quiz_id, diary_id),
+FOREIGN KEY (user_id,diary_id) REFERENCES diary(user_id,diary_id)
+);
+
+INSERT INTO language (language_name) VALUES ('日本語'),('英語'),('ポルトガル語'),('スペイン語'),('中国語（簡）'),('中国語（繁）'),('韓国語'),('タガログ語'),
+('ベトナム語'),
+('インドネシア語'),
+('ネパール語');
+=======
+ユーザ : DBmember
+database名 : diaryboard
+password : DiaryBoardpassword
+
+
+team 
+create table team (
+team_id varchar(128)  PRIMARY KEY,
+team_name VARCHAR(128) NOT NULL,
+team_time DATETIME NOT NULL
+);
+
+user
+create table user(
+user_id varchar(128) PRIMARY KEY,
+team_id varchar(128),
+password varchar(64) not null,
+name varchar(32) not null,
+main_language int not null,
+learn_language int not null,
+icon varchar(512) not null,
+FOREIGN KEY (team_id) REFERENCES team(team_id),
+FOREIGN KEY (main_language) REFERENCES language(language_id),
+FOREIGN KEY (learn_language) REFERENCES language(language_id));
+
+language
+create table language(
+language_id int auto_increment primary key,
+language_name varchar(16));
+
+diary
+create table diary(
+diary_id int auto_increment not null,
+user_id varchar(128) not null,
+title varchar(128) not null,
+diary_time datetime not null,
+main_language int not null,
+content text not null,
+PRIMARY KEY(diary_id),
+FOREIGN KEY (user_id) REFERENCES user(user_id),
+FOREIGN KEY (main_language) REFERENCES language(language_id)
+);
+
+quiz
+create table quiz(
+quiz_id int not null,
+diary_id int not null,
+question text not null,
+correct char(1) not null,
+a text not null,
+b text not null,
+c text not null,
+d text not null,
+PRIMARY KEY(quiz_id,diary_id),
+FOREIGN KEY (diary_id) REFERENCES diary(diary_id)
+);
+
+answer
+create table answer(
+user_id varchar(128),
+quiz_id int,
+diary_id int,
+language_id int not null,
+answer_date datetime not null,
+choices char(1) not null,
+judgement int not null,
+PRIMARY KEY(user_id,quiz_id,diary_id),
+FOREIGN KEY (quiz_id,diary_id) REFERENCES quiz(quiz_id,diary_id),
+FOREIGN KEY (language_id) REFERENCES language(language_id)
+);
+
+multilingual_diary
+create table multilingual_diary(
+diary_id int auto_increment,
+user_id varchar(128) not null,
+language_id int not null,
+title varchar(128) not null,
+diary_time datetime not null,
+content text not null,
+primary key(diary_id,user_id,language_id),
+FOREIGN KEY (user_id) REFERENCES user(user_id),
+FOREIGN KEY (language_id) REFERENCES language(language_id)
+);
+
+multilingual_quiz
+create table multilingual_quiz(
+quiz_id int,
+diary_id int ,
+language_id int,
+question text not null,
+correct char(1) not null,
+a text not null,
+b text not null,
+c text not null,
+d text not null,
+PRIMARY KEY(quiz_id,diary_id,language_id),
+FOREIGN KEY (language_id) REFERENCES language(language_id),
+FOREIGN KEY (diary_id) REFERENCES diary(diary_id)
+);
+
+
+INSERT INTO language (language_name) VALUES ('日本語'),('英語'),('ポルトガル語'),('スペイン語'),('中国語（簡）'),('中国語（繁）'),('韓国語'),('タガログ語'),
+('ベトナム語'),
+('インドネシア語'),
+('ネパール語');
+>>>>>>> ff43dc3c (a)
+
+これ使用して
+
+CREATE TABLE user (
+    user_id VARCHAR(128) PRIMARY KEY,
+    team_id VARCHAR(128),
+    password VARCHAR(64) NOT NULL,
+    name VARCHAR(32) NOT NULL,
+    main_language INT NOT NULL,
+    learn_language INT NOT NULL,
+    answer_count INT DEFAULT 0,
+    nickname VARCHAR(32) DEFAULT NULL,
+    FOREIGN KEY (team_id) REFERENCES team(team_id),
+    FOREIGN KEY (main_language) REFERENCES language(language_id),
+    FOREIGN KEY (learn_language) REFERENCES language(language_id)
+);
+
+こっち
+CREATE TABLE diary (
+    diary_id INT AUTO_INCREMENT NOT NULL,
+    user_id VARCHAR(128) NOT NULL,
+    title VARCHAR(128) NOT NULL,
+    diary_time DATETIME NOT NULL,
+    main_language INT NOT NULL,
+    content TEXT NOT NULL,
+    thumbs_up INT DEFAULT 0,
+    love INT DEFAULT 0,
+    laugh INT DEFAULT 0,
+    surprised INT DEFAULT 0,
+    sad INT DEFAULT 0,
+    PRIMARY KEY (diary_id),
+    FOREIGN KEY (user_id) REFERENCES user(user_id),
+    FOREIGN KEY (main_language) REFERENCES language(language_id)
+);
+
+CREATE TABLE answer_set (
+    set_id INT AUTO_INCREMENT NOT NULL,
+    user_id VARCHAR(128) NOT NULL,
+    diary_id INT NOT NULL,
+    answer_time DATETIME NOT NULL,
+    correct_set INT NOT NULL,
+    PRIMARY KEY (set_id),
+    FOREIGN KEY (user_id) REFERENCES user(user_id),
+    FOREIGN KEY (diary_id) REFERENCES diary(diary_id)
+);
