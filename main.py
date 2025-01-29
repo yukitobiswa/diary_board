@@ -412,7 +412,7 @@ async def generate_quiz(category: Category, current_user: UserCreate = Depends(g
             quizzes = make_quiz(result.content, category.category1, category.category2,country,age)
 
             # クイズが生成されなかった場合の処理
-            if not quizzes:
+            if len(quizzes) < 7:
                 return JSONResponse(status_code=404, content={"error": "No quizzes generated."})
             # 既存のキャッシュを削除（同じユーザーの古いキャッシュがある場合）
             session.query(CashQuizTable).filter(CashQuizTable.user_id == current_user.user_id).delete()
@@ -1268,7 +1268,7 @@ async def create_answer_set(current_user: UserCreate = Depends(get_current_activ
                 user_id=current_user.user_id,
                 diary_id=diary_id,
                 answer_time=answer_time,
-                correct_set = (correct_count/5)
+                correct_set = (correct_count)
 
             )
             session.add(new_answer_set)
