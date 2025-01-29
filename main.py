@@ -83,6 +83,8 @@ class UserCreate(BaseModel):
 class TeamCreate(BaseModel):
     team_id : str
     team_name : str
+    country_id: int  
+    age: int  
     
 class DiaryCreate(BaseModel):
     title: str
@@ -345,24 +347,27 @@ async def change_profile(
         raise HTTPException(status_code=500, detail="プロフィール更新中にエラーが発生しました")
 
     return {"message": "プロフィールが正常に更新されました！"}
+
+
 @app.post('/team_register')
 async def team_register(team: TeamCreate):
-    
     try:
         with SessionLocal() as session:
             new_team = TeamTable(
-                team_name = team.team_name,
-                team_id = team.team_id,
-                team_time = datetime.now()
+                team_name=team.team_name,
+                team_id=team.team_id,
+                team_time=datetime.now(),
+                age=team.age,  # age を設定
+                country_id=team.country_id  # country_id を設定
             )
             session.add(new_team)
             session.commit()
-            logging.info(f"User registered successfully: {team.team_id}")
+            logging.info(f"Team registered successfully: {team.team_id}")
         return JSONResponse({"message": "Register Successfully!"})
     except Exception as e:
         logging.error(f"Error during registration: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Error during registration: {str(e)}")
-
+    
 @app.post("/generate_quiz")
 async def generate_quiz(category: Category, current_user: UserCreate = Depends(get_current_active_user)):
     try:
@@ -375,8 +380,9 @@ async def generate_quiz(category: Category, current_user: UserCreate = Depends(g
             # 日記が存在しない場合の処理
             if result is None:
                 return JSONResponse(status_code=404, content={"error": "No diary found."})
+            
             # クイズを生成
-            quizzes = make_quiz(result.content, category.category1, category.category2)
+            quizzes = make_quiz(result.content, category.category1, category.category2, )
 
             # クイズが生成されなかった場合の処理
             if not quizzes:
@@ -571,9 +577,6 @@ async def add_diary(diary: DiaryCreate, current_user: UserCreate = Depends(get_c
             raise e
     
     return {"status": True, "message": "Diary added successfully!"}
-
-
-import json
 
 @app.get("/get_diaries")
 async def get_diaries(current_user: UserCreate = Depends(get_current_active_user)):
