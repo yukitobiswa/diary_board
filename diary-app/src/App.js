@@ -22,6 +22,7 @@ import Group from './components/Group';
 import Log from './components/log';
 import StartPage from './components/StartPage';
 import Ranking from './components/Ranking';
+import Quiz_log from './components/Quiz_log';
 
 // This is a main App component
 function App() {
@@ -51,6 +52,7 @@ function App() {
           <Route path="/register" element={<Group />} />
           <Route path="/StartPage" element={<StartPage />} />
           <Route path="/Ranking" element={<Ranking/>}/>
+          <Route path='/Quiz_Log' element={<Quiz_Log/>} />
         </Routes>
       </div>
     </Router>

@@ -24,7 +24,7 @@ from fastapi import Request
 import asyncio
 from fastapi.responses import JSONResponse
 # Database URL
-DATABASE_URL = "mysql+pymysql://root:6213ryoy@127.0.0.1/demo"
+DATABASE_URL = "mysql+pymysql://root:yuki0108@127.0.0.1/demo"
 # FastAPI app
 app = FastAPI()
 logger = logging.getLogger(__name__)
@@ -632,6 +632,60 @@ async def get_diaries(current_user: UserCreate = Depends(get_current_active_user
             for row in result
         ]
     })
+
+#自身の日記を取得する
+@app.get("/get_my_diary")
+async def get_my_diary(current_user: UserCreate = Depends(get_current_active_user)):
+    team_id = current_user.team_id  # 現在のユーザーの team_id を取得
+    main_language = current_user.main_language  # 現在のユーザーの main_language を取得
+    user_id = current_user.user_id  # 現在のユーザーの user_id を取得
+
+    with SessionLocal() as session:
+    # multilingual_diaryテーブルから指定したユーザーの日記を取得し、翻訳情報を結合
+        result = (
+            session.query(
+                UserTable.name,  # UserTableからuser_nameを取得
+                MDiaryTable.diary_id,
+                MDiaryTable.title,
+                MDiaryTable.content,
+                MDiaryTable.diary_time,
+                DiaryTable.thumbs_up,  # 各リアクションカラムを追加
+                DiaryTable.love,
+                DiaryTable.laugh,
+                DiaryTable.surprised,
+                DiaryTable.sad,
+            )
+            .join(DiaryTable, DiaryTable.diary_id == MDiaryTable.diary_id)  # DiaryTableと結合
+            .join(UserTable, UserTable.user_id == MDiaryTable.user_id)  # UserTableと結合
+            .filter(UserTable.team_id == team_id)  # チームIDでフィルタ
+            .filter(MDiaryTable.language_id == main_language)  # main_languageでフィルタ
+            .filter(MDiaryTable.user_id == user_id)  # user_idでフィルタ
+            .order_by(DiaryTable.diary_time.asc())  # 日記の時間で並び替え
+            .all()
+        )
+
+    # 結果を整形して返す
+    return JSONResponse(content={
+        "team_id": team_id,
+        "diaries": [
+            {
+                "user_name": row.name,
+                "diary_id": row.diary_id,
+                "title": row.title,
+                "content": row.content,
+                "diary_time": row.diary_time.strftime('%Y-%m-%d %H:%M:%S'),
+                "reactions": {
+                    "thumbs_up": row.thumbs_up,
+                    "love": row.love,
+                    "laugh": row.laugh,
+                    "surprised": row.surprised,
+                    "sad": row.sad,
+                }
+            }
+            for row in result
+        ]
+    })
+
 
 @app.get("/get_quizzes")
 async def get_quizzes(current_user: UserCreate = Depends(get_current_active_user)):

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-const HistoryPage = () => {
+const Quiz_Log = () => {
   const [messages, setMessages] = useState([]);
   const [openDiaryId, setOpenDiaryId] = useState(null); // 開かれた日記IDを管理
   const navigate = useNavigate();
@@ -180,4 +180,4 @@ const HistoryPage = () => {
   );
 };
 
-export default HistoryPage;
+export default Quiz_Log;
