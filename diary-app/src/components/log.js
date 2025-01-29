@@ -62,7 +62,7 @@ const HistoryPage = () => {
     };
 
     verifyToken(); // マウント時にトークンを確認
-  }, [fetchDiaries, navigate]);
+  }, []); // 依存関係が空のため、コンポーネントのマウント時にのみ実行
 
   // アコーディオンを開く関数
   const toggleDiary = (diaryId) => {
