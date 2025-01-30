@@ -1295,6 +1295,7 @@ async def create_answer_set(current_user: UserCreate = Depends(get_current_activ
     except Exception as e:
         logging.error(f"Error during creating answer: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Error during creating answer: {str(e)}")
+   
 @app.post("/update_answer")
 async def update_answer(current_user: UserCreate = Depends(get_current_active_user)):
     try:
@@ -1305,11 +1306,15 @@ async def update_answer(current_user: UserCreate = Depends(get_current_active_us
             
             # 正解数をカウント
             correct_count = sum(1 for answer in results if answer.judgement == 1)
-            print(correct_count)
-            print(current_user.answer_count)
-            # ユーザーの answer_count を更新
-            current_user.answer_count += correct_count
-            print(current_user.answer_count)
+
+            # 既存のユーザー情報を取得
+            existing_user = session.query(UserTable).filter(UserTable.user_id == current_user.user_id).first()
+            if not existing_user:
+                raise HTTPException(status_code=404, detail="ユーザーが見つかりません")
+
+            # `answer_count` を更新
+            existing_user.answer_count += correct_count
+
             # 称号の計算
             titles = [
                 (0, "駆け出しのクイズ好き"),
@@ -1328,20 +1333,18 @@ async def update_answer(current_user: UserCreate = Depends(get_current_active_us
             # 現在の称号を判定
             new_title = None
             for threshold, title in titles:
-                if current_user.answer_count >= threshold:
+                if existing_user.answer_count >= threshold:
                     new_title = title
 
-            # 既存の称号を取得
-            existing_user = session.query(UserTable).filter(UserTable.user_id == current_user.user_id).first()
-
-            # 称号の更新があったかを判定
-            is_title_updated = existing_user.nickname != new_title
+            # 称号の更新が必要かチェック
+            is_title_updated = (existing_user.nickname or "") != new_title
 
             # 変更がある場合のみ更新
             if is_title_updated:
                 existing_user.nickname = new_title
-                session.merge(existing_user)
-                session.commit()
+
+            # データベースに反映
+            session.commit()
 
             # 更新後の情報を取得
             updated_user = session.query(UserTable).filter(UserTable.user_id == current_user.user_id).first()
@@ -1349,9 +1352,9 @@ async def update_answer(current_user: UserCreate = Depends(get_current_active_us
         # 正解数、更新後の answer_count、および称号を返す
         return JSONResponse(content={
             "correct_count": correct_count,
-            "updated_answer_count": current_user.answer_count,
-            "updated_title": updated_user.nickname,  # 更新された称号を返す
-            "is_title_updated": is_title_updated  # 称号が更新されたかどうかをフラグで返す
+            "updated_answer_count": updated_user.answer_count,
+            "updated_title": updated_user.nickname,
+            "is_title_updated": is_title_updated
         })
 
     except Exception as e:

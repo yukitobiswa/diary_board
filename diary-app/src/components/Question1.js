@@ -1,37 +1,40 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 
 const Question1 = () => {
-  const { diaryId } = useParams(); // URLからdiaryIdを取得
-  const [quiz, setQuiz] = useState(null); // クイズデータを保存する状態
+  const { diaryId } = useParams();
+  const [quiz, setQuiz] = useState(null);
   const [selectedOption, setSelectedOption] = useState(null);
   const [selectAnswer, setSelectAnswer] = useState(null);
-  const [isAlreadyAnswered, setIsAlreadyAnswered] = useState(null); // クイズが既に回答済みかを保存
+  const [isAlreadyAnswered, setIsAlreadyAnswered] = useState(null);
   const navigate = useNavigate();
+  const isFetched = useRef(false); // 二重実行を防ぐフラグ
 
-  // クイズが既に回答済みかを確認する関数
+  // クイズが既に回答済みかを確認
   const alreadyQuiz = async () => {
     try {
-      const token = localStorage.getItem("access_token"); // トークンを取得
+      const token = localStorage.getItem("access_token");
       const response = await axios.get(`http://localhost:8000/already_quiz/${diaryId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log("Already quiz response:", response.data);
-      return response.data.already; // true なら既に回答済み、false なら未回答
+      return response.data.already;
     } catch (err) {
       console.error("既存クイズ確認エラー:", err);
-      return false; // エラー時に false を返して二重 alert を防ぐ
+      return false; // エラー時に false を返す
     }
   };
 
-  // クイズを取得する関数
+  // クイズを取得
   const fetchQuiz = async () => {
+    if (isFetched.current) return; // 既に実行済みならスキップ
+    isFetched.current = true;
+
     if (isAlreadyAnswered !== null) return; // すでにチェック済みなら再実行しない
 
     try {
       const already = await alreadyQuiz();
-      setIsAlreadyAnswered(already); // 状態を保存
+      setIsAlreadyAnswered(already);
 
       if (already) {
         alert("この日記のクイズは既に回答済みです。");
@@ -44,14 +47,12 @@ const Question1 = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      console.log(response);
       const quizzes = response.data.quizzes;
-      if (quizzes && quizzes.length > 0) {
-        // quiz_idが最小のクイズを取得
+      if (quizzes?.length > 0) {
         const minQuiz = quizzes.reduce((prev, curr) =>
           prev.quiz_id < curr.quiz_id ? prev : curr
         );
-        setQuiz(minQuiz); // 最小のクイズを設定
+        setQuiz(minQuiz);
       } else {
         console.error("No quizzes found");
       }
@@ -65,14 +66,14 @@ const Question1 = () => {
   }, [diaryId]);
 
   const handleOptionChange = (key) => {
-    setSelectedOption(key); // 選択肢を状態にセット
+    setSelectedOption(key);
     setSelectAnswer(key);
   };
 
   const submitAnswer = async () => {
     if (selectAnswer == null) {
       alert("答えを選択してください。");
-      return false; // 選択されていない場合は false を返す
+      return false;
     }
 
     const token = localStorage.getItem("access_token");
@@ -82,30 +83,28 @@ const Question1 = () => {
       choices: selectAnswer,
     };
 
-    console.log("送信するデータ:", answerData); // デバッグ用にデータを表示
     try {
       await axios.post("http://localhost:8000/create_answer", answerData, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log("答えが正常に送信されました");
-      return true; // 成功した場合は true を返す
+      return true;
     } catch (err) {
       console.error("クイズの送信エラー:", err);
-      return false; // エラーが発生した場合は false を返す
+      return false;
     }
   };
 
   const handleSubmit = async () => {
     const success = await submitAnswer();
     if (success) {
-      navigate(`/Answer1/${quiz.diary_id}`, { state: { selectedOption } }); // 選択されたオプションに基づいて次の画面へ遷移
+      navigate(`/Answer1/${quiz.diary_id}`, { state: { selectedOption } });
     } else {
       alert("答えを選択してください。");
     }
   };
 
   if (!quiz) {
-    return <div>Loading...</div>; // クイズデータが取得されるまでローディング表示
+    return <div>Loading...</div>;
   }
 
   return (
@@ -119,7 +118,7 @@ const Question1 = () => {
               id={`option-${index}`}
               name="quiz"
               value={option}
-              onChange={() => handleOptionChange(key)} // オプション変更時に状態を更新
+              onChange={() => handleOptionChange(key)}
             />
             <label htmlFor={`option-${index}`} style={styles.label}>
               {key.toUpperCase()}. {option}
@@ -155,18 +154,18 @@ const styles = {
   label: {
     marginLeft: "10px",
     flexGrow: 1,
-    color: "#333", // ラベルの色
+    color: "#333",
   },
   submitButton: {
     marginTop: "30px",
-    backgroundColor: "#4CAF50", // 緑色のボタン
+    backgroundColor: "#4CAF50",
     color: "#fff",
     border: "none",
     padding: "15px 30px",
     borderRadius: "10px",
     cursor: "pointer",
     fontSize: "16px",
-    transition: "background-color 0.3s", // ホバー時の変化を滑らかに
+    transition: "background-color 0.3s",
   },
 };
 
