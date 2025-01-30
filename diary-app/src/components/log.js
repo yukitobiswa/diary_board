@@ -22,15 +22,19 @@ const HistoryPage = () => {
 
       // レスポンスのデータを整形してメッセージリストに格納
       const diaryData = response.data.diaries;
-      const formattedMessages = diaryData.map((diary) => ({
-        user_name: diary.user_name,
-        diary_id: diary.diary_id,
-        title: diary.title,
-        content: diary.content,
-        diary_time: diary.diary_time,
-        reactions: diary.reactions || {},
-      }));
-      setMessages(formattedMessages);
+      if (diaryData.length === 0) {
+        setMessages([]);
+      } else {
+        const formattedMessages = diaryData.map((diary) => ({
+          user_name: diary.user_name,
+          diary_id: diary.diary_id,
+          title: diary.title,
+          content: diary.content,
+          diary_time: diary.diary_time,
+          reactions: diary.reactions || {},
+        }));
+        setMessages(formattedMessages);
+      }
     } catch (error) {
       console.error("Error fetching diaries:", error);
     }
@@ -73,16 +77,9 @@ const HistoryPage = () => {
     }
   };
 
-  // 詳細を閉じる関数
-  const closeDiary = () => {
-    setOpenDiaryId(null); // 詳細を閉じる
-  };
-
   return (
     <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-      <h2 style={{ textAlign: "center" }}>履歴ページ</h2>
-
-      {/* 戻るボタン */}
+      <h2 style={{ textAlign: "center" }}>日記履歴</h2>
       <button
         onClick={() => navigate("/Chat")}
         style={{
@@ -97,85 +94,49 @@ const HistoryPage = () => {
       >
         戻る
       </button>
-
-      {/* メッセージ履歴 */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",  // 縦に並べる
-          justifyContent: "center",  // 中央に配置
-          alignItems: "center",  // 水平方向も中央に配置
-          gap: "20px",  // 題名間の隙間
-          marginTop: "30px",  // 上部の隙間
-        }}
-      >
-        {messages.map((message) => (
-          <div
-            key={message.diary_id}
-            style={{
-              padding: "15px",
-              backgroundColor: "#fff",
-              border: "1px solid #ccc",
-              borderRadius: "10px",
-              boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
-              width: "80%",  // 横幅を80%に設定
-              textAlign: "center",  // 題名を中央揃え
-            }}
-          >
-            <h4
-              style={{
-                cursor: "pointer",
-                color: "#007bff",
-                textDecoration: "underline",
-              }}
-              onClick={() => toggleDiary(message.diary_id)} // アコーディオンを開閉
-            >
-              {message.title}
-            </h4>
-            {/* 題名下に日時を表示 */}
-            <span
-              style={{
-                fontSize: "14px",
-                color: "#888",
-                display: "block",  // 改行して下に表示
-                marginBottom: "10px",  // 日時と題名の間に隙間を入れる
-              }}
-            >
-              {new Date(message.diary_time).toLocaleString()} {/* 日時を表示 */}
-            </span>
-
-            {/* アコーディオンで開く日記内容 */}
-            {openDiaryId === message.diary_id && (
+      {messages.length === 0 ? (
+        <p style={{ textAlign: "center", color: "#777", marginTop: "20px" }}>
+          まだ履歴がありません
+        </p>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: "20px", marginTop: "30px" }}>
+          {messages.map((message) => (
+            <div key={message.diary_id} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
               <div
                 style={{
-                  marginTop: "10px",
                   padding: "15px",
-                  backgroundColor: "#f7f7f7",
-                  border: "1px solid #ddd",
-                  borderRadius: "5px",
-                  boxShadow: "0 2px 3px rgba(0,0,0,0.1)",
-                  position: "relative",  // バツボタンのために相対位置
+                  backgroundColor: "#fff",
+                  border: "1px solid #ccc",
+                  borderRadius: "10px",
+                  boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
+                  cursor: "pointer",
+                  textAlign: "center",
+                  fontWeight: "bold",
+                  color: "#007bff",
+                  textDecoration: "underline",
                 }}
+                onClick={() => toggleDiary(message.diary_id)}
               >
+                {message.title}
+              </div>
+              {openDiaryId === message.diary_id && (
                 <div
                   style={{
-                    position: "absolute",
-                    top: "10px",
-                    right: "10px",
-                    cursor: "pointer",
-                    fontSize: "18px",
-                    color: "#999",
+                    marginTop: "10px",
+                    padding: "15px",
+                    backgroundColor: "#f7f7f7",
+                    border: "1px solid #ddd",
+                    borderRadius: "5px",
+                    boxShadow: "0 2px 3px rgba(0,0,0,0.1)",
                   }}
-                  onClick={closeDiary} // バツボタンで詳細を閉じる
                 >
-                  &times;
+                  <p><strong>内容:</strong> {message.content}</p>
                 </div>
-                <p>{message.content}</p>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

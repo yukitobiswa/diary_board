@@ -22,7 +22,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import Union
 from fastapi import Request
 import asyncio
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse,StreamingResponse
+from gtts import gTTS
+import io
+import zipfile
 # Database URL
 DATABASE_URL = "mysql+pymysql://root:6213ryoy@127.0.0.1/demo"
 # FastAPI app
@@ -796,8 +799,7 @@ async def get_different_quiz(diary_id: int,current_user: UserCreate = Depends(ge
 
             if not quiz_results:
                 logging.warning("No quizzes found.")
-            else:
-                logging.info(f"Retrieved quizzes: {quiz_results}")
+
 
             quizzes_data = []
             for q in quiz_results:
@@ -819,8 +821,7 @@ async def get_different_quiz(diary_id: int,current_user: UserCreate = Depends(ge
                         "choices": choices
                     })
                     
-            # quizzes_dataの内容をログに出力
-            logging.info(f"Quizzes data collected: {quizzes_data}")
+           
 
             if not quizzes_data:
                 logging.warning("No quizzes found.")
@@ -832,7 +833,328 @@ async def get_different_quiz(diary_id: int,current_user: UserCreate = Depends(ge
         logging.error(f"Error during getting quiz: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Error during getting quiz: {str(e)}")
     raise HTTPException(status_code=400, detail=f"Error during getting quiz: {str(e)}")   
-        
+
+
+@app.get("/get_quiz_audio1/{diary_id}")
+async def get_quiz_audio(diary_id: int, current_user: UserCreate = Depends(get_current_active_user)):
+    try:
+        language_map = {
+            1: "ja",  # 日本語
+            2: "en",  # 英語
+            3: "pt",  # ポルトガル語
+            4: "es",  # スペイン語
+            5: "zh-CN",  # 簡体中文
+            6: "zh-TW",  # 繁体中文
+            7: "ko",  # 韓国語
+            8: "tl",  # タガログ語
+            9: "vi",  # ベトナム語
+            10: "id",  # インドネシア語
+            11: "ne",  # ネパール語
+        }
+        with SessionLocal() as session:
+            quiz_results = (
+                session.query(MQuizTable)
+                .filter(MQuizTable.diary_id == diary_id)
+                .filter(MQuizTable.language_id == current_user.learn_language)
+                .order_by((MQuizTable.quiz_id.asc()))
+                .first()
+            )
+            if not quiz_results:
+                logging.warning("No quizzes found.")
+                return {"error": "クイズが見つかりませんでした"}
+
+            logging.info(f"Retrieved quiz: {quiz_results}")
+
+            # Audio choice mapping
+            choices = {
+                1: quiz_results.a,
+                2: quiz_results.b,
+                3: quiz_results.c,
+                4: quiz_results.d,
+            }
+
+            # Create a zip file in memory
+            zip_buffer = io.BytesIO()
+            with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+                for i in range(1, 5):
+                    text = choices[i]
+                    tts = gTTS(text=text, lang=language_map[current_user.learn_language])
+                    audio_buffer = io.BytesIO()
+                    tts.write_to_fp(audio_buffer)
+                    audio_buffer.seek(0)
+
+                    # Save each choice as a separate file with the desired names
+                    choice_filename = chr(96 + i) + ".mp3"  # 'a.mp3', 'b.mp3', 'c.mp3', 'd.mp3'
+                    
+                    # Log the file name before saving
+                    logging.info(f"Generating audio for choice {chr(96 + i)}: {choice_filename}, size: {len(audio_buffer.getvalue())} bytes")
+                    
+                    zip_file.writestr(choice_filename, audio_buffer.read())
+
+            zip_buffer.seek(0)
+
+            return StreamingResponse(zip_buffer, media_type="application/zip", headers={"Content-Disposition": "attachment; filename=quiz_audio.zip"})
+
+    except Exception as e:
+        logging.error(f"Error generating quiz audio: {e}")
+        return {"error": "音声生成に失敗しました"}
+
+@app.get("/get_quiz_audio2/{diary_id}")
+async def get_quiz_audio(diary_id: int, current_user: UserCreate = Depends(get_current_active_user)):
+    try:
+        language_map = {
+            1: "ja",  # 日本語
+            2: "en",  # 英語
+            3: "pt",  # ポルトガル語
+            4: "es",  # スペイン語
+            5: "zh-CN",  # 簡体中文
+            6: "zh-TW",  # 繁体中文
+            7: "ko",  # 韓国語
+            8: "tl",  # タガログ語
+            9: "vi",  # ベトナム語
+            10: "id",  # インドネシア語
+            11: "ne",  # ネパール語
+        }
+        with SessionLocal() as session:
+            quiz_results = (
+                session.query(MQuizTable)
+                .filter(MQuizTable.diary_id == diary_id)
+                .filter(MQuizTable.language_id == current_user.learn_language)
+                .order_by((MQuizTable.quiz_id.asc()))
+                .offset(1)
+                .first()
+            )
+            if not quiz_results:
+                logging.warning("No quizzes found.")
+                return {"error": "クイズが見つかりませんでした"}
+
+            logging.info(f"Retrieved quiz: {quiz_results}")
+
+            # Audio choice mapping
+            choices = {
+                1: quiz_results.a,
+                2: quiz_results.b,
+                3: quiz_results.c,
+                4: quiz_results.d,
+            }
+
+            # Create a zip file in memory
+            zip_buffer = io.BytesIO()
+            with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+                for i in range(1, 5):
+                    text = choices[i]
+                    tts = gTTS(text=text, lang=language_map[current_user.learn_language])
+                    audio_buffer = io.BytesIO()
+                    tts.write_to_fp(audio_buffer)
+                    audio_buffer.seek(0)
+
+                    # Save each choice as a separate file with the desired names
+                    choice_filename = chr(96 + i) + ".mp3"  # 'a.mp3', 'b.mp3', 'c.mp3', 'd.mp3'
+                    
+                    # Log the file name before saving
+                    logging.info(f"Generating audio for choice {chr(96 + i)}: {choice_filename}, size: {len(audio_buffer.getvalue())} bytes")
+                    
+                    zip_file.writestr(choice_filename, audio_buffer.read())
+
+            zip_buffer.seek(0)
+
+            return StreamingResponse(zip_buffer, media_type="application/zip", headers={"Content-Disposition": "attachment; filename=quiz_audio.zip"})
+
+    except Exception as e:
+        logging.error(f"Error generating quiz audio: {e}")
+        return {"error": "音声生成に失敗しました"}
+@app.get("/get_quiz_audio3/{diary_id}")
+async def get_quiz_audio(diary_id: int, current_user: UserCreate = Depends(get_current_active_user)):
+    try:
+        language_map = {
+            1: "ja",  # 日本語
+            2: "en",  # 英語
+            3: "pt",  # ポルトガル語
+            4: "es",  # スペイン語
+            5: "zh-CN",  # 簡体中文
+            6: "zh-TW",  # 繁体中文
+            7: "ko",  # 韓国語
+            8: "tl",  # タガログ語
+            9: "vi",  # ベトナム語
+            10: "id",  # インドネシア語
+            11: "ne",  # ネパール語
+        }
+        with SessionLocal() as session:
+            quiz_results = (
+                session.query(MQuizTable)
+                .filter(MQuizTable.diary_id == diary_id)
+                .filter(MQuizTable.language_id == current_user.learn_language)
+                .order_by((MQuizTable.quiz_id.asc()))
+                .offset(2)
+                .first()
+            )
+            if not quiz_results:
+                logging.warning("No quizzes found.")
+                return {"error": "クイズが見つかりませんでした"}
+
+            logging.info(f"Retrieved quiz: {quiz_results}")
+
+            # Audio choice mapping
+            choices = {
+                1: quiz_results.a,
+                2: quiz_results.b,
+                3: quiz_results.c,
+                4: quiz_results.d,
+            }
+
+            # Create a zip file in memory
+            zip_buffer = io.BytesIO()
+            with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+                for i in range(1, 5):
+                    text = choices[i]
+                    tts = gTTS(text=text, lang=language_map[current_user.learn_language])
+                    audio_buffer = io.BytesIO()
+                    tts.write_to_fp(audio_buffer)
+                    audio_buffer.seek(0)
+
+                    # Save each choice as a separate file with the desired names
+                    choice_filename = chr(96 + i) + ".mp3"  # 'a.mp3', 'b.mp3', 'c.mp3', 'd.mp3'
+                    
+                    # Log the file name before saving
+                    logging.info(f"Generating audio for choice {chr(96 + i)}: {choice_filename}, size: {len(audio_buffer.getvalue())} bytes")
+                    
+                    zip_file.writestr(choice_filename, audio_buffer.read())
+
+            zip_buffer.seek(0)
+
+            return StreamingResponse(zip_buffer, media_type="application/zip", headers={"Content-Disposition": "attachment; filename=quiz_audio.zip"})
+
+    except Exception as e:
+        logging.error(f"Error generating quiz audio: {e}")
+        return {"error": "音声生成に失敗しました"}
+@app.get("/get_quiz_audio4/{diary_id}")
+async def get_quiz_audio(diary_id: int, current_user: UserCreate = Depends(get_current_active_user)):
+    try:
+        language_map = {
+            1: "ja",  # 日本語
+            2: "en",  # 英語
+            3: "pt",  # ポルトガル語
+            4: "es",  # スペイン語
+            5: "zh-CN",  # 簡体中文
+            6: "zh-TW",  # 繁体中文
+            7: "ko",  # 韓国語
+            8: "tl",  # タガログ語
+            9: "vi",  # ベトナム語
+            10: "id",  # インドネシア語
+            11: "ne",  # ネパール語
+        }
+        with SessionLocal() as session:
+            quiz_results = (
+                session.query(MQuizTable)
+                .filter(MQuizTable.diary_id == diary_id)
+                .filter(MQuizTable.language_id == current_user.learn_language)
+                .order_by((MQuizTable.quiz_id.asc()))
+                .offset(3)
+                .first()
+            )
+            if not quiz_results:
+                logging.warning("No quizzes found.")
+                return {"error": "クイズが見つかりませんでした"}
+
+            logging.info(f"Retrieved quiz: {quiz_results}")
+
+            # Audio choice mapping
+            choices = {
+                1: quiz_results.a,
+                2: quiz_results.b,
+                3: quiz_results.c,
+                4: quiz_results.d,
+            }
+
+            # Create a zip file in memory
+            zip_buffer = io.BytesIO()
+            with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+                for i in range(1, 5):
+                    text = choices[i]
+                    tts = gTTS(text=text, lang=language_map[current_user.learn_language])
+                    audio_buffer = io.BytesIO()
+                    tts.write_to_fp(audio_buffer)
+                    audio_buffer.seek(0)
+
+                    # Save each choice as a separate file with the desired names
+                    choice_filename = chr(96 + i) + ".mp3"  # 'a.mp3', 'b.mp3', 'c.mp3', 'd.mp3'
+                    
+                    # Log the file name before saving
+                    logging.info(f"Generating audio for choice {chr(96 + i)}: {choice_filename}, size: {len(audio_buffer.getvalue())} bytes")
+                    
+                    zip_file.writestr(choice_filename, audio_buffer.read())
+
+            zip_buffer.seek(0)
+
+            return StreamingResponse(zip_buffer, media_type="application/zip", headers={"Content-Disposition": "attachment; filename=quiz_audio.zip"})
+
+    except Exception as e:
+        logging.error(f"Error generating quiz audio: {e}")
+        return {"error": "音声生成に失敗しました"}
+@app.get("/get_quiz_audio5/{diary_id}")
+async def get_quiz_audio(diary_id: int, current_user: UserCreate = Depends(get_current_active_user)):
+    try:
+        language_map = {
+            1: "ja",  # 日本語
+            2: "en",  # 英語
+            3: "pt",  # ポルトガル語
+            4: "es",  # スペイン語
+            5: "zh-CN",  # 簡体中文
+            6: "zh-TW",  # 繁体中文
+            7: "ko",  # 韓国語
+            8: "tl",  # タガログ語
+            9: "vi",  # ベトナム語
+            10: "id",  # インドネシア語
+            11: "ne",  # ネパール語
+        }
+        with SessionLocal() as session:
+            quiz_results = (
+                session.query(MQuizTable)
+                .filter(MQuizTable.diary_id == diary_id)
+                .filter(MQuizTable.language_id == current_user.learn_language)
+                .order_by((MQuizTable.quiz_id.asc()))
+                .offset(4)
+                .first()
+            )
+            if not quiz_results:
+                logging.warning("No quizzes found.")
+                return {"error": "クイズが見つかりませんでした"}
+
+            logging.info(f"Retrieved quiz: {quiz_results}")
+
+            # Audio choice mapping
+            choices = {
+                1: quiz_results.a,
+                2: quiz_results.b,
+                3: quiz_results.c,
+                4: quiz_results.d,
+            }
+
+            # Create a zip file in memory
+            zip_buffer = io.BytesIO()
+            with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+                for i in range(1, 5):
+                    text = choices[i]
+                    tts = gTTS(text=text, lang=language_map[current_user.learn_language])
+                    audio_buffer = io.BytesIO()
+                    tts.write_to_fp(audio_buffer)
+                    audio_buffer.seek(0)
+
+                    # Save each choice as a separate file with the desired names
+                    choice_filename = chr(96 + i) + ".mp3"  # 'a.mp3', 'b.mp3', 'c.mp3', 'd.mp3'
+                    
+                    # Log the file name before saving
+                    logging.info(f"Generating audio for choice {chr(96 + i)}: {choice_filename}, size: {len(audio_buffer.getvalue())} bytes")
+                    
+                    zip_file.writestr(choice_filename, audio_buffer.read())
+
+            zip_buffer.seek(0)
+
+            return StreamingResponse(zip_buffer, media_type="application/zip", headers={"Content-Disposition": "attachment; filename=quiz_audio.zip"})
+
+    except Exception as e:
+        logging.error(f"Error generating quiz audio: {e}")
+        return {"error": "音声生成に失敗しました"}
 
 @app.get("/get_judgement1/{diary_id}")
 async def get_judgement(diary_id: int, current_user: UserCreate = Depends(get_current_active_user)):
@@ -1327,7 +1649,7 @@ async def update_answer(current_user: UserCreate = Depends(get_current_active_us
                 (70, "知識ヒーロー"),
                 (80, "クイズのエリート"),
                 (90, "知識の天才"),
-                (100, "クイズの伝説"),
+                (100, "クイズの神"),
             ]
 
             # 現在の称号を判定
