@@ -149,34 +149,58 @@ const ChatApp = () => {
     }
   };
 
+  // const sendAndAddDiary = async () => {
+  //   if (newMessage.trim() === "" || newTitle.trim() === "") return;
+  //   const newDiary = {
+  //     title: newTitle,
+  //     content: newMessage,
+  //   };
+  //   try {
+  //     const response = await axios.post("http://localhost:8000/add_diary", newDiary, {
+  //       headers: {
+  //         Authorization: `Bearer ${tokenRef.current}`,
+  //       },
+  //     });
+  //     if (response.data.status === false) {
+  //       alert(response.data.message);
+  //       return;
+  //     }
+  //     if (response.data.status === true) {
+  //       fetchDiaries(); // Fetch diaries after adding a new diary
+  //       setNewMessage("");
+  //       setNewTitle("");
+  //       alert("Diary added successfully!");
+  //       navigate("/Quiz1");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error posting diary:", error);
+  //   }
+  // };
+  const [loading, setLoading] = useState(false); // ロード状態を管理
+
   const sendAndAddDiary = async () => {
     if (newMessage.trim() === "" || newTitle.trim() === "") return;
-    const newDiary = {
-      title: newTitle,
-      content: newMessage,
-    };
+    setLoading(true);
+    const newDiary = { title: newTitle, content: newMessage };
     try {
       const response = await axios.post("http://localhost:8000/add_diary", newDiary, {
-        headers: {
-          Authorization: `Bearer ${tokenRef.current}`,
-        },
+        headers: { Authorization: `Bearer ${tokenRef.current}` },
       });
-      if (response.data.status === false) {
-        alert(response.data.message);
-        return;
-      }
-      if (response.data.status === true) {
-        fetchDiaries(); // Fetch diaries after adding a new diary
+      if (response.data.status) {
+        fetchDiaries();
         setNewMessage("");
         setNewTitle("");
         alert("Diary added successfully!");
         navigate("/Quiz1");
+      } else {
+        alert(response.data.message);
       }
     } catch (error) {
       console.error("Error posting diary:", error);
+    } finally {
+      setLoading(false);
     }
   };
-
   const handleQuizClick = async (diaryId) => {
     try {
       const response = await axios.get(`http://localhost:8000/get_same_quiz/${diaryId}`, {
@@ -276,7 +300,7 @@ const ChatApp = () => {
       </div>
       {/* Main Content */}
       <div style={{ marginLeft: menuOpen ? "250px" : "0", flex: 1, padding: "10px" }}>
-        <div style={{ maxWidth: "600px", margin: "50px auto 0" }}>
+        <div style={{ maxWidth: "6000px", margin: "50px auto 0" }}>
           <h2 style={{ textAlign: "center" }}>みんなと日記を共有しよう！</h2>
           {/* Display Diaries */}
           <div
@@ -389,20 +413,21 @@ const ChatApp = () => {
               rows={1}
             />
           </div>
-          <button
-            onClick={sendAndAddDiary}
-            style={{
-              width: "100%",
-              padding: "10px",
-              borderRadius: "5px",
-              backgroundColor: "#4CAF50",
-              color: "#fff",
-              border: "none",
-              cursor: "pointer",
-            }}
-          >
-            日記を投稿する
-          </button>
+            <button
+              onClick={sendAndAddDiary}
+              disabled={loading}
+              style={{
+                width: "100%",
+                padding: "10px",
+                borderRadius: "5px",
+                backgroundColor: loading ? "#ccc" : "#4CAF50",
+                color: "#fff",
+                border: "none",
+                cursor: loading ? "not-allowed" : "pointer",
+              }}
+            >
+              {loading ? "日記投稿中..." : "日記を投稿する"}
+            </button>
         </div>
       </div>
     </div>

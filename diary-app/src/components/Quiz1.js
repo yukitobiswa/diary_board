@@ -6,12 +6,13 @@ const QuizCategorySelector = () => {
   const categories = [
     { id: 1, label: "culture" },
     { id: 2, label: "language" },
-    { id: 3, label: "random" },
+    { id: 3, label: "ranking" },
     { id: 4, label: "myself" },
   ];
 
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   // カテゴリを選択・解除する関数
@@ -28,7 +29,6 @@ const QuizCategorySelector = () => {
         setError("カテゴリは2つまで選択可能です。");
       }
     }
-    console.log("Currently selected categories:", selectedCategories); // デバッグログ
   };
 
   // クイズ開始時のリクエスト送信
@@ -38,17 +38,19 @@ const QuizCategorySelector = () => {
       return;
     }
 
+    setIsLoading(true); // クイズ生成開始
+    setError(""); // 以前のエラーをクリア
+
     const newQuizRequest = {
       category1: Number(selectedCategories[0]),
       category2: Number(selectedCategories[1]),
     };
 
-    console.log("Request payload:", newQuizRequest); // デバッグ用リクエストデータの出力
-
     try {
       const token = localStorage.getItem("access_token");
       if (!token) {
         alert("ログインセッションが無効です。もう一度ログインしてください。");
+        setIsLoading(false);
         return;
       }
 
@@ -63,20 +65,18 @@ const QuizCategorySelector = () => {
         }
       );
 
-      console.log("API Response:", response.data); // APIからのレスポンスを出力
       alert(`クイズを開始します: ${selectedCategories.join(", ")}`);
       navigate("/Quiz2");
     } catch (error) {
       console.error("クイズ生成エラー:", error);
 
-      // エラーレスポンスの処理
       if (error.response) {
-        console.error("Error Response:", error.response);
         setError(`エラーが発生しました: ${error.response.data.error || error.response.data.message}`);
       } else {
-        console.error("Error Details:", error.message);
         setError(`エラーが発生しました: ${error.message}`);
       }
+    } finally {
+      setIsLoading(false); // クイズ生成終了
     }
   };
 
@@ -101,6 +101,7 @@ const QuizCategorySelector = () => {
           <button
             key={category.id}
             onClick={() => handleSelect(category.id)}
+            disabled={isLoading}
             style={{
               display: "block",
               margin: "10px auto",
@@ -111,8 +112,9 @@ const QuizCategorySelector = () => {
               borderRadius: "8px",
               color: selectedCategories.includes(category.id) ? "#FFF" : "#FFA500",
               fontSize: "16px",
-              cursor: "pointer",
+              cursor: isLoading ? "not-allowed" : "pointer",
               transition: "background-color 0.3s, color 0.3s",
+              opacity: isLoading ? 0.6 : 1,
             }}
           >
             {category.label}
@@ -121,19 +123,20 @@ const QuizCategorySelector = () => {
       </div>
       <button
         onClick={handleQuizStart}
+        disabled={isLoading}
         style={{
           marginTop: "20px",
           padding: "15px 30px",
-          backgroundColor: "#4CAF50",
+          backgroundColor: isLoading ? "#ccc" : "#4CAF50",
           color: "#FFF",
           border: "none",
           borderRadius: "8px",
           fontSize: "18px",
-          cursor: "pointer",
+          cursor: isLoading ? "not-allowed" : "pointer",
           transition: "background-color 0.3s",
         }}
       >
-        クイズへ
+        {isLoading ? "クイズ生成中..." : "クイズへ"}
       </button>
       {error && (
         <p style={{ textAlign: "center", color: "#FF0000", marginTop: "20px", fontSize: "14px" }}>
