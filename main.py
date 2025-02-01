@@ -479,16 +479,17 @@ async def save_quiz(selected_quizzes: SelectedQuiz, current_user: UserCreate = D
             ).all()
             if len(quizzes_to_save) != 5:
                 return JSONResponse(status_code=404, content={"error": "Selected quizzes not found in cache."})
+
             quizzes_to_save_list = []
             for quiz in quizzes_to_save:
                 quizzes_to_save_list.append([quiz.question, quiz.a, quiz.b, quiz.c, quiz.d])
-            print(quizzes_to_save_list)
+            
             # translate_quizzに渡すために、リストをフラットな文字列リストに変換
             flattened_quizzes_list = [item for sublist in quizzes_to_save_list for item in sublist]
-            print(flattened_quizzes_list)
+            
             # translate_quizzがリストの形式で返されると仮定
             translated_quizzes_to_save = await translate_quizz(flattened_quizzes_list)
-            print(translated_quizzes_to_save)
+            
             # クイズ情報を正式なテーブルに保存
             for i, quiz in enumerate(quizzes_to_save):
                 new_quiz = QuizTable(
@@ -502,18 +503,20 @@ async def save_quiz(selected_quizzes: SelectedQuiz, current_user: UserCreate = D
                     d=quiz.d
                 )
                 session.add(new_quiz)
+
             session.commit()
+
             # 翻訳結果がリストのリストとして返されるため、二重ループを使う
             if isinstance(translated_quizzes_to_save, list):
                 for i, quiz_translations in enumerate(translated_quizzes_to_save, start=1):
                     # 各言語の翻訳結果を処理
-                   for lang_id, translated_quiz in enumerate(quiz_translations, start=1):
+                    for lang_id, translated_quiz in enumerate(quiz_translations, start=1):
                         new_translate_quiz = MQuizTable(
                             quiz_id=i,
-                            diary_id=quizzes_to_save[i].diary_id,  # 修正: quizzes_to_save[i]でdiary_idを取得
+                            diary_id=quizzes_to_save[i-1].diary_id,  # 修正: quizzes_to_save[i-1]でdiary_idを取得
                             language_id=lang_id,
                             question=translated_quiz[0],
-                            correct=quizzes_to_save[i].correct,  # 修正: quizzes_to_save[i]でcorrectを取得
+                            correct=quizzes_to_save[i-1].correct,  # 修正: quizzes_to_save[i-1]でcorrectを取得
                             a=translated_quiz[1],
                             b=translated_quiz[2],
                             c=translated_quiz[3],
@@ -522,25 +525,21 @@ async def save_quiz(selected_quizzes: SelectedQuiz, current_user: UserCreate = D
                         session.add(new_translate_quiz)
                 session.commit()
 
-         # キャッシュをクリア
-        session.query(CashQuizTable).filter(CashQuizTable.user_id == current_user.user_id).delete()
-        session.commit()
+            # キャッシュをクリア
+            session.query(CashQuizTable).filter(CashQuizTable.user_id == current_user.user_id).delete()
+            session.commit()
 
         logging.info("Successfully saved selected quizzes.")
 
         # 処理終了時刻を記録
         end_time = time.time()
 
-            # 実行時間をログに出力
+        # 実行時間をログに出力
         execution_time = end_time - start_time
         logging.info(f"Execution time: {execution_time} seconds")
     except Exception as e:
         logging.error(f"Error saving quizzes: {e}")
         return JSONResponse(status_code=500, content={"message": "An error occurred while saving the quizzes."})
-
-    except Exception as e:
-        return JSONResponse(content={"message": "Selected quizzes saved successfully."})
-
 
 @app.post("/add_reaction")
 def add_reaction(reaction: ReactionRequest):
@@ -1565,9 +1564,12 @@ async def already_quiz(
     """
     try:
         with SessionLocal() as session:
+            team_id = current_user.team_id
+            user_id = session.query(UserTable).filter(UserTable.team_id == team_id,
+                                                      UserTable.user_id == current_user.user_id).user_id()
             # ユーザーIDと日記IDに基づき、AnswerTableをクエリ
             answer_count = session.query(AnswerTable).filter(
-                AnswerTable.user_id == current_user.user_id,
+                AnswerTable.user_id == user_id,
                 AnswerTable.diary_id == diary_id
             ).count()  # 回答数をカウント
             if answer_count >= 5:
