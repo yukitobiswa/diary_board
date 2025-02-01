@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 // This is the AddCourse component for adding a new course
 const Login = () => {
+  const[teamId,setTeamId] = useState('')
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
   const [success, setSuccess] = useState('');
@@ -22,6 +23,7 @@ const Login = () => {
 
     axios.post('http://localhost:8000/token', 
       new URLSearchParams({
+        team_id: teamId,
         username: userId,
         password: password
       }), 
@@ -48,6 +50,14 @@ const Login = () => {
     <div className="container add-course">
       <h1>Login</h1>
       <form onSubmit={handleSubmit}>
+      <div>
+          <label>Team ID:</label>
+          <input
+            type="text"
+            value={teamId}
+            onChange={(e) => setTeamId(e.target.value)}
+          />
+        </div>
         <div>
           <label>User ID:</label>
           <input
