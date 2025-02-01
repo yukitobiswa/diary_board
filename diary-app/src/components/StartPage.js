@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 const StartPage = () => {
+  const[teamId,setTeamId] = useState('')
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
   const [success, setSuccess] = useState('');
@@ -21,6 +22,7 @@ const StartPage = () => {
 
     axios.post('http://localhost:8000/token', 
       new URLSearchParams({
+        team_id:teamId,
         username: userId,
         password: password
       }), 
@@ -59,6 +61,21 @@ const StartPage = () => {
     >
       <h1 style={{ fontSize: "24px", marginBottom: "20px", color: "#333" }}>ログイン</h1>
       <form onSubmit={handleSubmit}>
+      <div style={{ marginBottom: "20px" }}>
+          <label style={{ fontSize: "16px", display: "block", marginBottom: "8px", color: "#555" }}>グループ ID:</label>
+          <input
+            type="text"
+            value={teamId}
+            onChange={(e) => setTeamId(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "10px",
+              border: "1px solid #ccc",
+              borderRadius: "5px",
+              fontSize: "16px",
+            }}
+          />
+        </div>
         <div style={{ marginBottom: "20px" }}>
           <label style={{ fontSize: "16px", display: "block", marginBottom: "8px", color: "#555" }}>ユーザー ID:</label>
           <input

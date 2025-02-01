@@ -27,7 +27,7 @@ from gtts import gTTS
 import io
 import zipfile
 # Database URL
-DATABASE_URL = "mysql+pymysql://root:6213ryoy@127.0.0.1/demo"
+DATABASE_URL = "mysql+pymysql://root:yuki0108@127.0.0.1/demo"
 # FastAPI app
 app = FastAPI()
 logger = logging.getLogger(__name__)
@@ -59,10 +59,16 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
-class TokenData(BaseModel):
-    user_id: Union[str,None] = None
-    password: Union[str,None] = None
-
+class OAuth2PasswordRequestFormWithTeam(OAuth2PasswordRequestForm):
+    def __init__(
+        self,
+        username: str = Form(...),
+        password: str = Form(...),
+        team_id: str = Form(...),  # 追加
+    ):
+        super().__init__(username=username, password=password)
+        self.team_id = team_id
+        
 class UserPydantic(BaseModel):
     user_id: str
     name: str
@@ -184,8 +190,8 @@ def get_user(db, username: str):
        return UserInDB(**user_dict)
 
 # ユーザーの認証関数
-def authenticate_user(db_session, username: str, password: str):
-    user = db_session.query(UserTable).filter(UserTable.user_id == username).first()
+def authenticate_user(db_session, team_id: str, user_id: str, password: str):
+    user = db_session.query(UserTable).filter(UserTable.user_id == user_id,UserTable.team_id == team_id).first()
     if not user or not verify_password(password, user.password):
         return None
     return user
@@ -210,30 +216,29 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: str = payload.get("sub")
-        if not user_id:
+        user_id: str = payload.get("user_id")
+        team_id: str = payload.get("team_id")
+        if not (user_id and team_id):
             raise credentials_exception
     except JWTError:
         raise credentials_exception
 
     with SessionLocal() as session:
-        user = session.query(UserTable).filter(UserTable.user_id == user_id).first()
+        user = session.query(UserTable).filter(UserTable.user_id == user_id,UserTable.team_id == team_id).first()
         if not user:
             raise credentials_exception
         return user
 
 # 現在のアクティブなユーザーを取得する関数
 async def get_current_active_user(current_user: UserCreate = Depends(get_current_user)):
-   if not current_user.user_id:
+   if not current_user.user_id and current_user.team_id:
        raise HTTPException(status_code=400, detail="Inactive user")
    return current_user
 
-
-
 @app.post("/token", response_model=Token)
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
+async def login_for_access_token(form_data: OAuth2PasswordRequestFormWithTeam = Depends()):
     with SessionLocal() as session:
-        user = authenticate_user(session, form_data.username, form_data.password)
+        user = authenticate_user(session, form_data.team_id,form_data.username, form_data.password)
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -242,7 +247,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
             )
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(
-            data={"sub": user.user_id}, expires_delta=access_token_expires
+            data={"user_id": user.user_id, "team_id":user.team_id}, expires_delta=access_token_expires
         )
         return Token(access_token=access_token, token_type="bearer")
     
@@ -262,8 +267,9 @@ async def verify_token(token: str = Depends(oauth2_scheme)):
     try:
         # トークンをデコードして検証
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id = payload.get("sub")
-        if user_id is None:
+        user_id = payload.get("user_id")
+        team_id = payload.get("team_id")
+        if user_id and team_id is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
         return {"valid": True, "user_id": user_id}
     except Exception as e:
@@ -1601,6 +1607,7 @@ async def get_answer_quiz(current_user: UserCreate = Depends(get_current_active_
             set_answer = []
             temp_set = []
             set_num = 1
+
             for i,answer in enumerate(results):
                 quiz_result = session.query(MQuizTable).filter(MQuizTable.diary_id == answer.diary_id,MQuizTable.quiz_id == answer.quiz_id,MQuizTable.language_id==current_user.main_language).first()
                 temp_set.append({'user_id':answer.user_id,
@@ -1610,12 +1617,17 @@ async def get_answer_quiz(current_user: UserCreate = Depends(get_current_active_
                                 'judgement':answer.judgement,
                                 'question':quiz_result.question,
                                 })
+                first_answer_date = None  # セットの最初の回答日を記録
                 if len(temp_set) == 5 or i == len(results) -1:
+                    if not first_answer_date:
+                        first_answer_date = answer.answer_date.strftime('%Y-%m-%d %H:%M:%S')
+                
                     set_result = session.query(ASetTable).filter(ASetTable.user_id==current_user.user_id,ASetTable.diary_id==answer.diary_id).first()
                     set_title = session.query(DiaryTable).filter(DiaryTable.diary_id==answer.diary_id).first()
                     pre_answer = {
                         "title":set_title.title,
                         "correct_set":set_result.correct_set,
+                        "answer_date": first_answer_date,
                         "questions":temp_set,
                     }
                     set_answer.append({set_num: pre_answer})
