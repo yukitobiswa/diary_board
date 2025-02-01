@@ -100,21 +100,21 @@ const Setting = () => {
       textAlign: "center",
     },
     input: {
-      width: "90%",
+      width: "95%",
       padding: "12px",
       border: "none",
       borderRadius: "8px",
       margin: "10px 0",
     },
     select: {
-      width: "90%",
+      width: "100%",
       padding: "12px",
       border: "none",
       borderRadius: "8px",
       margin: "10px 0",
     },
     displayOnly: {
-      width: "90%", // ここを90%に設定して、列が揃うように
+      width: "95%", // ここを90%に設定して、列が揃うように
       padding: "12px",
       border: "none",
       borderRadius: "8px",
