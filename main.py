@@ -1569,6 +1569,7 @@ async def get_answer_quiz(current_user: UserCreate = Depends(get_current_active_
             set_answer = []
             temp_set = []
             set_num = 1
+
             for i,answer in enumerate(results):
                 quiz_result = session.query(MQuizTable).filter(MQuizTable.diary_id == answer.diary_id,MQuizTable.quiz_id == answer.quiz_id,MQuizTable.language_id==current_user.main_language).first()
                 temp_set.append({'user_id':answer.user_id,
@@ -1578,12 +1579,17 @@ async def get_answer_quiz(current_user: UserCreate = Depends(get_current_active_
                                 'judgement':answer.judgement,
                                 'question':quiz_result.question,
                                 })
+                first_answer_date = None  # セットの最初の回答日を記録
                 if len(temp_set) == 5 or i == len(results) -1:
+                    if not first_answer_date:
+                        first_answer_date = answer.answer_date.strftime('%Y-%m-%d %H:%M:%S')
+                
                     set_result = session.query(ASetTable).filter(ASetTable.user_id==current_user.user_id,ASetTable.diary_id==answer.diary_id).first()
                     set_title = session.query(DiaryTable).filter(DiaryTable.diary_id==answer.diary_id).first()
                     pre_answer = {
                         "title":set_title.title,
                         "correct_set":set_result.correct_set,
+                        "answer_date": first_answer_date,
                         "questions":temp_set,
                     }
                     set_answer.append({set_num: pre_answer})

@@ -15,7 +15,10 @@ const QuizHistoryPage = () => {
           Authorization: `Bearer ${tokenRef.current}`,
         },
       });
-      const formattedData = response.data.correct_count.map((set) => Object.values(set)[0]);
+      const formattedData = response.data.correct_count
+        .map((set) => Object.values(set)[0])
+        .sort((a, b) => new Date(b.answer_date) - new Date(a.answer_date));
+
       setQuizData(formattedData);
     } catch (error) {
       console.error("Error fetching quiz data:", error);
@@ -93,11 +96,38 @@ const QuizHistoryPage = () => {
                   textAlign: "center",
                   fontWeight: "bold",
                   color: "#007bff",
-                  textDecoration: "underline",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center"
                 }}
                 onClick={() => toggleSetDetail(index)}
               >
-                {set.title}
+
+                <span style={{ fontSize: "14px", color: "#555", textAlign: "center" }}>
+                  {set.answer_date}
+                </span>
+                <span
+                  style={{
+                    position: "absolute",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    fontSize: "20px",
+                    fontWeight: "bold",
+                    textAlign: "center",
+                  }}
+                >
+                  {set.title}
+                </span>
+
+                <span
+                  style={{
+                    fontSize: "20px",
+                    color: "black",
+                    cursor: "pointer",
+                  }}
+                >
+                  {openSetIndex === index ? "▲" : "▼"}
+                </span>
               </div>
               {openSetIndex === index && (
                 <div

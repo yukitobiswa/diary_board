@@ -25,7 +25,9 @@ const HistoryPage = () => {
       if (diaryData.length === 0) {
         setMessages([]);
       } else {
-        const formattedMessages = diaryData.map((diary) => ({
+        const formattedMessages = diaryData
+        .sort((a, b) => new Date(b.diary_time) - new Date(a.diary_time))
+        .map((diary) => ({
           user_name: diary.user_name,
           diary_id: diary.diary_id,
           title: diary.title,
@@ -113,11 +115,36 @@ const HistoryPage = () => {
                   textAlign: "center",
                   fontWeight: "bold",
                   color: "#007bff",
-                  textDecoration: "underline",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
                 }}
                 onClick={() => toggleDiary(message.diary_id)}
               >
-                {message.title}
+                <span style={{ fontSize: "14px", color: "#555" }}>
+                  {message.diary_time}
+                </span>
+                <span
+                  style={{
+                    position: "absolute",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    fontSize: "20px",
+                    fontWeight: "bold",
+                    textAlign: "center",
+                  }}
+                >
+                  {message.title}
+                </span>
+                <span
+                  style={{
+                    fontSize: "20px",
+                    color: "black",
+                    cursor: "pointer",
+                  }}
+                >
+                  {openDiaryId === message.diary_id ? "▲" : "▼"}
+                </span>
               </div>
               {openDiaryId === message.diary_id && (
                 <div
