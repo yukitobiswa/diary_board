@@ -4,24 +4,27 @@ import axios from "axios";
 
 const Quiz2 = () => {
   const [categories, setCategories] = useState([
-    { id: 1, label: "問１：" },
-    { id: 2, label: "問２：" },
-    { id: 3, label: "問３：" },
-    { id: 4, label: "問４：" },
-    { id: 5, label: "問５：" },
-    { id: 6, label: "問６：" },
-    { id: 7, label: "問７：" },
+    { id: 1, label: "Q1 : " },
+    { id: 2, label: "Q2 : " },
+    { id: 3, label: "Q3 : " },
+    { id: 4, label: "Q4 : " },
+    { id: 5, label: "Q5 : " },
+    { id: 6, label: "Q6 : " },
+    { id: 7, label: "Q7 : " },
+    { id: 8, label: "Q8 : " },
+    { id: 9, label: "Q9 : " },
+    { id: 10, label: "Q10 : " },
   ]);
   
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [error, setError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
   const navigate = useNavigate();
 
-  // コンポーネントの初期化時にキャッシュからクイズデータを取得
   useEffect(() => {
     const fetchQuizzes = async () => {
       try {
-        const token = localStorage.getItem("access_token"); // トークンを取得
+        const token = localStorage.getItem("access_token");
         if (!token) {
           setError("ログインセッションがありません。再度ログインしてください。");
           return;
@@ -29,21 +32,20 @@ const Quiz2 = () => {
 
         const response = await axios.get("http://localhost:8000/get_quizzes", {
           headers: {
-            Authorization: `Bearer ${token}`,  // トークンをヘッダーに追加
+            Authorization: `Bearer ${token}`,
           },
         });
 
         const quizzes = response.data.quizzes;
 
-        // 取得したクイズデータをカテゴリに追加
         const updatedCategories = categories.map((category, index) => {
           if (quizzes[index]) {
-            category.label = `問${index + 1}: ${quizzes[index].question}`; // クイズの質問をラベルに追加
+            category.label = `Q${index + 1}: ${quizzes[index].question}`;
           }
           return category;
         });
 
-        setCategories(updatedCategories); // 更新されたカテゴリを設定
+        setCategories(updatedCategories);
       } catch (error) {
         console.error("クイズデータ取得エラー:", error);
         setError("クイズデータの取得中にエラーが発生しました。");
@@ -51,7 +53,7 @@ const Quiz2 = () => {
     };
 
     fetchQuizzes();
-  }, []); // 初回レンダリング時にデータを取得
+  }, []);
 
   const handleSelect = (id) => {
     if (selectedCategories.includes(id)) {
@@ -59,7 +61,7 @@ const Quiz2 = () => {
     } else {
       if (selectedCategories.length < 5) {
         setSelectedCategories([...selectedCategories, id]);
-        setError(""); // エラー解除
+        setError("");
       } else {
         setError("※5個選択までです");
       }
@@ -72,34 +74,38 @@ const Quiz2 = () => {
       return;
     }
 
+    setIsSaving(true);
     const selectedQuizzes = {
       selected_quizzes: selectedCategories,
     };
 
     try {
-      const token = localStorage.getItem("access_token"); // トークンを取得
+      const token = localStorage.getItem("access_token");
       if (!token) {
         setError("ログインセッションがありません。再度ログインしてください。");
+        setIsSaving(false);
         return;
       }
 
       const response = await axios.post(
-        "http://localhost:8000/save_quiz", // POSTリクエスト先のURL
+        "http://localhost:8000/save_quiz",
         selectedQuizzes,
         {
           headers: {
-            "Content-Type": "application/json", // ヘッダー設定
-            Authorization: `Bearer ${token}`,  // トークンをヘッダーに追加
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
         }
       );
 
       console.log(response.data);
       alert("クイズが保存されました！");
-      navigate(`/Chat`); // 遷移先
+      navigate(`/Chat`);
     } catch (error) {
       console.error("クイズ保存エラー:", error);
       setError("クイズ保存中にエラーが発生しました。");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -117,31 +123,29 @@ const Quiz2 = () => {
     >
       <h1 style={{ fontSize: "24px", marginBottom: "20px" }}>クイズ選択</h1>
       <p style={{ fontSize: "16px", color: "#555" }}>以下のクイズから<strong>5つ</strong>選んでください。</p>
-      <div style={{ margin: "20px 0" }}>
       <div style={{ margin: "20px 0", display: "flex", flexDirection: "column", alignItems: "center" }}>
-  {categories.map((category) => (
-    <button
-      key={category.id}
-      onClick={() => handleSelect(category.id)}
-      style={{
-        display: "block",
-        margin: "10px 0", // 上下のマージンを設定
-        padding: "15px",
-        width: "150%", // ボタンの幅を100%に設定
-        maxWidth: "600px", // ボタンの最大幅を設定
-        backgroundColor: selectedCategories.includes(category.id) ? "#FFA500" : "#FFF",
-        border: "2px solid #FFA500",
-        borderRadius: "8px",
-        color: selectedCategories.includes(category.id) ? "#FFF" : "#FFA500",
-        fontSize: "16px",
-        cursor: "pointer",
-        transition: "background-color 0.3s, color 0.3s",
-      }}
-    >
-      {category.label}
-    </button>
-  ))}
-</div>
+        {categories.map((category) => (
+          <button
+            key={category.id}
+            onClick={() => handleSelect(category.id)}
+            style={{
+              display: "block",
+              margin: "10px 0",
+              padding: "15px",
+              width: "150%",
+              maxWidth: "600px",
+              backgroundColor: selectedCategories.includes(category.id) ? "#FFA500" : "#FFF",
+              border: "2px solid #FFA500",
+              borderRadius: "8px",
+              color: selectedCategories.includes(category.id) ? "#FFF" : "#FFA500",
+              fontSize: "16px",
+              cursor: "pointer",
+              transition: "background-color 0.3s, color 0.3s",
+            }}
+          >
+            {category.label}
+          </button>
+        ))}
       </div>
       {error && (
         <p style={{ textAlign: "center", color: "#FF0000", marginTop: "20px", fontSize: "14px" }}>
@@ -150,19 +154,20 @@ const Quiz2 = () => {
       )}
       <button
         onClick={handleSaveQuiz}
+        disabled={isSaving}
         style={{
           marginTop: "20px",
           padding: "15px 30px",
-          backgroundColor: "#4CAF50",
+          backgroundColor: isSaving ? "#ccc" : "#4CAF50",
           color: "#FFF",
           border: "none",
           borderRadius: "8px",
           fontSize: "18px",
-          cursor: "pointer",
+          cursor: isSaving ? "not-allowed" : "pointer",
           transition: "background-color 0.3s",
         }}
       >
-        クイズへ
+        {isSaving ? "クイズ保存中..." : "クイズ保存"}
       </button>
     </div>
   );
