@@ -7,10 +7,27 @@ const ChatApp = () => {
   const [newMessage, setNewMessage] = useState("");
   const [newTitle, setNewTitle] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [teamName, setTeamName] = useState(""); // チーム名を格納するステート
   const navigate = useNavigate();
   const emojis = ["👍", "❤️", "😂", "😲", "😢"];
   const diaryContainerRef = useRef(null);
   const tokenRef = useRef(null); // Use a ref to store the token
+ 
+
+    // チーム名を取得
+    const fetchTeamName = useCallback(async () => {
+      if (!tokenRef.current) return; // トークンがない場合は終了
+      try {
+        const response = await axios.get("http://localhost:8000/get_team_name", {
+          headers: {
+            Authorization: `Bearer ${tokenRef.current}`,
+          },
+        });
+        setTeamName(response.data.team_name); // チーム名をステートにセット
+      } catch (error) {
+        console.error("Error fetching team name:", error);
+      }
+    }, []);
 
   // Fetch diaries
   const fetchDiaries = useCallback(async () => {
@@ -31,6 +48,7 @@ const ChatApp = () => {
         reactions: diary.reactions || {},
       }));
       setMessages(formattedMessages);
+      
     } catch (error) {
       console.error("Error fetching diaries:", error);
     }
@@ -65,6 +83,7 @@ const ChatApp = () => {
         });
         if (response.data.valid) {
           fetchDiaries(); // Fetch diaries if token is valid
+          fetchTeamName(); // チーム名を取得
         } else {
           navigate("/startpage");
         }
@@ -75,7 +94,7 @@ const ChatApp = () => {
     };
 
     verifyToken(); // Verify token on mount
-  }, [fetchDiaries, navigate]);
+  }, [fetchDiaries,fetchTeamName,navigate]);
 
   const addReaction = async (messageId, emoji) => {
     // UI上で即座に反映させる
@@ -149,33 +168,7 @@ const ChatApp = () => {
     }
   };
 
-  // const sendAndAddDiary = async () => {
-  //   if (newMessage.trim() === "" || newTitle.trim() === "") return;
-  //   const newDiary = {
-  //     title: newTitle,
-  //     content: newMessage,
-  //   };
-  //   try {
-  //     const response = await axios.post("http://localhost:8000/add_diary", newDiary, {
-  //       headers: {
-  //         Authorization: `Bearer ${tokenRef.current}`,
-  //       },
-  //     });
-  //     if (response.data.status === false) {
-  //       alert(response.data.message);
-  //       return;
-  //     }
-  //     if (response.data.status === true) {
-  //       fetchDiaries(); // Fetch diaries after adding a new diary
-  //       setNewMessage("");
-  //       setNewTitle("");
-  //       alert("Diary added successfully!");
-  //       navigate("/Quiz1");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error posting diary:", error);
-  //   }
-  // };
+
   const [loading, setLoading] = useState(false); // ロード状態を管理
 
   const sendAndAddDiary = async () => {
@@ -301,8 +294,15 @@ const ChatApp = () => {
       {/* Main Content */}
       <div style={{ marginLeft: menuOpen ? "250px" : "0", flex: 1, padding: "10px" }}>
         <div style={{ maxWidth: "6000px", margin: "50px auto 0" }}>
+        <h1 style={{ textAlign: "center" }}>{teamName}のDiary Board！</h1>
           <h2 style={{ textAlign: "center" }}>みんなと日記を共有しよう！</h2>
           {/* Display Diaries */}
+             {/* 日記がない場合に「日記がありません」と表示 */}
+             {messages.length === 0 ? (
+            <p style={{ textAlign: "center", color: "#888", fontSize: "16px" }}>
+              日記がありません
+            </p>
+            ) :(
           <div
             ref={diaryContainerRef}
             style={{
@@ -331,26 +331,26 @@ const ChatApp = () => {
                   <span style={{ fontSize: "12px", color: "#999" }}>{message.diary_time}</span>
                   {/* Reaction Buttons */}
                   <div style={{ marginTop: "10px" }}>
-  {emojis.map((emoji, index) => {
-    const reactionKey = Object.keys(message.reactions)[index]; // reactionsのキーを順番に取得
-    return (
-      <button
-        key={emoji}
-        onClick={() => addReaction(message.diary_id, emoji)}
-        style={{
-          marginRight: "5px",
-          border: "none",
-          background: "none",
-          fontSize: "16px",
-          cursor: "pointer",
-        }}
-      >
-        {emoji} {message.reactions[reactionKey] || 0} {/* リアクション数を表示 */}
-      </button>
-    );
-  })}
-</div>
-
+                    {emojis.map((emoji, index) => {
+                      const reactionKey = Object.keys(message.reactions)[index]; // reactionsのキーを順番に取得
+                      return (
+                        <button
+                          key={emoji}
+                          onClick={() => addReaction(message.diary_id, emoji)}
+                          style={{
+                            marginRight: "5px",
+                            border: "none",
+                            background: "none",
+                            fontSize: "16px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          {emoji} {message.reactions[reactionKey] || 0} {/* リアクション数を表示 */}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  
 
                   {/* クイズへボタン */}
                   <button
@@ -371,6 +371,7 @@ const ChatApp = () => {
               </div>
             ))}
           </div>
+            )}
           {/* Input Area */}
           <div style={{ marginBottom: "10px" }}>
             <label htmlFor="titleInput" style={{ display: "block", marginBottom: "5px" }}>

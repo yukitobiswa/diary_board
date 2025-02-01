@@ -652,6 +652,17 @@ async def add_diary(diary: DiaryCreate, current_user: UserCreate = Depends(get_c
     
     return {"status": True, "message": "Diary added successfully!"}
 
+@app.get("/get_team_name")
+async def get_team_name(current_user: UserCreate = Depends(get_current_active_user)):
+    """
+    チーム名を取得します。
+    """
+    with SessionLocal() as session:
+        team = session.query(TeamTable).filter(TeamTable.team_id == current_user.team_id).first()
+        if not team:
+            raise HTTPException(status_code=404, detail="Team not found")
+        return {"team_name": team.team_name}
+    
 @app.get("/get_diaries")
 async def get_diaries(current_user: UserCreate = Depends(get_current_active_user)):
     """
@@ -683,9 +694,7 @@ async def get_diaries(current_user: UserCreate = Depends(get_current_active_user
             .order_by(DiaryTable.diary_time.asc())  # 日記の時間で並び替え
             .all()
         )
-   
 
-    # 結果を整形して返す
     return JSONResponse(content={
         "team_id": team_id,
         "diaries": [
