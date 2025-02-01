@@ -6,7 +6,6 @@ const NewRegister = () => {
   const [password, setPassword] = useState('');
   const [teamId, setTeamId] = useState('');
   const [username, setUsername] = useState('');
-  const [icon, setIcon] = useState(null);
   const [language, setLanguage] = useState(1);  // デフォルトを1に変更
   const [studyLanguage, setStudyLanguage] = useState(1);  // デフォルトを1に変更
   const [success, setSuccess] = useState('');
@@ -59,7 +58,11 @@ const NewRegister = () => {
     .catch(error => {
       console.error('Registration error:', error);  // エラーの詳細をコンソールに表示
       if (error.response) {
-        setError(`サーバーエラー: ${error.response.data.detail || error.message}`);
+        if (error.response.data.detail === "User ID already exists") {
+          setError("ユーザーIDが既に存在しています");
+        } else {
+          setError(`サーバーエラー: ${error.response.data.detail || error.message}`);
+        }
       } else if (error.request) {
         setError('サーバーへのリクエストに失敗しました。');
       } else {
@@ -67,6 +70,7 @@ const NewRegister = () => {
       }
     });
   };
+  
   
 
   const handleGoBack = () => {

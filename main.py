@@ -84,8 +84,8 @@ class UserCreate(BaseModel):
         self.password = pwd_context.hash(self.password)
 
 class TeamCreate(BaseModel):
+    team_name: str
     team_id : str
-    team_name : str
     country_id: int  
     age: int  
     
@@ -270,12 +270,23 @@ async def verify_token(token: str = Depends(oauth2_scheme)):
         logging.error(f"Token verification failed: {e}")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
     
-
 @app.post("/register")
 async def user_register(user: UserCreate):
-    user.hash_password()  # Hash the password
-    try:
-        with SessionLocal() as session:
+    user.hash_password()  # パスワードのハッシュ化
+
+    with SessionLocal() as session:
+        # `user_id` の存在チェック（どのチームでも同じ user_id は登録不可）
+        existing_user = session.query(UserTable).filter(UserTable.user_id == user.user_id).first()
+        if existing_user:
+            raise HTTPException(status_code=400, detail="このユーザーIDはすでに登録されています。")
+
+        # `team_id` の存在チェック
+        team_exists = session.query(TeamTable).filter(TeamTable.team_id == user.team_id).first()
+        if not team_exists:
+            raise HTTPException(status_code=400, detail="指定されたチームが存在しません。")
+
+        # ユーザー登録処理
+        try:
             new_user = UserTable(
                 user_id=user.user_id,
                 team_id=user.team_id,
@@ -283,16 +294,17 @@ async def user_register(user: UserCreate):
                 name=user.name,
                 main_language=user.main_language,
                 learn_language=user.learn_language,
-                nickname = "駆け出しのクイズ好き"
+                nickname="駆け出しのクイズ好き"  # デフォルトのニックネーム
             )
             session.add(new_user)
             session.commit()
-        logging.info(f"User registered successfully: {user.user_id}")
-        return JSONResponse({"message": "Register Successfully!"})
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Error during registration: {str(e)}")
-    except Exception as e:
-        raise HTTPException(status_code=422, detail=f"Error during registration: {str(e)}")
+            logging.info(f"User registered successfully: {user.user_id}")
+            return JSONResponse({"message": "Register Successfully!"})
+
+        except Exception as e:
+            session.rollback()  # ロールバック処理
+            logging.error(f"Registration failed: {e}")
+            raise HTTPException(status_code=500, detail="登録処理中にエラーが発生しました。")
     
 @app.get("/get_profile")
 async def get_profile(current_user: UserCreate = Depends(get_current_active_user)):
@@ -355,10 +367,11 @@ async def change_profile(
 @app.post('/team_register')
 async def team_register(team: TeamCreate):
     try:
+        print(team)
         with SessionLocal() as session:
             new_team = TeamTable(
-                team_name=team.team_name,
                 team_id=team.team_id,
+                team_name=team.team_name,
                 team_time=datetime.now(),
                 age=team.age,  # age を設定
                 country_id=team.country_id  # country_id を設定
@@ -415,7 +428,7 @@ async def generate_quiz(category: Category, current_user: UserCreate = Depends(g
             quizzes = make_quiz(result.content, category.category1, category.category2,country,age)
 
             # クイズが生成されなかった場合の処理
-            if len(quizzes) < 7:
+            if len(quizzes) < 10:
                 return JSONResponse(status_code=404, content={"error": "No quizzes generated."})
             # 既存のキャッシュを削除（同じユーザーの古いキャッシュがある場合）
             session.query(CashQuizTable).filter(CashQuizTable.user_id == current_user.user_id).delete()
@@ -427,11 +440,11 @@ async def generate_quiz(category: Category, current_user: UserCreate = Depends(g
                     diary_id=result.diary_id,
                     user_id=current_user.user_id,
                     question=quiz_data['question'],
-                    correct=quiz_data['answer'].split(":")[1].strip(),
-                    a=quiz_data['choices'][0].split(".")[1].strip(),
-                    b=quiz_data['choices'][1].split(".")[1].strip(),
-                    c=quiz_data['choices'][2].split(".")[1].strip(),
-                    d=quiz_data['choices'][3].split(".")[1].strip(),
+                    correct=quiz_data['answer'],
+                    a=quiz_data['choices'][0],
+                    b=quiz_data['choices'][1],
+                    c=quiz_data['choices'][2],
+                    d=quiz_data['choices'][3]
                 )
                 session.add(new_cache)
             session.commit()
@@ -439,14 +452,19 @@ async def generate_quiz(category: Category, current_user: UserCreate = Depends(g
     except Exception as e:
         # エラーが発生した場合は500エラーを返す
         return JSONResponse(status_code=500, content={"error": f"An error occurred: {str(e)}"})
+import time
+import logging
 
 @app.post("/save_quiz")
 async def save_quiz(selected_quizzes: SelectedQuiz, current_user: UserCreate = Depends(get_current_active_user)):
+    start_time = time.time()  # 処理開始時刻を記録
+
     try:
         with SessionLocal() as session:
             # クイズ情報が5問選ばれているかを確認
             if len(selected_quizzes.selected_quizzes) != 5:
                 return JSONResponse(status_code=400, content={"error": "You must select exactly 5 questions."})
+            
             # キャッシュテーブルから選ばれたクイズ情報を取得
             selected_quiz_ids = selected_quizzes.selected_quizzes
             quizzes_to_save = session.query(CashQuizTable).filter(
@@ -455,6 +473,16 @@ async def save_quiz(selected_quizzes: SelectedQuiz, current_user: UserCreate = D
             ).all()
             if len(quizzes_to_save) != 5:
                 return JSONResponse(status_code=404, content={"error": "Selected quizzes not found in cache."})
+            quizzes_to_save_list = []
+            for quiz in quizzes_to_save:
+                quizzes_to_save_list.append([quiz.question, quiz.a, quiz.b, quiz.c, quiz.d])
+            print(quizzes_to_save_list)
+            # translate_quizzに渡すために、リストをフラットな文字列リストに変換
+            flattened_quizzes_list = [item for sublist in quizzes_to_save_list for item in sublist]
+            print(flattened_quizzes_list)
+            # translate_quizzがリストの形式で返されると仮定
+            translated_quizzes_to_save = await translate_quizz(flattened_quizzes_list)
+            print(translated_quizzes_to_save)
             # クイズ情報を正式なテーブルに保存
             for i, quiz in enumerate(quizzes_to_save):
                 new_quiz = QuizTable(
@@ -468,34 +496,44 @@ async def save_quiz(selected_quizzes: SelectedQuiz, current_user: UserCreate = D
                     d=quiz.d
                 )
                 session.add(new_quiz)
-                session.flush()  # new_quiz.quiz_idを取得するためにフラッシュ
-                # translate_quizzがリストの形式で返されると仮定
-                translated_quizzes_to_save = await translate_quizz(quiz.question, quiz.a, quiz.b, quiz.c, quiz.d)
-                logging.info(f"Translated quizzes: {translated_quizzes_to_save}")
-                # translated_quizzes_to_saveがリストであることを確認
-                if isinstance(translated_quizzes_to_save, list):
-                    for lang_id, translated_quiz in enumerate(translated_quizzes_to_save, start=1):
+            session.commit()
+            # 翻訳結果がリストのリストとして返されるため、二重ループを使う
+            if isinstance(translated_quizzes_to_save, list):
+                for i, quiz_translations in enumerate(translated_quizzes_to_save, start=1):
+                    # 各言語の翻訳結果を処理
+                   for lang_id, translated_quiz in enumerate(quiz_translations, start=1):
                         new_translate_quiz = MQuizTable(
-                        quiz_id=new_quiz.quiz_id,
-                        diary_id=quiz.diary_id,
-                        language_id= lang_id,  # 最初の要素を言語IDとして使用
-                        question=translated_quiz[0],  # 質問を最初の要素から取得
-                        correct=quiz.correct,
-                        a=translated_quiz[1],  # 選択肢A
-                        b=translated_quiz[2],  # 選択肢B
-                        c=translated_quiz[3],  # 選択肢C
-                        d=translated_quiz[4]   # 選択肢D
+                            quiz_id=i,
+                            diary_id=quizzes_to_save[i].diary_id,  # 修正: quizzes_to_save[i]でdiary_idを取得
+                            language_id=lang_id,
+                            question=translated_quiz[0],
+                            correct=quizzes_to_save[i].correct,  # 修正: quizzes_to_save[i]でcorrectを取得
+                            a=translated_quiz[1],
+                            b=translated_quiz[2],
+                            c=translated_quiz[3],
+                            d=translated_quiz[4]
                         )
                         session.add(new_translate_quiz)
-            # キャッシュをクリア
-            session.query(CashQuizTable).filter(CashQuizTable.user_id == current_user.user_id).delete()
-            session.commit()
-            logging.info("Successfully saved selected quizzes.")
-            return JSONResponse(content={"message": "Selected quizzes saved successfully."})
-    except Exception as e:
-        logging.error(f"Error saving selected quizzes: {str(e)}")
-        return JSONResponse(status_code=500, content={"error": f"An error occurred: {str(e)}"})
+                session.commit()
 
+         # キャッシュをクリア
+        session.query(CashQuizTable).filter(CashQuizTable.user_id == current_user.user_id).delete()
+        session.commit()
+
+        logging.info("Successfully saved selected quizzes.")
+
+        # 処理終了時刻を記録
+        end_time = time.time()
+
+            # 実行時間をログに出力
+        execution_time = end_time - start_time
+        logging.info(f"Execution time: {execution_time} seconds")
+    except Exception as e:
+        logging.error(f"Error saving quizzes: {e}")
+        return JSONResponse(status_code=500, content={"message": "An error occurred while saving the quizzes."})
+
+    except Exception as e:
+        return JSONResponse(content={"message": "Selected quizzes saved successfully."})
 
 
 @app.post("/add_reaction")
@@ -843,8 +881,8 @@ async def get_quiz_audio(diary_id: int, current_user: UserCreate = Depends(get_c
             2: "en",  # 英語
             3: "pt",  # ポルトガル語
             4: "es",  # スペイン語
-            5: "zh-CN",  # 簡体中文
-            6: "zh-TW",  # 繁体中文
+            5: "zh",  # 簡体中文
+            6: "zh",  # 繁体中文
             7: "ko",  # 韓国語
             8: "tl",  # タガログ語
             9: "vi",  # ベトナム語
@@ -1682,13 +1720,18 @@ async def update_answer(current_user: UserCreate = Depends(get_current_active_us
     except Exception as e:
         logging.error(f"エラー: {str(e)}")
         raise HTTPException(status_code=400, detail=f"エラー: {str(e)}")
-
 @app.get("/get_ranking")
 async def get_ranking(current_user: UserCreate = Depends(get_current_active_user)):
     try:
         with SessionLocal() as session:
-            # answer_countで降順に並べて上位5人を取得
-            users = session.query(UserTable).order_by(UserTable.answer_count.desc()).limit(5).all()
+            # current_userと同じteam_idを持つユーザーを取得し、answer_countで降順ソート
+            users = (
+                session.query(UserTable)
+                .filter(UserTable.team_id == current_user.team_id)  # 同じチームのユーザーを取得
+                .order_by(UserTable.answer_count.desc())  # answer_countの降順
+                .limit(5)  # 上位5人を取得
+                .all()
+            )
 
             # ランキングデータの準備
             ranking = [

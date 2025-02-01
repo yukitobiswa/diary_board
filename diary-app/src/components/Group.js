@@ -39,20 +39,20 @@ const GroupsPage = () => {
     try {
       // リクエストデータ
       const teamData = {
-        team_id: groupName,
-        team_name: invitePassword,
+        team_name: groupName,
+        team_id: invitePassword,
         country_id: countryId,
         age: age,
       };
-  
+
       // データをコンソールに表示
       console.log("送信するデータ:", teamData);
-  
+
       // FastAPI エンドポイントに POST リクエストを送信
       const response = await axios.post('http://localhost:8000/team_register', teamData);
       setSuccessMessage(response.data.message);
       setErrorMessage("");
-  
+
       // 成功したらページ遷移
       navigate("/startpage");
     } catch (error) {
@@ -61,89 +61,100 @@ const GroupsPage = () => {
       setSuccessMessage("");
     }
   };
-  
 
   const handleGoBack = () => {
     navigate("/startpage");
   };
 
-  return (
-    <div
-      style={{
-        height: "100vh",
-        width: "100vw",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "#F9F9F9",
-        fontFamily: "Arial, sans-serif",
-      }}
-    >
-      <div
-        style={{
-          width: "90%",
-          maxWidth: "400px",
-          padding: "20px",
-          border: "1px solid #ddd",
-          borderRadius: "10px",
-          boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
-          backgroundColor: "#fff",
-        }}
-      >
-        {/* タイトル */}
-        <h3 style={{ textAlign: "center", marginBottom: "20px" }}>グループ作成</h3>
+  const styles = {
+    container: {
+      background: "linear-gradient(135deg, #FFA500, #4CAF50)",
+      color: "#fff",
+      padding: "40px",
+      width: "600px",
+      margin: "50px auto",
+      borderRadius: "15px",
+      boxShadow: "0 6px 12px rgba(0, 0, 0, 0.2)",
+      textAlign: "center",
+    },
+    input: {
+      width: "90%",
+      padding: "12px",
+      border: "none",
+      borderRadius: "8px",
+      margin: "10px 0",
+    },
+    select: {
+      width: "95%",
+      padding: "12px",
+      border: "none",
+      borderRadius: "8px",
+      margin: "10px 0",
+    },
+    displayOnly: {
+      width: "90%",
+      padding: "12px",
+      border: "none",
+      borderRadius: "8px",
+      margin: "10px 0",
+      backgroundColor: "#eee",
+      color: "#333",
+      textAlign: "center",
+    },
+    button: {
+      padding: "12px 24px",
+      backgroundColor: "#FFA500",
+      color: "#fff",
+      border: "none",
+      borderRadius: "8px",
+      cursor: "pointer",
+      margin: "10px 5px",
+      transition: "all 0.3s ease",
+    },
+  };
 
-        {/* グループ名入力 */}
-        <label style={{ fontWeight: "bold", marginBottom: "5px", display: "block" }}>
+  return (
+    <div style={styles.container}>
+      <h2>グループ作成</h2>
+
+      {/* グループ名入力 */}
+      <div>
+        <label htmlFor="groupName" style={{ display: "block", marginBottom: "10px" }}>
           グループ名
         </label>
         <input
+          id="groupName"
           type="text"
           value={groupName}
           onChange={(e) => setGroupName(e.target.value)}
-          placeholder="グループ名を入力"
-          style={{
-            width: "100%",
-            padding: "10px",
-            marginBottom: "15px",
-            borderRadius: "5px",
-            border: "1px solid #ccc",
-          }}
+          style={styles.input}
         />
+      </div>
 
-        {/* 招待パスワード入力 */}
-        <label style={{ fontWeight: "bold", marginBottom: "5px", display: "block" }}>
+      {/* 招待パスワード入力 */}
+      <div>
+        <label htmlFor="invitePassword" style={{ display: "block", marginBottom: "10px" }}>
           招待パスワード
         </label>
         <input
+          id="invitePassword"
           type="password"
           value={invitePassword}
           onChange={(e) => setInvitePassword(e.target.value)}
-          placeholder="パスワードを入力"
-          style={{
-            width: "100%",
-            padding: "10px",
-            marginBottom: "15px",
-            borderRadius: "5px",
-            border: "1px solid #ccc",
-          }}
+          style={styles.input}
         />
+      </div>
 
-        {/* 国選択 */}
-        <label style={{ fontWeight: "bold", marginBottom: "5px", display: "block" }}>
+      {/* 国選択 */}
+      <div>
+        <label htmlFor="country" style={{ display: "block", marginBottom: "10px" }}>
           国を選択
         </label>
         <select
+          id="country"
           value={countryId}
           onChange={(e) => setCountryId(Number(e.target.value))}
-          style={{
-            width: "100%",
-            padding: "10px",
-            marginBottom: "15px",
-            borderRadius: "5px",
-            border: "1px solid #ccc",
-          }}
+          style={styles.select}
         >
           {Object.entries(country_map).map(([id, name]) => (
             <option key={id} value={id}>
@@ -151,60 +162,35 @@ const GroupsPage = () => {
             </option>
           ))}
         </select>
+      </div>
 
-        {/* 年齢入力 */}
-        <label style={{ fontWeight: "bold", marginBottom: "5px", display: "block" }}>
+      {/* 年齢入力 */}
+      <div>
+        <label htmlFor="age" style={{ display: "block", marginBottom: "10px" }}>
           年齢
         </label>
         <input
+          id="age"
           type="number"
           value={age}
           onChange={(e) => setAge(Number(e.target.value))}
-          placeholder="年齢を入力"
-          style={{
-            width: "100%",
-            padding: "10px",
-            marginBottom: "20px",
-            borderRadius: "5px",
-            border: "1px solid #ccc",
-          }}
+          style={styles.input}
         />
-
-        {/* ボタン */}
-        <div style={{ textAlign: "center" }}>
-          <button
-            onClick={handleCreateGroup}
-            style={{
-              padding: "10px 20px",
-              backgroundColor: "#000",
-              color: "#fff",
-              border: "none",
-              borderRadius: "5px",
-              fontSize: "16px",
-              cursor: "pointer",
-            }}
-          >
-            作成
-          </button>
-        </div>
-
-        {/* 戻るボタン */}
-        <div style={{ marginTop: "20px", textAlign: "left" }}>
-          <button
-            onClick={handleGoBack}
-            style={{
-              backgroundColor: "#2196F3",
-              color: "#fff",
-              padding: "8px 12px",
-              border: "none",
-              borderRadius: "5px",
-              cursor: "pointer",
-            }}
-          >
-            ← 戻る
-          </button>
-        </div>
       </div>
+
+      {/* 成功メッセージ */}
+      {successMessage && <div style={{ color: "green", marginBottom: "10px" }}>{successMessage}</div>}
+
+      {/* エラーメッセージ */}
+      {errorMessage && <div style={{ color: "red", marginBottom: "10px" }}>{errorMessage}</div>}
+
+      {/* ボタン */}
+      <button onClick={handleCreateGroup} style={styles.button}>
+        作成
+      </button>
+      <button onClick={handleGoBack} style={{ ...styles.button, backgroundColor: "#4CAF50" }}>
+        戻る
+      </button>
     </div>
   );
 };
