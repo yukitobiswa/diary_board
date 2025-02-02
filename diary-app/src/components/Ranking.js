@@ -97,6 +97,7 @@ const Ranking = () => {
           <tr>
             <th style={styles.th}>順位</th>
             <th style={styles.th}>名前</th>
+            <th style={styles.th}>ニックネーム</th>
             <th style={styles.th}>日記数</th>
           </tr>
         </thead>
@@ -108,6 +109,7 @@ const Ranking = () => {
             >
               <td style={styles.td}>{index + 1}</td>
               <td style={styles.td}>{user.name}</td>
+              <td style={styles.td}>{user.nickname || "未設定"}</td>
               <td style={styles.td}>{user.answer_count}</td>
             </tr>
           ))}
