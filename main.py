@@ -378,8 +378,8 @@ async def team_register(team: TeamCreate):
                 team_id=team.team_id,
                 team_name=team.team_name,
                 team_time=datetime.now(),
+                country=team.country , # country_id を設定
                 age=team.age,  # age を設定
-                country_id=team.country_id  # country_id を設定
             )
             session.add(new_team)
             session.commit()
@@ -426,8 +426,8 @@ async def generate_quiz(category: Category, current_user: UserCreate = Depends(g
                 return JSONResponse(status_code=404, content={"error": "No diary found."})
             user_with_team = session.query(UserTable).filter(UserTable.user_id == current_user.user_id).first()
             team = session.query(TeamTable).filter(TeamTable.team_id == user_with_team.team_id).first()
-            print(f"Team Name: {team.team_name}, Country: {team.country_id}")
-            country = country_map[team.country_id]
+            print(f"Team Name: {team.team_name}, Country: {team.country}")
+            country = country_map[team.country]
             age = team.age
             # クイズを生成
             quizzes = make_quiz(result.content, category.category1, category.category2,country,age)
