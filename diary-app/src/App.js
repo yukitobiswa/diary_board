@@ -26,6 +26,7 @@ import Quiz_log from './components/Quiz _log';
 import Teacher_login from './components/Teacher_login';
 import Teacher_startpage from './components/Teacher_startpage'
 import Teacher_newlogin from './components/Teacher_newlogin'
+import Teacher_page from './components/Teacher_page'
 // This is a main App component
 function App() {
   return (
@@ -58,6 +59,7 @@ function App() {
           <Route path='/Teacher_login' element={<Teacher_login/>} />
           <Route path='/Teacher_startpage' element={<Teacher_startpage/>} />
           <Route path='/Teacher_newlogin' element={<Teacher_newlogin/>} />
+          <Route path='/Teacher_page' element={<Teacher_page/>} />
         </Routes>
       </div>
     </Router>
