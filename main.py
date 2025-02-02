@@ -22,7 +22,7 @@ from fastapi.responses import JSONResponse,StreamingResponse
 from gtts import gTTS
 import io
 import zipfile
-from .BM import (
+from BM import (
     Token,
     OAuth2PasswordRequestFormWithTeam,
     UserPydantic,
