@@ -21,23 +21,24 @@ const Teacher_startpage = () => {
         }
 
         // POSTリクエストを送信
-        axios.post('http://localhost:8000/teacher_login',
-            { password: password },
-            { headers: { 'Content-Type': 'application/json' } }
+        axios.post('http://localhost:8000/token',
+            new URLSearchParams({
+                team_id: teamId,
+                username: userId,
+                password: password
+            }),
+            { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
         )
             .then(response => {
-                if (response.data.message === "Successful") {
-                    setSuccess('ログイン成功！');
+                if (response.data.access_token) {
+                    localStorage.setItem('access_token', response.data.access_token);
+                    setSuccess('Login successfully!');
                     setError('');
-                    navigate('/teacher_startpage');  // ログイン成功後に/teacher_startpageに遷移
+                    navigate('/Chat'); // Redirect to home page on successful login
                 } else {
-                    setError('ログインに失敗しました。');
+                    setError('Login failed. Invalid credentials.');
                     setSuccess('');
                 }
-            })
-            .catch(error => {
-                setError('エラーが発生しました');
-                setSuccess('');
             });
     };
 

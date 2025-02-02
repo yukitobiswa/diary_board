@@ -27,7 +27,7 @@ from gtts import gTTS
 import io
 import zipfile
 # Database URL
-DATABASE_URL = "mysql+pymysql://root:6213ryoy@127.0.0.1/demo"
+DATABASE_URL = "mysql+pymysql://root:yuki0108@127.0.0.1/demo"
 # FastAPI app
 app = FastAPI()
 logger = logging.getLogger(__name__)
@@ -1818,6 +1818,7 @@ async def get_combined_ranking(current_user: UserCreate = Depends(get_current_ac
     except Exception as e:
         logger.error(f"Error fetching combined ranking: {str(e)}")  # エラーの詳細をログに記録
         raise HTTPException(status_code=500, detail="Internal Server Error")
+
 @app.post("/teacher_login")
 async def teacher_login(teacher_login: TeacherLogin):
     if teacher_login.password == "1111":  # Compare the password field
