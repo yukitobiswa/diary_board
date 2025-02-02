@@ -246,44 +246,47 @@ const ChatApp = () => {
     <div style={{ fontFamily: "Arial, sans-serif", display: "flex" }}>
       {/* Sidebar */}
       <div
-        style={{
-          width: menuOpen ? "250px" : "0",
-          height: "100vh",
-          backgroundColor: "#fff",
-          boxShadow: menuOpen ? "2px 0 5px rgba(0,0,0,0.2)" : "none",
-          transition: "width 0.3s",
-          overflowX: "hidden",
-          zIndex: 1000,
-          position: "fixed",
-          left: 0,
-        }}
-      >
-        {menuOpen && (
-          <div style={{ padding: "20px" }}>
-            <h3 style={{ margin: "0 0 20px" }}>
-              <br />
-              <br />
-              <br />
-              <br />
-              <br />
-              メニュー</h3>
-            <ul style={{ listStyleType: "none", padding: 0 }}>
-              {["クイズランキング","日記履歴", "クイズ履歴", "設定", "ログアウト","教員ページ"].map((item) => (
-                <li
-                  key={item}
-                  onClick={() => handleMenuItemClick(item)}
-                  style={{
-                    padding: "10px 0",
-                    borderBottom: "1px solid #ddd",
-                    cursor: "pointer",
-                    color: "#007BFF",
-                  }}
-                >
-                  {item}
-                </li>
-              ))}
-            </ul>
-            <button
+  style={{
+    width: menuOpen ? "250px" : "0",
+    height: "100vh",
+    backgroundColor: "#fff",
+    boxShadow: menuOpen ? "2px 0 5px rgba(0,0,0,0.2)" : "none",
+    transition: "width 0.3s",
+    overflowX: "hidden",
+    zIndex: 1000,
+    position: "fixed",
+    left: 0,
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between", // Ensures the buttons are at the bottom
+  }}
+>
+  {menuOpen && (
+    <div style={{ padding: "20px", flexGrow: 1 }}>
+      <h3 style={{ margin: "0 0 20px" }}>
+      <br/>
+      <br/>
+      <br/>
+      <br/>
+      <br/>
+      メニュー</h3>
+      <ul style={{ listStyleType: "none", padding: 0 }}>
+        {["クイズランキング", "日記履歴", "クイズ履歴", "設定"].map((item) => (
+          <li
+            key={item}
+            onClick={() => handleMenuItemClick(item)}
+            style={{
+              padding: "10px 0",
+              borderBottom: "1px solid #ddd",
+              cursor: "pointer",
+              color: "#007BFF",
+            }}
+          >
+            {item}
+          </li>
+        ))}
+      </ul>
+      <button
               onClick={toggleMenu}
               style={{
                 marginTop: "20px",
@@ -298,9 +301,43 @@ const ChatApp = () => {
             >
               閉じる
             </button>
-          </div>
-        )}
-      </div>
+    </div>
+  )}
+  {/* Logout and Teacher Page Buttons at the Bottom */}
+  <div style={{ padding: "20px", textAlign: "center" }}>
+    <button
+      onClick={handleTeacherPageRedirect}
+      style={{
+        width: "100%",
+        padding: "10px 20px",
+        backgroundColor: "#FFA500", // Orange color
+        color: "#fff",
+        border: "none",
+        borderRadius: "5px",
+        cursor: "pointer",
+        marginBottom: "10px",
+      }}
+    >
+      教員ページ
+    </button>
+    <button
+      onClick={() => handleMenuItemClick("ログアウト")}
+      style={{
+        width: "100%",
+        padding: "10px 20px",
+        backgroundColor: "#FFA500", // Orange color
+        color: "#fff",
+        border: "none",
+        borderRadius: "5px",
+        cursor: "pointer",
+      }}
+    >
+      ログアウト
+    </button>
+  </div>
+</div>
+    
+    
       {/* Menu Button */}
       <div
         style={{
