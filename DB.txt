@@ -152,3 +152,18 @@ INSERT INTO country (id, country_name) VALUES
 (19, 'Turkey'),
 (20, 'Australia'),
 (21, 'Peru');
+
+
+CREATE TABLE cash_quiz (
+    cash_quiz_id INT NOT NULL,
+    diary_id INT NOT NULL,
+    user_id VARCHAR(128) NOT NULL,
+    question TEXT NOT NULL,
+    correct CHAR(1) NOT NULL,
+    a TEXT NOT NULL,
+    b TEXT NOT NULL,
+    c TEXT NOT NULL,
+    d TEXT NOT NULL,
+    PRIMARY KEY (cash_quiz_id, diary_id),  -- cash_quiz_id と diary_id の組み合わせを主キーに
+    KEY (user_id)                         -- user_id にインデックスを作成
+);
