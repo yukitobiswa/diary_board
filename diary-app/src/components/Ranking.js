@@ -3,24 +3,48 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 const Ranking = () => {
-  const [ranking, setRanking] = useState([]);
+  const [quizRanking, setQuizRanking] = useState([]);
+  const [diaryRanking, setDiaryRanking] = useState([]);
+  const [combinedRanking, setCombinedRanking] = useState([]); // State for combined ranking
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null); // 現在のユーザーIDを格納するステート
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchRanking = async () => {
+    const fetchRankings = async () => {
       try {
         const token = localStorage.getItem("access_token"); // トークンを取得
-        const response = await axios.get("http://localhost:8000/get_ranking", {
+
+        // Fetch quiz ranking
+        const quizResponse = await axios.get("http://localhost:8000/get_quiz_ranking", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-        console.log("Ranking Data:", response.data); // デバッグ用
-        setRanking(response.data.ranking);
-        setCurrentUserId(response.data.current_user_id); // 現在のユーザーIDを設定
+
+        // Fetch diary ranking
+        const diaryResponse = await axios.get("http://localhost:8000/get_diary_ranking", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        // Fetch combined ranking
+        const combinedResponse = await axios.get("http://localhost:8000/get_combined_ranking", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        console.log("Quiz Ranking Data:", quizResponse.data); // デバッグ用
+        console.log("Diary Ranking Data:", diaryResponse.data); // デバッグ用
+        console.log("Combined Ranking Data:", combinedResponse.data); // デバッグ用
+
+        setQuizRanking(quizResponse.data.ranking);
+        setDiaryRanking(diaryResponse.data.ranking);
+        setCombinedRanking(combinedResponse.data.ranking); // Set combined ranking
+        setCurrentUserId(quizResponse.data.current_user_id); // 現在のユーザーIDを設定
         setLoading(false);
       } catch (err) {
         console.error("Error fetching ranking:", err.response ? err.response.data : err.message); // エラー内容をログに記録
@@ -29,7 +53,7 @@ const Ranking = () => {
       }
     };
 
-    fetchRanking();
+    fetchRankings();
   }, []);
 
   if (loading) {
@@ -53,7 +77,7 @@ const Ranking = () => {
           </tr>
         </thead>
         <tbody>
-          {ranking.map((user, index) => (
+          {quizRanking.map((user, index) => (
             <tr
               key={index}
               style={user.id === currentUserId ? styles.currentUserRow : {}}
@@ -66,6 +90,55 @@ const Ranking = () => {
           ))}
         </tbody>
       </table>
+
+      <h1 style={styles.header}>日記数ランキング</h1>
+      <table style={styles.table}>
+        <thead>
+          <tr>
+            <th style={styles.th}>順位</th>
+            <th style={styles.th}>名前</th>
+            <th style={styles.th}>日記数</th>
+          </tr>
+        </thead>
+        <tbody>
+          {diaryRanking.map((user, index) => (
+            <tr
+              key={index}
+              style={user.id === currentUserId ? styles.currentUserRow : {}}
+            >
+              <td style={styles.td}>{index + 1}</td>
+              <td style={styles.td}>{user.name}</td>
+              <td style={styles.td}>{user.answer_count}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <h1 style={styles.header}>合計スコアランキング</h1>
+      <table style={styles.table}>
+        <thead>
+          <tr>
+            <th style={styles.th}>順位</th>
+            <th style={styles.th}>名前</th>
+            <th style={styles.th}>ニックネーム</th>
+            <th style={styles.th}>合計スコア</th>
+          </tr>
+        </thead>
+        <tbody>
+          {combinedRanking.map((user, index) => (
+            <tr
+              key={index}
+              style={user.id === currentUserId ? styles.currentUserRow : {}}
+            >
+              <td style={styles.td}>{index + 1}</td>
+              <td style={styles.td}>{user.name}</td>
+              <td style={styles.td}>{user.nickname || "未設定"}</td>
+              <td style={styles.td}>{user.combined_score}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
       <button style={styles.backButton} onClick={() => navigate("/Chat")}>
         チャットに戻る
       </button>

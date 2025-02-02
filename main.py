@@ -750,8 +750,6 @@ async def get_diaries(current_user: UserCreate = Depends(get_current_active_user
             for row in result
         ]
     })
-
-#自身の日記を取得する
 @app.get("/get_my_diary")
 async def get_my_diary(current_user: UserCreate = Depends(get_current_active_user)):
     team_id = current_user.team_id  # 現在のユーザーの team_id を取得
@@ -759,10 +757,11 @@ async def get_my_diary(current_user: UserCreate = Depends(get_current_active_use
     user_id = current_user.user_id  # 現在のユーザーの user_id を取得
 
     with SessionLocal() as session:
-    # multilingual_diaryテーブルから指定したユーザーの日記を取得し、翻訳情報を結合
+        # multilingual_diaryテーブルから指定したユーザーの日記を取得し、翻訳情報を結合
         result = (
             session.query(
                 UserTable.name,  # UserTableからuser_nameを取得
+                UserTable.diary_count,  # 追加: ユーザーの日記数
                 MDiaryTable.diary_id,
                 MDiaryTable.title,
                 MDiaryTable.content,
@@ -782,9 +781,13 @@ async def get_my_diary(current_user: UserCreate = Depends(get_current_active_use
             .all()
         )
 
+    if not result:
+        return JSONResponse(content={"error": "No diaries found"}, status_code=404)
+
     # 結果を整形して返す
     return JSONResponse(content={
         "team_id": team_id,
+        "diary_count": result[0].diary_count,  # 追加: ユーザーの日記数
         "diaries": [
             {
                 "user_name": row.name,
@@ -1599,7 +1602,7 @@ async def get_answer_quiz(current_user: UserCreate = Depends(get_current_active_
                         first_answer_date = answer.answer_date.strftime('%Y-%m-%d %H:%M:%S')
                 
                     set_result = session.query(ASetTable).filter(ASetTable.user_id==current_user.user_id,ASetTable.diary_id==answer.diary_id).first()
-                    set_title = session.query(DiaryTable).filter(DiaryTable.diary_id==answer.diary_id).first()
+                    set_title = session.query(MDiaryTable).filter(MDiaryTable.diary_id==answer.diary_id,MDiaryTable.language_id==current_user.main_language).first()
                     pre_answer = {
                         "title":set_title.title,
                         "correct_set":set_result.correct_set,
@@ -1618,7 +1621,22 @@ async def get_answer_quiz(current_user: UserCreate = Depends(get_current_active_
         logging.error(f"Error during getting answers: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Error during getting answers: {str(e)}")
     
-
+@app.get("/get_total_answer")
+async def get_total_answer(current_user: UserCreate = Depends(get_current_active_user)):
+    try:
+        with SessionLocal() as session:
+            results = session.query(AnswerTable).filter(AnswerTable.user_id == current_user.user_id).filter(AnswerTable.team_id == current_user.team_id) \
+                .order_by(AnswerTable.answer_date.desc()).all()
+            correct_count = sum(1 for answer in results if answer.judgement == 1)
+            total_quiz = session.query(AnswerTable).filter(AnswerTable.user_id == current_user.user_id).filter(AnswerTable.team_id == current_user.team_id).count()
+            persent = (correct_count/total_quiz)*100
+            return JSONResponse({"correct_count": correct_count,
+                                 "total_quiz": total_quiz,
+                                 "persent": persent})
+    except Exception as e:
+        logging.error(f"Error during getting answers: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Error during getting answers: {str(e)}")
+    
 @app.post("/create_answer_set")
 async def create_answer_set(current_user: UserCreate = Depends(get_current_active_user)):
     try:
@@ -1709,7 +1727,8 @@ async def update_answer(current_user: UserCreate = Depends(get_current_active_us
     except Exception as e:
         logging.error(f"エラー: {str(e)}")
         raise HTTPException(status_code=400, detail=f"エラー: {str(e)}")
-@app.get("/get_ranking")
+    
+@app.get("/get_quiz_ranking")
 async def get_ranking(current_user: UserCreate = Depends(get_current_active_user)):
     try:
         with SessionLocal() as session:
@@ -1735,7 +1754,69 @@ async def get_ranking(current_user: UserCreate = Depends(get_current_active_user
     except Exception as e:
         logger.error(f"Error fetching ranking: {str(e)}")  # エラーの詳細をログに記録
         raise HTTPException(status_code=500, detail="Internal Server Error")
+@app.get("/get_diary_ranking")
+async def get_diary_ranking(current_user: UserCreate = Depends(get_current_active_user)):
+    try:
+        with SessionLocal() as session:
+            # current_userと同じteam_idを持つユーザーを取得し、answer_countで降順ソート
+            users = (
+                session.query(UserTable)
+                .filter(UserTable.team_id == current_user.team_id)  # 同じチームのユーザーを取得
+                .order_by(UserTable.diary_count.desc())  # answer_countの降順
+                .limit(5)  # 上位5人を取得
+                .all()
+            )
 
+            # ランキングデータの準備
+            ranking = [
+                {"id": user.user_id, "name": user.name, "answer_count": user.diary_count}
+                for user in users
+            ]
+
+            logger.info(f"Ranking fetched: {ranking}")  # ランキングデータをログに記録
+
+            return JSONResponse(content={"ranking": ranking, "current_user_id": current_user.user_id})
+
+    except Exception as e:
+        logger.error(f"Error fetching ranking: {str(e)}")
+        
+@app.get("/get_combined_ranking")
+async def get_combined_ranking(current_user: UserCreate = Depends(get_current_active_user)):
+    try:
+        with SessionLocal() as session:
+            # クイズの正解数と日記の投稿数を取得
+            quiz_users = (
+                session.query(UserTable)
+                .filter(UserTable.team_id == current_user.team_id)  # 同じチームのユーザーを取得
+                .all()
+            )
+
+            # ユーザーごとの合計スコア（quiz_answer_count + diary_count）を計算
+            user_scores = []
+            for user in quiz_users:
+                combined_score = user.answer_count + user.diary_count * 5  # 正解数と日記数を足す
+                user_scores.append({
+                    "id": user.user_id,
+                    "name": user.name,
+                    "nickname": user.nickname,
+                    "answer_count": user.answer_count,
+                    "diary_count": user.diary_count,
+                    "combined_score": combined_score
+                })
+
+            # 合計スコアで降順にソートし、上位5人を取得
+            user_scores.sort(key=lambda x: x["combined_score"], reverse=True)
+
+            # 上位5人のデータを取得
+            top_5_ranking = user_scores[:5]
+
+            logger.info(f"Combined Ranking fetched: {top_5_ranking}")  # ランキングデータをログに記録
+
+            return JSONResponse(content={"ranking": top_5_ranking, "current_user_id": current_user.user_id})
+
+    except Exception as e:
+        logger.error(f"Error fetching combined ranking: {str(e)}")  # エラーの詳細をログに記録
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 @app.post("/teacher_login")
 async def teacher_login(teacher_login: TeacherLogin):
     if teacher_login.password == "1111":  # Compare the password field

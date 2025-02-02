@@ -367,7 +367,7 @@ const ChatApp = () => {
                       cursor: "pointer",
                     }}
                   >
-                    クイズへ！
+                    Quiz！
                   </button>
                 </div>
               </div>
@@ -377,7 +377,7 @@ const ChatApp = () => {
           {/* Input Area */}
           <div style={{ marginBottom: "10px" }}>
             <label htmlFor="titleInput" style={{ display: "block", marginBottom: "5px" }}>
-              タイトル
+              title
             </label>
             <input
               id="titleInput"
@@ -394,7 +394,7 @@ const ChatApp = () => {
               }}
             />
             <label htmlFor="contentInput" style={{ display: "block", marginBottom: "5px" }}>
-              内容
+              content
             </label>
             <textarea
               id="contentInput"
