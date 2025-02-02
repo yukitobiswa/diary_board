@@ -41,7 +41,7 @@ const GroupsPage = () => {
       const teamData = {
         team_name: groupName,
         team_id: invitePassword,
-        country_id: countryId,
+        country: countryId,
         age: age,
       };
 
