@@ -27,7 +27,7 @@ from gtts import gTTS
 import io
 import zipfile
 # Database URL
-DATABASE_URL = "mysql+pymysql://root:yuki0108@127.0.0.1/demo"
+DATABASE_URL = "mysql+pymysql://root:6213ryoy@127.0.0.1/demo"
 # FastAPI app
 app = FastAPI()
 logger = logging.getLogger(__name__)
@@ -627,6 +627,7 @@ async def add_diary(diary: DiaryCreate, current_user: UserCreate = Depends(get_c
                 translated_entries.append(MDiaryTable(
                     diary_id=diary_id,
                     language_id=i,
+                    team_id = current_user.team_id,
                     user_id=current_user.user_id,
                     title=title,
                     diary_time=diary_time,
