@@ -146,6 +146,37 @@ const ChatApp = () => {
     setMenuOpen(!menuOpen);
   };
 
+  const handleTeacherPageRedirect = async () => {
+    try {
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+        navigate("/startpage");
+        return;
+      }
+  
+      const response = await axios.post(
+        "http://localhost:8000/verify_token",
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+  
+      // is_adminがTrueの場合に教員ページに遷移
+      if (response.data.is_admin) {
+        navigate("/teacher_page");
+      } else {
+        alert("権限がありません");
+      }
+    } catch (error) {
+      console.error("Error verifying token:", error);
+      alert("トークンの検証に失敗しました。");
+      navigate("/startpage");
+    }
+  };
+  
   const handleMenuItemClick = (item) => {
     switch (item) {
       case "クイズランキング":
@@ -164,7 +195,8 @@ const ChatApp = () => {
         navigate("/StartPage");
         break;
       case "教員ページ":
-        navigate("/teacher_page")
+        handleTeacherPageRedirect();
+        break;
       default:
         break;
     }
