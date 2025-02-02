@@ -27,7 +27,7 @@ from gtts import gTTS
 import io
 import zipfile
 # Database URL
-DATABASE_URL = "mysql+pymysql://root:yuki0108@127.0.0.1/demo"
+DATABASE_URL = "mysql+pymysql://root:6213ryoy@127.0.0.1/demo"
 # FastAPI app
 app = FastAPI()
 logger = logging.getLogger(__name__)
@@ -1754,6 +1754,7 @@ async def get_ranking(current_user: UserCreate = Depends(get_current_active_user
     except Exception as e:
         logger.error(f"Error fetching ranking: {str(e)}")  # エラーの詳細をログに記録
         raise HTTPException(status_code=500, detail="Internal Server Error")
+    
 @app.get("/get_diary_ranking")
 async def get_diary_ranking(current_user: UserCreate = Depends(get_current_active_user)):
     try:
@@ -1769,7 +1770,7 @@ async def get_diary_ranking(current_user: UserCreate = Depends(get_current_activ
 
             # ランキングデータの準備
             ranking = [
-                {"id": user.user_id, "name": user.name, "answer_count": user.diary_count}
+                {"id": user.user_id, "name": user.name,"nickname":user.nickname, "answer_count": user.diary_count}
                 for user in users
             ]
 

@@ -107,7 +107,7 @@ const HistoryPage = () => {
                 style={{
                   padding: "15px",
                   backgroundColor: "#fff",
-                  border: "1px solid #ccc",
+                  border: "1px solid #ffa500",
                   borderRadius: "10px",
                   boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
                   cursor: "pointer",
