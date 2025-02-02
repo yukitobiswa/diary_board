@@ -442,6 +442,7 @@ async def generate_quiz(category: Category, current_user: UserCreate = Depends(g
             for  i, quiz_data in enumerate(quizzes):
                 new_cache = CashQuizTable(
                     cash_quiz_id = i + 1,
+                    team_id = current_user.team_id,
                     diary_id=result.diary_id,
                     user_id=current_user.user_id,
                     question=quiz_data['question'],
