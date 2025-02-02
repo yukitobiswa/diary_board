@@ -88,11 +88,16 @@ CREATE TABLE user (
     answer_count INT DEFAULT 0,
     diary_count INT DEFAULT 0,
     nickname VARCHAR(32) DEFAULT NULL,
+    is_admin BOOLEAN DEFAULT FALSE,  -- is_admin を追加（デフォルト値は FALSE）
     PRIMARY KEY (user_id, team_id),
     FOREIGN KEY (team_id) REFERENCES team(team_id),
     FOREIGN KEY (main_language) REFERENCES language(language_id),
     FOREIGN KEY (learn_language) REFERENCES language(language_id)
 );
+
+ALTER TABLE user
+ADD COLUMN is_admin BOOLEAN DEFAULT FALSE;
+
 
 こっち
 CREATE TABLE diary (

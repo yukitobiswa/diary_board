@@ -65,7 +65,7 @@ class OAuth2PasswordRequestFormWithTeam(OAuth2PasswordRequestForm):
         username: str = Form(...),
         password: str = Form(...),
         team_id: str = Form(...),
-        is_admin: bool = Form(False),  # 追加
+        is_admin: bool = False,  # 追加
     ):
         super().__init__(username=username, password=password)
         self.team_id = team_id
@@ -256,17 +256,6 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestFormWithTeam = 
             data={"user_id": user.user_id, "team_id":user.team_id,"is_admin":user.is_admin}, expires_delta=access_token_expires
         )
         return Token(access_token=access_token, token_type="bearer")
-    
-@app.get("/users/me/", response_model=UserCreate)
-async def read_users_me(current_user: UserCreate = Depends(get_current_active_user)):
-    if current_user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    return current_user  # UserCreate 型のデータが返される
-
-# 現在のユーザーのアイテムを取得するエンドポイント
-@app.get("/users/me/items/")
-async def read_own_items(current_user: UserCreate = Depends(get_current_active_user)):
-   return [{"item_id": "Foo", "owner": current_user.username}]
 
 @app.post("/verify_token")
 async def verify_token(token: str = Depends(oauth2_scheme)):
@@ -275,9 +264,10 @@ async def verify_token(token: str = Depends(oauth2_scheme)):
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = payload.get("user_id")
         team_id = payload.get("team_id")
+        is_admin = payload.get("is_admin")
         if user_id and team_id is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
-        return {"valid": True, "user_id": user_id}
+        return {"valid": True, "user_id": user_id,"team_id":team_id,"is_admin":is_admin}
     except Exception as e:
         logging.error(f"Token verification failed: {e}")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
@@ -317,7 +307,45 @@ async def user_register(user: UserCreate):
             session.rollback()  # ロールバック処理
             logging.error(f"Registration failed: {e}")
             raise HTTPException(status_code=500, detail="登録処理中にエラーが発生しました。")
+
+@app.post("/teacher_register")
+async def user_register(user: UserCreate):
+    user.hash_password()  # パスワードのハッシュ化
+
+    with SessionLocal() as session:
+        # `user_id` の存在チェック（どのチームでも同じ user_id は登録不可）
+        existing_user = session.query(UserTable).filter(UserTable.user_id == user.user_id).first()
+        if existing_user:
+            raise HTTPException(status_code=400, detail="このユーザーIDはすでに登録されています。")
+
+        # `team_id` の存在チェック
+        team_exists = session.query(TeamTable).filter(TeamTable.team_id == user.team_id).first()
+        if not team_exists:
+            raise HTTPException(status_code=400, detail="指定されたチームが存在しません。")
+
+        # ユーザー登録処理
+        try:
+            new_user = UserTable(
+                user_id=user.user_id,
+                team_id=user.team_id,
+                password=user.password,
+                name=user.name,
+                main_language=user.main_language,
+                learn_language=user.learn_language,
+                nickname="駆け出しのクイズ好き",  # デフォルトのニックネーム
+                is_admin = True,
+            )
+            session.add(new_user)
+            session.commit()
+            logging.info(f"User registered successfully: {user.user_id}")
+            return JSONResponse({"message": "Register Successfully!"})
+
+        except Exception as e:
+            session.rollback()  # ロールバック処理
+            logging.error(f"Registration failed: {e}")
+            raise HTTPException(status_code=500, detail="登録処理中にエラーが発生しました。")
     
+
 @app.get("/get_profile")
 async def get_profile(current_user: UserCreate = Depends(get_current_active_user)):
     # 数字と言語コードのマッピング

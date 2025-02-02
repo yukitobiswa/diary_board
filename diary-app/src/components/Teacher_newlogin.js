@@ -42,7 +42,7 @@ const Teacher_newlogin = () => {
     }
   
     // POSTリクエストを送信
-    axios.post('http://localhost:8000/register', {
+    axios.post('http://localhost:8000/teacher_register', {
       user_id: userId,
       team_id: teamId,
       password: password,
