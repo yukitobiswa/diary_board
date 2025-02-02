@@ -607,6 +607,7 @@ async def add_diary(diary: DiaryCreate, current_user: UserCreate = Depends(get_c
         try:
             # DiaryTableに新しいエントリを追加
             new_diary = DiaryTable(
+                team_id = current_user.team_id,
                 user_id=current_user.user_id,
                 title=diary.title,  # diary.titleを使用
                 diary_time=diary_time,
@@ -773,7 +774,7 @@ async def get_quizzes(current_user: UserCreate = Depends(get_current_active_user
     try:
         with SessionLocal() as session:
             # ユーザーに関連するクイズデータを取得
-            quizzes = session.query(CashQuizTable).filter(CashQuizTable.user_id == current_user.user_id).all()
+            quizzes = session.query(CashQuizTable).filter(CashQuizTable.user_id == current_user.user_id).filter(CashQuizTable.team_id == current_user.team_id).all()
 
             quizzes_dict = [quiz_to_dict(quiz) for quiz in quizzes]
             logging.info(f"Converted quizzes: {quizzes_dict}")
