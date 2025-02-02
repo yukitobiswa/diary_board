@@ -26,6 +26,7 @@ FOREIGN KEY (diary_id) REFERENCES diary(diary_id)
 
 answer
 create table answer(
+team_id varchar(128),
 user_id varchar(128),
 quiz_id int,
 diary_id int,
@@ -33,7 +34,7 @@ language_id int not null,
 answer_date datetime not null,
 choices char(1) not null,
 judgement int not null,
-PRIMARY KEY(user_id,quiz_id,diary_id),
+PRIMARY KEY(team_id,user_id,quiz_id,diary_id),
 FOREIGN KEY (quiz_id,diary_id) REFERENCES quiz(quiz_id,diary_id),
 FOREIGN KEY (language_id) REFERENCES language(language_id)
 );
@@ -75,7 +76,7 @@ INSERT INTO language (language_name) VALUES ('日本語'),('英語'),('ポルト
 
 CREATE TABLE user (
     user_id VARCHAR(128) PRIMARY KEY,
-    team_id VARCHAR(128),
+    team_id VARCHAR(128) PRIMARY KEY,
     password VARCHAR(64) NOT NULL,
     name VARCHAR(32) NOT NULL,
     main_language INT NOT NULL,
@@ -106,13 +107,44 @@ CREATE TABLE diary (
     FOREIGN KEY (main_language) REFERENCES language(language_id)
 );
 
-CREATE TABLE answer_set (
-    set_id INT AUTO_INCREMENT NOT NULL,
+CREATE TABLE answer_set(
+    set_id INT AUTO_INCREMENT,  -- AUTO_INCREMENTはNOT NULLを自動的に満たすので省略
+    team_id VARCHAR(128) NOT NULL,
     user_id VARCHAR(128) NOT NULL,
     diary_id INT NOT NULL,
     answer_time DATETIME NOT NULL,
     correct_set INT NOT NULL,
-    PRIMARY KEY (set_id),
-    FOREIGN KEY (user_id) REFERENCES user(user_id),
-    FOREIGN KEY (diary_id) REFERENCES diary(diary_id)
+    PRIMARY KEY (set_id),  -- set_id を主キーとして設定
+    FOREIGN KEY (user_id, team_id) REFERENCES user(user_id, team_id),  -- user と team の組み合わせを参照
+    FOREIGN KEY (diary_id) REFERENCES diary(diary_id)  -- diary_id を参照
 );
+
+
+CREATE TABLE country (
+    id INT NOT NULL PRIMARY KEY,      -- id 列、主キー
+    country_name VARCHAR(128) NOT NULL -- country_name 列
+);
+
+-- データの挿入
+INSERT INTO country (id, country_name) VALUES
+(1, 'Japan'),
+(2, 'United States'),
+(3, 'Portugal'),
+(4, 'Spain'),
+(5, 'China'),
+(6, 'Taiwan'),
+(7, 'South Korea'),
+(8, 'Philippines'),
+(9, 'Vietnam'),
+(10, 'Indonesia'),
+(11, 'Nepal'),
+(12, 'France'),
+(13, 'Germany'),
+(14, 'Italy'),
+(15, 'Russia'),
+(16, 'India'),
+(17, 'Brazil'),
+(18, 'Mexico'),
+(19, 'Turkey'),
+(20, 'Australia'),
+(21, 'Peru');

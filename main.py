@@ -27,7 +27,7 @@ from gtts import gTTS
 import io
 import zipfile
 # Database URL
-DATABASE_URL = "mysql+pymysql://root:6213ryoy@127.0.0.1/demo"
+DATABASE_URL = "mysql+pymysql://root:6213ryoy@127.0.0.1/demoo"
 # FastAPI app
 app = FastAPI()
 logger = logging.getLogger(__name__)
@@ -373,7 +373,6 @@ async def change_profile(
 @app.post('/team_register')
 async def team_register(team: TeamCreate):
     try:
-        print(team)
         with SessionLocal() as session:
             new_team = TeamTable(
                 team_id=team.team_id,
@@ -1438,79 +1437,7 @@ async def get_judgement(diary_id: int, current_user: UserCreate = Depends(get_cu
         logging.error(f"Error during getting judgement: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Error during getting judgement: {str(e)}")
 
-@app.get("/get_combined_quiz")
-async def get_combined_quiz(current_user: UserCreate = Depends(get_current_active_user)):
-    try:
-        with SessionLocal() as session:
-            # get_same_quizのロジック
-            quiz_results = (
-                session.query(MQuizTable)
-                .order_by(desc(MQuizTable.diary_id))
-                .limit(55)
-                .all()
-            )
 
-            same_quizzes_data = []
-            for q in quiz_results:
-                if q.language_id == current_user.main_language:
-                    question = q.question
-                    choices = {
-                        "a": q.a,
-                        "b": q.b,
-                        "c": q.c,
-                        "d": q.d
-                    }
-                    same_quizzes_data.append({
-                        "quiz_id": q.quiz_id,
-                        "question": question,
-                        "choices": choices
-                    })
-
-            # get_different_quizのロジック
-            different_quiz_results = (
-                session.query(MQuizTable)
-                .order_by(desc(MQuizTable.diary_id))
-                .limit(55)
-                .all()
-            )
-
-            different_quizzes_data = []
-            for q in different_quiz_results:
-                if q.language_id == current_user.main_language:
-                    question = q.question
-                else:
-                    continue
-
-                choices_query = (
-                    session.query(MQuizTable)
-                    .filter(MQuizTable.quiz_id == q.quiz_id, MQuizTable.language_id == current_user.learn_language)
-                    .first()
-                )
-
-                if choices_query:
-                    choices = {
-                        "a": choices_query.a,
-                        "b": choices_query.b,
-                        "c": choices_query.c,
-                        "d": choices_query.d
-                    }
-                    different_quizzes_data.append({
-                        "quiz_id": q.quiz_id,
-                        "question": question,  # 問題文は別の処理で取得
-                        "choices": choices
-                    })
-
-            # 結果を統合
-            combined_quizzes_data = {
-                "same_quizzes": same_quizzes_data,
-                "different_quizzes": different_quizzes_data
-            }
-
-            return JSONResponse(content=combined_quizzes_data)
-    except Exception as e:
-        logging.error(f"Error during getting combined quiz: {str(e)}")
-        raise HTTPException(status_code=400, detail=f"Error during getting combined quiz: {str(e)}")
-    
 answer_dic = {
     "a" : 1,
     "b" : 2,
@@ -1536,6 +1463,7 @@ async def create_answer(answer : AnswerCreate, current_user : UserCreate = Depen
                 judgement = 0
                 
             new_answer = AnswerTable(
+                team_id = current_user.team_id,
                 user_id=current_user.user_id,
                 quiz_id=answer.quiz_id,
                 diary_id=answer.diary_id,
@@ -1565,11 +1493,11 @@ async def already_quiz(
     try:
         with SessionLocal() as session:
             team_id = current_user.team_id
-            user_id = session.query(UserTable).filter(UserTable.team_id == team_id,
-                                                      UserTable.user_id == current_user.user_id).user_id()
+            user = session.query(UserTable).filter(UserTable.team_id == team_id,
+                                                      UserTable.user_id == current_user.user_id).first()
             # ユーザーIDと日記IDに基づき、AnswerTableをクエリ
             answer_count = session.query(AnswerTable).filter(
-                AnswerTable.user_id == user_id,
+                AnswerTable.user_id == user.user_id,
                 AnswerTable.diary_id == diary_id
             ).count()  # 回答数をカウント
             if answer_count >= 5:
@@ -1587,7 +1515,7 @@ async def get_answer(current_user: UserCreate = Depends(get_current_active_user)
     try:
         with SessionLocal() as session:
             # Get the last 5 answers for the current user, ordered by diary_id descending
-            results = session.query(AnswerTable).filter(AnswerTable.user_id == current_user.user_id) \
+            results = session.query(AnswerTable).filter(AnswerTable.user_id == current_user.user_id).filter(AnswerTable.team_id == current_user.team_id)\
                 .order_by(AnswerTable.answer_date.desc()).limit(5).all()
 
             # Count the number of correct answers
@@ -1612,7 +1540,7 @@ async def get_answer(current_user: UserCreate = Depends(get_current_active_user)
 async def get_answer_quiz(current_user: UserCreate = Depends(get_current_active_user)):
     try:
         with SessionLocal() as session:
-            results = session.query(AnswerTable).filter(AnswerTable.user_id == current_user.user_id) \
+            results = session.query(AnswerTable).filter(AnswerTable.user_id == current_user.user_id).filter(AnswerTable.team_id == current_user.team_id) \
                 .order_by(AnswerTable.answer_date.asc()).all()
 
             set_answer = []
@@ -1659,11 +1587,12 @@ async def create_answer_set(current_user: UserCreate = Depends(get_current_activ
     try:
         answer_time = datetime.now()
         with SessionLocal() as session:
-            results = session.query(AnswerTable).filter(AnswerTable.user_id == current_user.user_id) \
+            results = session.query(AnswerTable).filter(AnswerTable.user_id == current_user.user_id).filter(AnswerTable.team_id == current_user.team_id) \
                 .order_by(AnswerTable.answer_date.desc()).limit(5).all()
             correct_count = sum(1 for answer in results if answer.judgement == 1)
             diary_id = results[0].diary_id if results else None
             new_answer_set = ASetTable(
+                team_id = current_user.team_id,
                 user_id=current_user.user_id,
                 diary_id=diary_id,
                 answer_time=answer_time,
@@ -1691,10 +1620,10 @@ async def update_answer(current_user: UserCreate = Depends(get_current_active_us
             correct_count = sum(1 for answer in results if answer.judgement == 1)
 
             # 既存のユーザー情報を取得
-            existing_user = session.query(UserTable).filter(UserTable.user_id == current_user.user_id).first()
+            existing_user = session.query(UserTable).filter(UserTable.user_id == current_user.user_id).filter(UserTable.team_id == current_user.team_id).first()
             if not existing_user:
                 raise HTTPException(status_code=404, detail="ユーザーが見つかりません")
-
+            print(f"Correct answers count: {correct_count}")
             # `answer_count` を更新
             existing_user.answer_count += correct_count
 
