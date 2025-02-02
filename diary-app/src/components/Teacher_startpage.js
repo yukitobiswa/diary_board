@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const StartPage = () => {
+const Teacher_startpage = () => {
   const[teamId,setTeamId] = useState('')
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
@@ -166,4 +166,4 @@ const StartPage = () => {
   );
 };
 
-export default StartPage;
+export default Teacher_startpage;
