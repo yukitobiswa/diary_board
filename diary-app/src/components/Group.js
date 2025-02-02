@@ -54,7 +54,7 @@ const GroupsPage = () => {
       setErrorMessage("");
 
       // 成功したらページ遷移
-      navigate("/startpage");
+      navigate("/teacher_startpage");
     } catch (error) {
       console.error("Error:", error);
       setErrorMessage("グループ作成に失敗しました。");
@@ -63,7 +63,7 @@ const GroupsPage = () => {
   };
 
   const handleGoBack = () => {
-    navigate("/startpage");
+    navigate("/teacher_startpage");
   };
 
   const styles = {

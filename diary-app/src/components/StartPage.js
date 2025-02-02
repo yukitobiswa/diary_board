@@ -142,7 +142,7 @@ const StartPage = () => {
             ログイン
           </button>
           <button
-            onClick={() => navigate('/register')}
+            onClick={() => navigate('/Teacher_login')}
             style={{
               padding: "20px 30px",
               backgroundColor: "#FFA500",
@@ -156,7 +156,7 @@ const StartPage = () => {
               margin: "0 5px",
             }}
           >
-            グループ作成
+            教員ページへ
           </button>
         </div>
       </form>

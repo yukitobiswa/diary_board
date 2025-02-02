@@ -145,34 +145,34 @@ const QuizHistoryPage = () => {
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
-                  fontSize: "18px",  // Smaller font size
+                  position: "relative"
                 }}
                 onClick={() => setOpenSetIndex(openSetIndex === index ? null : index)}
               >
-                <span style={{ fontSize: "16px", color: "#555", textAlign: "center" }}>
-                  {set.answer_date}
-                </span>
+                <span style={{ fontSize: "14px", color: "#555" }}>{set.answer_date}</span>
                 <span
                   style={{
                     position: "absolute",
                     left: "50%",
                     transform: "translateX(-50%)",
-                    fontSize: "20px",  // Smaller font size for title
+                    fontSize: "25px",
                     fontWeight: "bold",
-                    textAlign: "center",
                   }}
                 >
                   {set.title}
                 </span>
-                <span
-                  style={{
-                    fontSize: "20px",  // Smaller font size for the toggle arrow
-                    color: "black",
-                    cursor: "pointer",
-                  }}
-                >
-                  {openSetIndex === index ? "▲" : "▼"}
-                </span>
+                <div style={{ display: "flex", alignItems: "center" }}>
+                  <span style={{ marginRight: "10px", fontSize: "20px", fontWeight: "bold",color:"black",}}>{set.correct_set}/5</span>
+                  <span
+                    style={{
+                      fontSize: "20px",
+                      color: "black",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {openSetIndex === index ? "▲" : "▼"}
+                  </span>
+                </div>
               </div>
               {openSetIndex === index && (
                 <div

@@ -23,7 +23,9 @@ import Log from './components/log';
 import StartPage from './components/StartPage';
 import Ranking from './components/Ranking';
 import Quiz_log from './components/Quiz _log';
-
+import Teacher_login from './components/Teacher_login';
+import Teacher_startpage from './components/Teacher_startpage'
+import Teacher_newlogin from './components/Teacher_newlogin'
 // This is a main App component
 function App() {
   return (
@@ -53,6 +55,9 @@ function App() {
           <Route path="/StartPage" element={<StartPage />} />
           <Route path="/Ranking" element={<Ranking/>}/>
           <Route path='/Quiz_Log' element={<Quiz_log/>} />
+          <Route path='/Teacher_login' element={<Teacher_login/>} />
+          <Route path='/Teacher_startpage' element={<Teacher_startpage/>} />
+          <Route path='/Teacher_newlogin' element={<Teacher_newlogin/>} />
         </Routes>
       </div>
     </Router>

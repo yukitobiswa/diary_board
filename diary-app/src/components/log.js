@@ -128,7 +128,7 @@ const HistoryPage = () => {
                     position: "absolute",
                     left: "50%",
                     transform: "translateX(-50%)",
-                    fontSize: "20px",
+                    fontSize: "25px",
                     fontWeight: "bold",
                     textAlign: "center",
                   }}
