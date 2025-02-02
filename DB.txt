@@ -3,7 +3,7 @@ create table team (
 team_id varchar(128)  PRIMARY KEY,
 team_name VARCHAR(128) NOT NULL,
 team_time DATETIME NOT NULL,
-country int,
+county int,
 age int
 );
 
