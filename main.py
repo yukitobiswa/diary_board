@@ -92,7 +92,7 @@ class UserCreate(BaseModel):
 class TeamCreate(BaseModel):
     team_name: str
     team_id : str
-    country_id: int  
+    country: int  
     age: int  
     
 class DiaryCreate(BaseModel):
