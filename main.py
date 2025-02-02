@@ -27,7 +27,7 @@ from gtts import gTTS
 import io
 import zipfile
 # Database URL
-DATABASE_URL = "mysql+pymysql://root:6213ryoy@127.0.0.1/demoo"
+DATABASE_URL = "mysql+pymysql://root:6213ryoy@127.0.0.1/demo"
 # FastAPI app
 app = FastAPI()
 logger = logging.getLogger(__name__)
