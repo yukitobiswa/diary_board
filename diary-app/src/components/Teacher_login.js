@@ -3,43 +3,37 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 const Teacher_login = () => {
-    const [teamId, setTeamId] = useState('')
-    const [userId, setUserId] = useState('');
     const [password, setPassword] = useState('');
     const [success, setSuccess] = useState('');
     const [error, setError] = useState('');
     const navigate = useNavigate();
 
-    // This block is Handler for form submission
+    // フォーム送信の処理
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (userId === '' || password === '') {
-            setError('All fields are required!');
+        if (password === '') {
+            setError('パスワードを入力してください');
+            setSuccess('');
             return;
         }
 
-        // This is to make a POST request to add the new course
-        axios.post('http://localhost:8000/token',
-            new URLSearchParams({
-                team_id: teamId,
-                username: userId,
-                password: password
-            }),
-            { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+        // POSTリクエストを送信
+        axios.post('http://localhost:8000/teacher_login',
+            {password: password},
+            { headers: { 'Content-Type': 'application/json' } }
         )
             .then(response => {
-                if (response.data.access_token) {
-                    localStorage.setItem('access_token', response.data.access_token);
-                    setSuccess('Login successfully!');
+                if (response.data.message === "Successful") {
+                    setSuccess('ログイン成功！');
                     setError('');
-                    navigate('/Chat'); // Redirect to home page on successful login
+                    navigate('/teacher_startpage');  // ログイン成功後に/teacher_startpageに遷移
                 } else {
-                    setError('Login failed. Invalid credentials.');
+                    setError('ログインに失敗しました。');
                     setSuccess('');
                 }
             })
             .catch(error => {
-                setError('Error');
+                setError('エラーが発生しました');
                 setSuccess('');
             });
     };
@@ -58,7 +52,7 @@ const Teacher_login = () => {
             }}
         >
             <button
-                onClick={() => navigate('/Teacher_startpage')}
+                onClick={() => navigate('/StartPage')}
                 style={{
                     padding: "10px 20px",
                     backgroundColor: "#007BFF",
@@ -69,7 +63,7 @@ const Teacher_login = () => {
                     cursor: "pointer",
                     marginBottom: "20px",
                     transition: "background-color 0.3s",
-                    textAlign: "left", // Align to the left
+                    textAlign: "left", // 左寄せ
                     display: "block",
                 }}
             >
@@ -93,7 +87,6 @@ const Teacher_login = () => {
                     />
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", marginTop: "20px" }}>
-
                     <button
                         type="submit"
                         style={{

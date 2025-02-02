@@ -27,7 +27,7 @@ from gtts import gTTS
 import io
 import zipfile
 # Database URL
-DATABASE_URL = "mysql+pymysql://root:6213ryoy@127.0.0.1/demo"
+DATABASE_URL = "mysql+pymysql://root:yuki0108@127.0.0.1/demo"
 # FastAPI app
 app = FastAPI()
 logger = logging.getLogger(__name__)
@@ -64,10 +64,13 @@ class OAuth2PasswordRequestFormWithTeam(OAuth2PasswordRequestForm):
         self,
         username: str = Form(...),
         password: str = Form(...),
-        team_id: str = Form(...),  # 追加
+        team_id: str = Form(...),
+        is_admin: bool = Form(False),  # 追加
     ):
         super().__init__(username=username, password=password)
         self.team_id = team_id
+        self.is_admin = is_admin  # is_admin をクラスの属性として設定
+
         
 class UserPydantic(BaseModel):
     user_id: str
@@ -153,6 +156,9 @@ class UserInDB(UserCreate):
 class ReactionRequest(BaseModel):
     diary_id: int
     emoji: str
+
+class TeacherLogin(BaseModel):
+    password: str
     
 # Reflect database tables
 Base = automap_base()
@@ -247,7 +253,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestFormWithTeam = 
             )
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(
-            data={"user_id": user.user_id, "team_id":user.team_id}, expires_delta=access_token_expires
+            data={"user_id": user.user_id, "team_id":user.team_id,"is_admin":user.is_admin}, expires_delta=access_token_expires
         )
         return Token(access_token=access_token, token_type="bearer")
     
@@ -1702,6 +1708,13 @@ async def get_ranking(current_user: UserCreate = Depends(get_current_active_user
         logger.error(f"Error fetching ranking: {str(e)}")  # エラーの詳細をログに記録
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
+@app.post("/teacher_login")
+async def teacher_login(teacher_login: TeacherLogin):
+    if teacher_login.password == "1111":  # Compare the password field
+        return JSONResponse(content={"message": "Successful"})
+    else:
+        return JSONResponse(content={"message": "Invalid password"}, status_code=400)
+    
 
 @app.exception_handler(404)
 async def page_not_found(request: Request, exc):
