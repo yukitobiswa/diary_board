@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 const HistoryPage = () => {
   const [messages, setMessages] = useState([]);
+  const [diaryCount, setDiaryCount] = useState(0); // 追加: 日記の数を管理
   const [openDiaryId, setOpenDiaryId] = useState(null); // 開かれた日記IDを管理
   const navigate = useNavigate();
   const tokenRef = useRef(localStorage.getItem("authToken") || null); // トークンをlocalStorageから取得
@@ -13,28 +14,28 @@ const HistoryPage = () => {
     if (!tokenRef.current) return; // トークンがセットされていない場合は処理を終了
 
     try {
-      // 新しいエンドポイントを呼び出す
       const response = await axios.get("http://localhost:8000/get_my_diary", {
         headers: {
           Authorization: `Bearer ${tokenRef.current}`, // トークンをヘッダーに含める
         },
       });
 
-      // レスポンスのデータを整形してメッセージリストに格納
       const diaryData = response.data.diaries;
+      setDiaryCount(response.data.diary_count); // 追加: diary_count をセット
+
       if (diaryData.length === 0) {
         setMessages([]);
       } else {
         const formattedMessages = diaryData
-        .sort((a, b) => new Date(b.diary_time) - new Date(a.diary_time))
-        .map((diary) => ({
-          user_name: diary.user_name,
-          diary_id: diary.diary_id,
-          title: diary.title,
-          content: diary.content,
-          diary_time: diary.diary_time,
-          reactions: diary.reactions || {},
-        }));
+          .sort((a, b) => new Date(b.diary_time) - new Date(a.diary_time))
+          .map((diary) => ({
+            user_name: diary.user_name,
+            diary_id: diary.diary_id,
+            title: diary.title,
+            content: diary.content,
+            diary_time: diary.diary_time,
+            reactions: diary.reactions || {},
+          }));
         setMessages(formattedMessages);
       }
     } catch (error) {
@@ -49,7 +50,7 @@ const HistoryPage = () => {
         navigate("/startpage");
         return;
       }
-      tokenRef.current = token; // トークンをrefに保存
+      tokenRef.current = token;
       try {
         const response = await axios.post("http://localhost:8000/verify_token", {}, {
           headers: {
@@ -67,21 +68,19 @@ const HistoryPage = () => {
       }
     };
 
-    verifyToken(); // マウント時にトークンを確認
-  }, []); // 依存関係が空のため、コンポーネントのマウント時にのみ実行
+    verifyToken();
+  }, []);
 
-  // アコーディオンを開く関数
   const toggleDiary = (diaryId) => {
-    if (openDiaryId === diaryId) {
-      setOpenDiaryId(null); // 同じ日記をクリックしたら閉じる
-    } else {
-      setOpenDiaryId(diaryId); // 新しい日記をクリックしたら開く
-    }
+    setOpenDiaryId(openDiaryId === diaryId ? null : diaryId);
   };
 
   return (
     <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
       <h2 style={{ textAlign: "center" }}>日記履歴</h2>
+      <h3 style={{ textAlign: "center", color: "#333" }}>
+        あなたの日記数: {diaryCount}件
+      </h3>
       <button
         onClick={() => navigate("/Chat")}
         style={{
