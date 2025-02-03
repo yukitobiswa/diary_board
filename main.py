@@ -45,7 +45,7 @@ from BM import (
 
 
 # Database URL
-DATABASE_URL = "mysql+pymysql://root:yuki0108@127.0.0.1/demo"
+DATABASE_URL = "mysql+pymysql://root:6213ryoy@127.0.0.1/demo"
 # FastAPI app
 app = FastAPI()
 logger = logging.getLogger(__name__)
@@ -321,44 +321,28 @@ async def change_profile(
 async def team_register(team: TeamCreate):
     try:
         with SessionLocal() as session:
+            # countryリストをカンマ区切りの文字列に変換
+            country_str = ",".join(team.country)  # ['Japan', 'Brazil', 'Indonesia', 'Vietnam'] -> 'Japan,Brazil,Indonesia,Vietnam'
+            
+            # 新しいチームを作成
             new_team = TeamTable(
                 team_id=team.team_id,
                 team_name=team.team_name,
                 team_time=datetime.now(),
-                country=team.country , # country_id を設定
-                age=team.age,  # age を設定
+                country=country_str,  # 変換した文字列を保存
+                age=team.age,  # age をそのまま設定
+                member_count=team.member_count  # member_count をそのまま設定
             )
             session.add(new_team)
             session.commit()
             logging.info(f"Team registered successfully: {team.team_id}")
+        
         return JSONResponse({"message": "Register Successfully!"})
+    
     except Exception as e:
         logging.error(f"Error during registration: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Error during registration: {str(e)}")
-    
-country_map = {
-    1: 'Japan',  # 日本
-    2: 'United States',  # アメリカ
-    3: 'Portugal',  # ポルトガル
-    4: 'Spain',  # スペイン
-    5: 'China',  # 中国（簡体）
-    6: 'Taiwan',  # 台湾（繁体）
-    7: 'South Korea',  # 韓国
-    8: 'Philippines',  # フィリピン
-    9: 'Vietnam',  # ベトナム
-    10: 'Indonesia',  # インドネシア
-    11: 'Nepal',  # ネパール
-    12: 'France',  # フランス
-    13: 'Germany',  # ドイツ
-    14: 'Italy',  # イタリア
-    15: 'Russia',  # ロシア
-    16: 'India',  # インド
-    17: 'Brazil',  # ブラジル
-    18: 'Mexico',  # メキシコ
-    19: 'Turkey',  # トルコ
-    20: 'Australia',  # オーストラリア
-    21: 'Peru',  # ペルー
-}
+
 @app.post("/generate_quiz")
 async def generate_quiz(category: Category, current_user: UserCreate = Depends(get_current_active_user)):
     try:
@@ -374,7 +358,8 @@ async def generate_quiz(category: Category, current_user: UserCreate = Depends(g
             user_with_team = session.query(UserTable).filter(UserTable.user_id == current_user.user_id).first()
             team = session.query(TeamTable).filter(TeamTable.team_id == user_with_team.team_id).first()
             print(f"Team Name: {team.team_name}, Country: {team.country}")
-            country = country_map[team.country]
+            country = team.country
+            print(country)
             age = team.age
             # クイズを生成
             quizzes = make_quiz(result.content, category.category1, category.category2,country,age)

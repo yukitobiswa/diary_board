@@ -106,14 +106,14 @@ const HistoryPage = () => {
               <div
                 style={{
                   padding: "15px",
-                  backgroundColor: "#fff",
+                  backgroundColor: "#ffa500",
                   border: "1px solid #ffa500",
                   borderRadius: "10px",
                   boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
                   cursor: "pointer",
                   textAlign: "center",
                   fontWeight: "bold",
-                  color: "#007bff",
+                  color: "#000",
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
