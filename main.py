@@ -16,7 +16,7 @@ from translate_quiz import translate_question,translate_quizz
 from testgpt import filter_diary_entry
 from wordcount import count_words
 from fastapi.middleware.cors import CORSMiddleware
-from typing import Union
+from typing import List, Union
 from fastapi import Request
 from fastapi.responses import JSONResponse,StreamingResponse
 from gtts import gTTS
@@ -39,7 +39,8 @@ from BM import (
     SelectedQuiz,
     UserInDB,
     ReactionRequest,
-    TeacherLogin
+    TeacherLogin,
+    UserResponse
 )
 
 
@@ -1738,6 +1739,33 @@ async def teacher_login(teacher_login: TeacherLogin):
     else:
         return JSONResponse(content={"message": "Invalid password"}, status_code=400)
     
+@app.get("/get_student_inf", response_model=List[UserResponse])
+async def get_student_inf(current_user: UserResponse = Depends(get_current_active_user)):
+    with SessionLocal() as session:
+        users = (
+            session.query(UserTable)
+            .filter(UserTable.team_id == current_user.team_id)  # 同じチームのユーザーを取得
+            .all()
+        )
+    
+    # UserTable を Pydantic の UserResponse に変換
+    return [
+        UserResponse(
+            user_id=user.user_id,
+            team_id=user.team_id,
+            name=user.name,
+            password=user.password,
+            main_language=user.main_language,
+            learn_language=user.learn_language,
+            answer_count=user.answer_count,
+            diary_count=user.diary_count,
+            nickname=user.nickname,
+            is_admin=user.is_admin
+        )
+        for user in users
+    ]
+
+        
 
 @app.exception_handler(404)
 async def page_not_found(request: Request, exc):

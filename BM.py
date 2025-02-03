@@ -113,3 +113,14 @@ class ReactionRequest(BaseModel):
 class TeacherLogin(BaseModel):
     password: str
     
+class UserResponse(BaseModel):
+    user_id: str
+    team_id: str
+    name: str
+    password: str
+    main_language: int
+    learn_language: int
+    answer_count: int
+    diary_count: int
+    nickname: str = None
+    is_admin: bool
