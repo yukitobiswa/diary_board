@@ -8,7 +8,7 @@ const Teacher_page = () => {
     const [openUserId, setOpenUserId] = useState(null); // アコーディオンの開閉管理
     const navigate = useNavigate();
     const tokenRef = useRef(localStorage.getItem("authToken") || null);
-
+    const {user_id} = useParams();
     const fetchUsers = async () => {
         if (!tokenRef.current) return;
 

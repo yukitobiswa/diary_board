@@ -512,6 +512,7 @@ def add_reaction(reaction: ReactionRequest):
     except Exception as e:
         logging.error(f"Error adding reaction: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error adding reaction: {str(e)}")
+    
 @app.post("/add_diary")
 async def add_diary(diary: DiaryCreate, current_user: UserCreate = Depends(get_current_active_user)):
     """
@@ -710,7 +711,50 @@ async def get_my_diary(current_user: UserCreate = Depends(get_current_active_use
         ]
     })
 
+@app.get("/get_indiviual_diaries/{user_id}")
+async def get_my_diary(user_id:str,current_user: UserCreate = Depends(get_current_active_user)):
+    
+    with SessionLocal() as session:
+        # multilingual_diaryテーブルから指定したユーザーの日記を取得し、翻訳情報を結合
+        result = (
+            session.query(
+                UserTable.name,  # UserTableからuser_nameを取得
+                UserTable.diary_count,  # 追加: ユーザーの日記数
+                MDiaryTable.diary_id,
+                MDiaryTable.title,
+                MDiaryTable.content,
+                MDiaryTable.diary_time,
+            )
+            .join(DiaryTable, DiaryTable.diary_id == MDiaryTable.diary_id)  # DiaryTableと結合
+            .join(UserTable, UserTable.user_id == MDiaryTable.user_id)  # UserTableと結合
+            .filter(UserTable.team_id == current_user.team_id,UserTable.user_id == user_id)  # チームIDでフィルタ
+            .filter(MDiaryTable.language_id == current_user.main_language)  # main_languageでフィルタ
+            .filter(MDiaryTable.user_id == user_id)  # user_idでフィルタ
+            .filter(MDiaryTable.is_visible == 1)  # is_visible が 1 の日記をフィルタ
+            .filter(DiaryTable.is_visible == 1)  # DiaryTableのis_visibleも1の日記のみ
+            .order_by(DiaryTable.diary_time.asc())  # 日記の時間で並び替え
+            .all()
+        )
 
+    if not result:
+        return JSONResponse(content={"error": "No diaries found"}, status_code=404)
+
+    # 結果を整形して返す
+    return JSONResponse(content={
+        "team_id": current_user.team_id,
+        "diary_count": result[0].diary_count,  # 追加: ユーザーの日記数
+        "diaries": [
+            {
+                "user_name": row.name,
+                "diary_id": row.diary_id,
+                "title": row.title,
+                "content": row.content,
+                "diary_time": row.diary_time.strftime('%Y-%m-%d %H:%M:%S'),
+            }
+            for row in result
+        ]
+    })
+    
 @app.get("/get_quizzes")
 async def get_quizzes(current_user: UserCreate = Depends(get_current_active_user)):
     try:

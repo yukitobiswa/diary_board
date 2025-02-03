@@ -61,7 +61,7 @@ function App() {
           <Route path='/Teacher_startpage' element={<Teacher_startpage/>} />
           <Route path='/Teacher_newlogin' element={<Teacher_newlogin/>} />
           <Route path='/Teacher_page' element={<Teacher_page/>} />
-          <Route path='user_inf' element={<User_inf/>} />
+          <Route path='/user_inf' element={<User_inf/>} />
         </Routes>
       </div>
     </Router>
