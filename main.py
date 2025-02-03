@@ -45,7 +45,7 @@ from BM import (
 
 
 # Database URL
-DATABASE_URL = "mysql+pymysql://root:6213ryoy@127.0.0.1/demo"
+DATABASE_URL = "mysql+pymysql://root:yuki0108@127.0.0.1/demo"
 # FastAPI app
 app = FastAPI()
 logger = logging.getLogger(__name__)
@@ -1506,8 +1506,10 @@ async def get_answer_quiz(current_user: UserCreate = Depends(get_current_active_
                 
                     set_result = session.query(ASetTable).filter(ASetTable.user_id==current_user.user_id,ASetTable.diary_id==answer.diary_id).first()
                     set_title = session.query(MDiaryTable).filter(MDiaryTable.diary_id==answer.diary_id,MDiaryTable.language_id==current_user.main_language).first()
+                    set_name = session.query(UserTable).filter(UserTable.name == set_title.user_id and UserTable.team_id == current_user.team_id).first()
                     pre_answer = {
                         "title":set_title.title,
+                        "name":set_name.name,
                         "correct_set":set_result.correct_set,
                         "answer_date": first_answer_date,
                         "questions":temp_set,

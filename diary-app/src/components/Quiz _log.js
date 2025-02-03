@@ -75,8 +75,8 @@ const QuizHistoryPage = () => {
   }, []);
   return (
     <div style={{ padding: "30px", fontFamily: "Arial, sans-serif" }}>
-      <h2 style={{ textAlign: "center"}}>クイズ履歴</h2>
-  
+      <h2 style={{ textAlign: "center" }}>クイズ履歴</h2>
+
       {/* Quiz Stats */}
       <div
         style={{
@@ -92,19 +92,19 @@ const QuizHistoryPage = () => {
         }}
       >
         <div>
-          <strong style={{ color: "#28a745", fontSize: "20px" }}>正解数:</strong> 
+          <strong style={{ color: "#28a745", fontSize: "20px" }}>正解数:</strong>
           <span style={{ color: "#28a745", fontWeight: "bold", fontSize: "24px" }}>
             {correctCount}
           </span>
         </div>
         <div>
-          <strong style={{ color: "#28a745", fontSize: "20px" }}>正解率:</strong> 
+          <strong style={{ color: "#28a745", fontSize: "20px" }}>正解率:</strong>
           <span style={{ color: "#28a745", fontWeight: "bold", fontSize: "24px" }}>
             {percent.toFixed(1)}%
           </span>
         </div>
       </div>
-  
+
       {/* Back Button */}
       <button
         onClick={() => navigate("/Chat")}
@@ -120,91 +120,99 @@ const QuizHistoryPage = () => {
       >
         戻る
       </button>
-  
-{/* Quiz History */}
-{quizData.length === 0 ? (
-  <p style={{ textAlign: "center", color: "#777", fontSize: "16px", marginTop: "20px" }}>
-    まだ履歴がありません
-  </p>
-) : (
-  <div style={{ display: "flex", flexDirection: "column", gap: "25px", marginTop: "30px" }}>
-    {quizData.map((set, index) => (
-      <div key={index} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
-        <div
-          style={{
-            padding: "15px",  // Reduced padding for quiz items
-            backgroundColor: "#ffa500",  // Change background color to orange
-            border: "1px solid #ff9000",  // Change border color to orange
-            borderRadius: "15px",
-            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-            cursor: "pointer",
-            textAlign: "center",
-            fontWeight: "bold",
-            color: "#000",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            position: "relative"
-          }}
-          onClick={() => setOpenSetIndex(openSetIndex === index ? null : index)}
-        >
-          <span style={{ fontSize: "14px", color: "#555" }}>{set.answer_date}</span>
-          <span
-            style={{
-              position: "absolute",
-              left: "50%",
-              transform: "translateX(-50%)",
-              fontSize: "25px",
-              fontWeight: "bold",
-            }}
-          >
-            {set.title}
-          </span>
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <span style={{ marginRight: "10px", fontSize: "20px", fontWeight: "bold", color: "black",}}>{set.correct_set}/5</span>
-            <span
-              style={{
-                fontSize: "20px",
-                color: "black",
-                cursor: "pointer",
-              }}
-            >
-              {openSetIndex === index ? "▲" : "▼"}
-            </span>
-          </div>
-        </div>
-        {openSetIndex === index && (
-          <div
-            style={{
-              marginTop: "15px",
-              padding: "15px",  // Reduced padding for quiz details
-              backgroundColor: "#f7f7f7",
-              border: "1px solid #ddd",
-              borderRadius: "10px",
-              boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-              fontSize: "16px",  // Smaller font size for quiz details
-            }}
-          >
-            {set.questions.map((quiz) => (
+
+      {/* Quiz History */}
+      {quizData.length === 0 ? (
+        <p style={{ textAlign: "center", color: "#777", fontSize: "16px", marginTop: "20px" }}>
+          まだ履歴がありません
+        </p>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: "25px", marginTop: "30px" }}>
+          {quizData.map((set, index) => (
+            <div key={index} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
               <div
-                key={quiz.quiz_id}
                 style={{
-                  padding: "12px",  // Reduced padding
-                  borderBottom: "1px solid #ddd",
-                  marginBottom: "12px",  // Reduced margin
-                  backgroundColor: quiz.judgement === 1 ? "#d4edda" : "#f8d7da",
+                  padding: "15px",  // Reduced padding for quiz items
+                  backgroundColor: "#ffa500",  // Change background color to orange
+                  border: "1px solid #ff9000",  // Change border color to orange
+                  borderRadius: "15px",
+                  boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+                  cursor: "pointer",
+                  textAlign: "center",
+                  fontWeight: "bold",
+                  color: "#000",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  position: "relative"
                 }}
+                onClick={() => setOpenSetIndex(openSetIndex === index ? null : index)}
               >
-                <p><strong>Q{quiz.quiz_id} : </strong> {quiz.question}</p>
+                <span style={{ fontSize: "14px", color: "#555" }}>{set.answer_date}</span>
+                <span
+                  style={{
+                    position: "absolute",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    fontSize: "25px",
+                    fontWeight: "bold",
+                    display: "flex",
+                    flexDirection: "column", // 縦方向に配置
+                    alignItems: "center", // 中央揃え
+                  }}
+                >
+                  {set.title}
+                  <span style={{ fontSize: "16px", color: "#333", fontWeight: "normal" }}>
+                    ユーザ：{set.name}
+                  </span>
+                </span>
+
+
+                <div style={{ display: "flex", alignItems: "center" }}>
+                  <span style={{ marginRight: "10px", fontSize: "20px", fontWeight: "bold", color: "black", }}>{set.correct_set}/5</span>
+                  <span
+                    style={{
+                      fontSize: "20px",
+                      color: "black",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {openSetIndex === index ? "▲" : "▼"}
+                  </span>
+                </div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
-    ))}
-  </div>
-)}
-</div>
+              {openSetIndex === index && (
+                <div
+                  style={{
+                    marginTop: "15px",
+                    padding: "15px",  // Reduced padding for quiz details
+                    backgroundColor: "#f7f7f7",
+                    border: "1px solid #ddd",
+                    borderRadius: "10px",
+                    boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+                    fontSize: "16px",  // Smaller font size for quiz details
+                  }}
+                >
+                  {set.questions.map((quiz) => (
+                    <div
+                      key={quiz.quiz_id}
+                      style={{
+                        padding: "12px",  // Reduced padding
+                        borderBottom: "1px solid #ddd",
+                        marginBottom: "12px",  // Reduced margin
+                        backgroundColor: quiz.judgement === 1 ? "#d4edda" : "#f8d7da",
+                      }}
+                    >
+                      <p><strong>Q{quiz.quiz_id} : </strong> {quiz.question}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 };
 export default QuizHistoryPage;

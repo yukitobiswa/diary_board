@@ -79,12 +79,12 @@ const HistoryPage = () => {
 
   const deleteDiary = async (diaryId) => {
     if (!tokenRef.current) return;
-  
+
     // ユーザーに確認メッセージを表示
     const confirmDelete = window.confirm("本当にこの日記を削除しますか？");
-  
+
     if (!confirmDelete) return; // ユーザーがキャンセルした場合は何もしない
-  
+
     try {
       // ゴミ箱アイコンがクリックされた時にAPIを呼び出す
       const response = await axios.put(
@@ -96,17 +96,17 @@ const HistoryPage = () => {
           },
         }
       );
-  
+
       // 返ってきたレスポンスをコンソールに表示
       console.log(response.data);
-  
+
       if (response.data.message === "Diary Deleted Successfully!") {
         // 非表示にした日記をリストから削除
         setMessages(messages.filter((message) => message.diary_id !== diaryId));
-  
+
         // 日記数を1減らす
         setDiaryCount((prevCount) => prevCount - 1);
-  
+
         // 再度日記を取得
         fetchDiaries();
       }
@@ -114,8 +114,8 @@ const HistoryPage = () => {
       console.error("Error deleting diary:", error);
     }
   };
-  
-  
+
+
 
   return (
     <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
@@ -159,6 +159,7 @@ const HistoryPage = () => {
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
+                  position: "relative",
                 }}
                 onClick={() => toggleDiary(message.diary_id)}
               >
@@ -172,38 +173,45 @@ const HistoryPage = () => {
                     transform: "translateX(-50%)",
                     fontSize: "25px",
                     fontWeight: "bold",
-                    textAlign: "center",
+                    display: "flex",
+                    flexDirection: "column", // 縦方向に配置
+                    alignItems: "center", // 中央揃え
                   }}
                 >
                   {message.title}
+                  <span style={{ fontSize: "16px", color: "#333", fontWeight: "normal" }}>
+                    ユーザ：{message.user_name}
+                  </span>
                 </span>
-                <span
-                  style={{
-                    fontSize: "20px",
-                    color: "black",
-                    cursor: "pointer",
-                  }}
-                >
-                  {openDiaryId === message.diary_id ? "▲" : "▼"}
-                </span>
-                <span
-                  onClick={(e) => {
-                    e.stopPropagation(); // 親のクリックイベントを停止
-                    deleteDiary(message.diary_id); // ゴミ箱アイコンをクリックで削除
-                  }}
-                  style={{
-                    fontSize: "20px",
-                    color: "fff",
-                    cursor: "pointer",
-                    padding: "5px", // 四角を作るための余白
-                    border: "2px solid white", // 赤い枠線
-                    borderRadius: "4px", // 角を丸める
-                    backgroundColor: "white", // 背景を白にする
-                  }}
-                >
-                  🗑️
-                </span>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <span
+                    onClick={(e) => {
+                      e.stopPropagation(); // 親のクリックイベントを停止
+                      deleteDiary(message.diary_id); // ゴミ箱アイコンをクリックで削除
+                    }}
+                    style={{
+                      fontSize: "20px",
+                      cursor: "pointer",
+                      padding: "5px",
+                      border: "2px solid white",
+                      borderRadius: "4px",
+                      backgroundColor: "white",
+                    }}
+                  >
+                    🗑️
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "20px",
+                      color: "black",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {openDiaryId === message.diary_id ? "▲" : "▼"}
+                  </span>
+                </div>
               </div>
+
               {openDiaryId === message.diary_id && (
                 <div
                   style={{
