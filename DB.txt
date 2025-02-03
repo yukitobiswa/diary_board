@@ -58,6 +58,8 @@ CREATE TABLE multilingual_diary (
     FOREIGN KEY (user_id, team_id) REFERENCES user(user_id, team_id),
     FOREIGN KEY (language_id) REFERENCES language(language_id)
 );
+ALTER TABLE multilingual_diary
+ADD COLUMN is_visible BOOLEAN NOT NULL DEFAULT TRUE;
 
 
 multilingual_quiz
@@ -121,6 +123,9 @@ CREATE TABLE diary (
     FOREIGN KEY (user_id,team_id) REFERENCES user(user_id,team_id),
     FOREIGN KEY (main_language) REFERENCES language(language_id)
 );
+
+ALTER TABLE diary
+ADD COLUMN is_visible BOOLEAN NOT NULL DEFAULT TRUE;
 
 CREATE TABLE answer_set(
     set_id INT AUTO_INCREMENT,  -- AUTO_INCREMENTはNOT NULLを自動的に満たすので省略
