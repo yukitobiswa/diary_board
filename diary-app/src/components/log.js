@@ -43,6 +43,7 @@ const HistoryPage = () => {
     }
   };
 
+  // トークン確認と日記取得
   useEffect(() => {
     const verifyToken = async () => {
       const token = localStorage.getItem("access_token");
@@ -71,9 +72,50 @@ const HistoryPage = () => {
     verifyToken();
   }, []);
 
+  // 日記を表示/非表示切り替え
   const toggleDiary = (diaryId) => {
     setOpenDiaryId(openDiaryId === diaryId ? null : diaryId);
   };
+
+  const deleteDiary = async (diaryId) => {
+    if (!tokenRef.current) return;
+  
+    // ユーザーに確認メッセージを表示
+    const confirmDelete = window.confirm("本当にこの日記を削除しますか？");
+  
+    if (!confirmDelete) return; // ユーザーがキャンセルした場合は何もしない
+  
+    try {
+      // ゴミ箱アイコンがクリックされた時にAPIを呼び出す
+      const response = await axios.put(
+        `http://localhost:8000/delete_diary/${diaryId}`,  // diary_id を URL に含める
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${tokenRef.current}`,  // トークンをヘッダーに含める
+          },
+        }
+      );
+  
+      // 返ってきたレスポンスをコンソールに表示
+      console.log(response.data);
+  
+      if (response.data.message === "Diary Deleted Successfully!") {
+        // 非表示にした日記をリストから削除
+        setMessages(messages.filter((message) => message.diary_id !== diaryId));
+  
+        // 日記数を1減らす
+        setDiaryCount((prevCount) => prevCount - 1);
+  
+        // 再度日記を取得
+        fetchDiaries();
+      }
+    } catch (error) {
+      console.error("Error deleting diary:", error);
+    }
+  };
+  
+  
 
   return (
     <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
@@ -143,6 +185,23 @@ const HistoryPage = () => {
                   }}
                 >
                   {openDiaryId === message.diary_id ? "▲" : "▼"}
+                </span>
+                <span
+                  onClick={(e) => {
+                    e.stopPropagation(); // 親のクリックイベントを停止
+                    deleteDiary(message.diary_id); // ゴミ箱アイコンをクリックで削除
+                  }}
+                  style={{
+                    fontSize: "20px",
+                    color: "fff",
+                    cursor: "pointer",
+                    padding: "5px", // 四角を作るための余白
+                    border: "2px solid white", // 赤い枠線
+                    borderRadius: "4px", // 角を丸める
+                    backgroundColor: "white", // 背景を白にする
+                  }}
+                >
+                  🗑️
                 </span>
               </div>
               {openDiaryId === message.diary_id && (

@@ -545,7 +545,7 @@ async def add_diary(diary: DiaryCreate, current_user: UserCreate = Depends(get_c
                 title=diary.title,  # diary.titleを使用
                 diary_time=diary_time,
                 content=diary.content,  # diary.contentを使用
-                main_language=current_user.main_language
+                main_language=current_user.main_language 
             )
             session.add(new_diary)
             session.commit()  # データを確定
@@ -624,6 +624,8 @@ async def get_diaries(current_user: UserCreate = Depends(get_current_active_user
             .join(UserTable, UserTable.user_id == MDiaryTable.user_id)  # UserTableと結合
             .filter(UserTable.team_id == team_id)  # チームIDでフィルタ
             .filter(MDiaryTable.language_id == main_language)  # main_languageでフィルタ
+            .filter(MDiaryTable.is_visible == 1)  # is_visible が 1 の日記をフィルタ
+            .filter(DiaryTable.is_visible == 1)  # DiaryTableのis_visibleも1の日記のみ
             .order_by(DiaryTable.diary_time.asc())  # 日記の時間で並び替え
             .all()
         )
@@ -648,6 +650,7 @@ async def get_diaries(current_user: UserCreate = Depends(get_current_active_user
             for row in result
         ]
     })
+
 @app.get("/get_my_diary")
 async def get_my_diary(current_user: UserCreate = Depends(get_current_active_user)):
     team_id = current_user.team_id  # 現在のユーザーの team_id を取得
@@ -675,6 +678,8 @@ async def get_my_diary(current_user: UserCreate = Depends(get_current_active_use
             .filter(UserTable.team_id == team_id)  # チームIDでフィルタ
             .filter(MDiaryTable.language_id == main_language)  # main_languageでフィルタ
             .filter(MDiaryTable.user_id == user_id)  # user_idでフィルタ
+            .filter(MDiaryTable.is_visible == 1)  # is_visible が 1 の日記をフィルタ
+            .filter(DiaryTable.is_visible == 1)  # DiaryTableのis_visibleも1の日記のみ
             .order_by(DiaryTable.diary_time.asc())  # 日記の時間で並び替え
             .all()
         )
@@ -1749,6 +1754,38 @@ async def get_student_inf(current_user: UserResponse = Depends(get_current_activ
         )
         for user in users
     ]
+    
+@app.put("/delete_diary/{diary_id}")
+async def delete_diary(diary_id: int, current_user: UserCreate = Depends(get_current_active_user)):
+    try:
+        with SessionLocal() as session:
+            # `diary` テーブルのレコードを取得
+            ori_diary = session.query(DiaryTable).filter(DiaryTable.diary_id == diary_id).first()
+            if not ori_diary:
+                raise HTTPException(
+                    status_code=404, 
+                    detail=f"Diary with id {diary_id} not found"
+                )
+            ori_diary.is_visible = False  # DiaryTableのis_visibleをFalseにする
+            # multilingual_diaryテーブルのis_visibleをFalseにする
+            multi_diaries = session.query(MDiaryTable).filter(MDiaryTable.diary_id == diary_id).all()
+            for d in multi_diaries:
+                d.is_visible = False  # MDiaryTableのis_visibleをFalseにする
+
+            # ユーザーの日記数を減らす
+            user = session.query(UserTable).filter(UserTable.user_id == current_user.user_id).first()
+            if user:
+                user.diary_count -= 1  # 日記数を1減らす
+                session.add(user)
+
+            # 1回のcommitで変更を確定
+            session.commit()
+            
+            return JSONResponse({"message": "Diary Deleted Successfully!"})
+
+    except Exception as e:
+        logging.error(f"Error during deleting diary: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Error during deleting diary: {str(e)}")
 
         
 
