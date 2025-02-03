@@ -5,44 +5,66 @@ import axios from "axios";
 const GroupsPage = () => {
   const [groupName, setGroupName] = useState("");
   const [invitePassword, setInvitePassword] = useState("");
-  const [countryId, setCountryId] = useState(1);  // 初期値は日本
-  const [age, setAge] = useState(10);  // 初期値は10
+  const [selectedCountries, setSelectedCountries] = useState([]);  // 国名リスト
+  const [age, setAge] = useState("1");  // 年齢（小学1年生）
+  const [memberCount, setMemberCount] = useState(0);  // メンバー数
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
 
-  const country_map = {
-    1: "Japan",  // 日本
-    2: "United States",  // アメリカ
-    3: "Portugal",  // ポルトガル
-    4: "Spain",  // スペイン
-    5: "China",  // 中国（簡体）
-    6: "Taiwan",  // 台湾（繁体）
-    7: "South Korea",  // 韓国
-    8: "Philippines",  // フィリピン
-    9: "Vietnam",  // ベトナム
-    10: "Indonesia",  // インドネシア
-    11: "Nepal",  // ネパール
-    12: "France",  // フランス
-    13: "Germany",  // ドイツ
-    14: "Italy",  // イタリア
-    15: "Russia",  // ロシア
-    16: "India",  // インド
-    17: "Brazil",  // ブラジル
-    18: "Mexico",  // メキシコ
-    19: "Turkey",  // トルコ
-    20: "Australia",  // オーストラリア
-    21: "Peru",  // ペルー
+  const country_map = [
+    "Japan",
+    "United States",
+    "Portugal",
+    "Spain",
+    "China",
+    "Taiwan",
+    "South Korea",
+    "Philippines",
+    "Vietnam",
+    "Indonesia",
+    "Nepal",
+    "France",
+    "Germany",
+    "Italy",
+    "Russia",
+    "India",
+    "Brazil",
+    "Mexico",
+    "Turkey",
+    "Australia",
+    "Peru",
+  ];
+
+  // Map numeric age to grade labels
+  const getGradeLabel = (age) => {
+    if (age >= 1 && age <= 6) {
+      return `小学${age}年生`;
+    } else if (age >= 7 && age <= 9) {
+      return `中学${age - 6}年生`;
+    }
+    return "";
+  };
+
+  const handleCountryChange = (e) => {
+    const value = e.target.value;
+    setSelectedCountries((prev) =>
+      prev.includes(value) ? prev.filter((country) => country !== value) : [...prev, value]
+    );
   };
 
   const handleCreateGroup = async () => {
     try {
+      // Map selected age to grade label
+      const gradeLabel = getGradeLabel(age);
+
       // リクエストデータ
       const teamData = {
         team_name: groupName,
         team_id: invitePassword,
-        country: countryId,
-        age: age,
+        country: selectedCountries,  // 国名リスト
+        age: gradeLabel,  // 年齢を学年に変換
+        member_count: memberCount,  // メンバー数
       };
 
       // データをコンソールに表示
@@ -91,16 +113,6 @@ const GroupsPage = () => {
       borderRadius: "8px",
       margin: "10px 0",
     },
-    displayOnly: {
-      width: "90%",
-      padding: "12px",
-      border: "none",
-      borderRadius: "8px",
-      margin: "10px 0",
-      backgroundColor: "#eee",
-      color: "#333",
-      textAlign: "center",
-    },
     button: {
       padding: "12px 24px",
       backgroundColor: "#FFA500",
@@ -110,6 +122,10 @@ const GroupsPage = () => {
       cursor: "pointer",
       margin: "10px 5px",
       transition: "all 0.3s ease",
+    },
+    checkboxGroup: {
+      textAlign: "left",
+      marginBottom: "10px",
     },
   };
 
@@ -145,35 +161,59 @@ const GroupsPage = () => {
         />
       </div>
 
-      {/* 国選択 */}
-      <div>
+      {/* 国選択（チェックボックス） */}
+      <div style={styles.checkboxGroup}>
         <label htmlFor="country" style={{ display: "block", marginBottom: "10px" }}>
           国を選択
         </label>
+        {country_map.map((country) => (
+          <div key={country}>
+            <input
+              type="checkbox"
+              value={country}
+              checked={selectedCountries.includes(country)}
+              onChange={handleCountryChange}
+              id={country}
+            />
+            <label htmlFor={country} style={{ marginLeft: "8px" }}>
+              {country}
+            </label>
+          </div>
+        ))}
+      </div>
+
+      {/* 年齢選択 */}
+      <div>
+        <label htmlFor="age" style={{ display: "block", marginBottom: "10px" }}>
+          年齢
+        </label>
         <select
-          id="country"
-          value={countryId}
-          onChange={(e) => setCountryId(Number(e.target.value))}
+          id="age"
+          value={age}
+          onChange={(e) => setAge(e.target.value)}
           style={styles.select}
         >
-          {Object.entries(country_map).map(([id, name]) => (
-            <option key={id} value={id}>
-              {name}
+          {[
+            "1", "2", "3", "4", "5", "6", // 小学1年生から6年生
+            "7", "8", "9", // 中学1年生から3年生
+          ].map((ageOption) => (
+            <option key={ageOption} value={ageOption}>
+              {ageOption < 7 ? `小学${ageOption}年生` : `中学${ageOption - 6}年生`}
             </option>
           ))}
         </select>
       </div>
 
-      {/* 年齢入力 */}
+      {/* メンバー数入力 */}
       <div>
-        <label htmlFor="age" style={{ display: "block", marginBottom: "10px" }}>
-          年齢
+        <label htmlFor="memberCount" style={{ display: "block", marginBottom: "10px" }}>
+          メンバー数
         </label>
         <input
-          id="age"
+          id="memberCount"
           type="number"
-          value={age}
-          onChange={(e) => setAge(Number(e.target.value))}
+          value={memberCount}
+          onChange={(e) => setMemberCount(Number(e.target.value))}
           style={styles.input}
         />
       </div>

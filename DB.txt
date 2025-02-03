@@ -3,9 +3,13 @@ create table team (
 team_id varchar(128)  PRIMARY KEY,
 team_name VARCHAR(128) NOT NULL,
 team_time DATETIME NOT NULL,
-county int,
+country int,
 age int
 );
+ALTER TABLE team
+    CHANGE COLUMN country country VARCHAR(128),
+    CHANGE COLUMN age age VARCHAR(128),
+    ADD COLUMN member_count INT;
 
 language
 create table language(
