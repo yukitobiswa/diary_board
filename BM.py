@@ -48,8 +48,9 @@ class UserCreate(BaseModel):
 class TeamCreate(BaseModel):
     team_name: str
     team_id : str
-    country: int  
-    age: int  
+    country: List[str]
+    age: str
+    member_count : int
     
 class DiaryCreate(BaseModel):
     title: str

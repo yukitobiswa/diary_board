@@ -140,7 +140,7 @@ const QuizHistoryPage = () => {
             cursor: "pointer",
             textAlign: "center",
             fontWeight: "bold",
-            color: "#007bff",
+            color: "#000",
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
