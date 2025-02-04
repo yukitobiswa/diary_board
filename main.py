@@ -46,7 +46,7 @@ from BM import (
 
 
 # Database URL
-DATABASE_URL = "mysql+pymysql://root:6213ryoy@127.0.0.1/demo"
+DATABASE_URL = "mysql+pymysql://root:yuki0108@127.0.0.1/demo"
 # FastAPI app
 app = FastAPI()
 logger = logging.getLogger(__name__)
@@ -1571,7 +1571,7 @@ async def get_answer_quiz(current_user: UserCreate = Depends(get_current_active_
         logging.error(f"Error during getting answers: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Error during getting answers: {str(e)}")
 
-@app.get("/get_individual_quiz")
+@app.post("/get_individual_quiz")
 async def get_answer_quiz(request: UserRequest, current_user: UserCreate = Depends(get_current_active_user)):
     try:
         userId = request.user_id
@@ -1594,13 +1594,15 @@ async def get_answer_quiz(request: UserRequest, current_user: UserCreate = Depen
                     'quiz_id': answer.quiz_id,
                     'diary_id': answer.diary_id,
                     'answer_date': answer.answer_date.strftime('%Y-%m-%d %H:%M:%S'),
+                    "choice":answer.choices,
                     'judgement': answer.judgement,
                     'question': quiz_result.question,
                     'choices': {
                         "a": quiz_result.a,
                         "b": quiz_result.b,
                         "c": quiz_result.c,
-                        "d": quiz_result.d
+                        "d": quiz_result.d,
+                        "correct": quiz_result.correct
                     }
                 })
                 first_answer_date = None  # セットの最初の回答日を記録
@@ -1655,17 +1657,18 @@ async def get_total_answer(current_user: UserCreate = Depends(get_current_active
         raise HTTPException(status_code=400, detail=f"Error during getting answers: {str(e)}")
     
 @app.post("/create_answer_set")
-async def create_answer_set(current_user: UserCreate = Depends(get_current_active_user)):
+async def create_answer_set(request:UserRequest,current_user: UserCreate = Depends(get_current_active_user)):
+    userId = request.user_id
     try:
         answer_time = datetime.now()
         with SessionLocal() as session:
-            results = session.query(AnswerTable).filter(AnswerTable.user_id == current_user.user_id).filter(AnswerTable.team_id == current_user.team_id) \
+            results = session.query(AnswerTable).filter(AnswerTable.user_id == userId).filter(AnswerTable.team_id == current_user.team_id) \
                 .order_by(AnswerTable.answer_date.desc()).limit(5).all()
             correct_count = sum(1 for answer in results if answer.judgement == 1)
             diary_id = results[0].diary_id if results else None
             new_answer_set = ASetTable(
                 team_id = current_user.team_id,
-                user_id=current_user.user_id,
+                user_id=userId,
                 diary_id=diary_id,
                 answer_time=answer_time,
                 correct_set = (correct_count)
@@ -1673,13 +1676,30 @@ async def create_answer_set(current_user: UserCreate = Depends(get_current_activ
             )
             session.add(new_answer_set)
             session.commit()
-            logging.info(f"Answer created successfully for user_id: {current_user.user_id}")
+            logging.info(f"Answer created successfully for user_id: {userId}")
         return JSONResponse({"message": "Answer Set Created Successfully!"})
 
     except Exception as e:
         logging.error(f"Error during creating answer: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Error during creating answer: {str(e)}")
    
+@app.post("/get_individual_answer")
+async def get_individual_answer(request:UserRequest,current_user: UserCreate = Depends(get_current_active_user)):
+    userId = request.user_id
+    try:
+        with SessionLocal() as session:
+            results = session.query(AnswerTable).filter(AnswerTable.user_id == userId).filter(AnswerTable.team_id == current_user.team_id) \
+                .order_by(AnswerTable.answer_date.desc()).all()
+            correct_count = sum(1 for answer in results if answer.judgement == 1)
+            total_quiz = session.query(AnswerTable).filter(AnswerTable.user_id == userId).filter(AnswerTable.team_id == current_user.team_id).count()
+            persent = (correct_count/total_quiz)*100
+            return JSONResponse({"correct_count": correct_count,
+                                 "total_quiz": total_quiz,
+                                 "persent": persent})
+    except Exception as e:
+        logging.error(f"Error during getting answers: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Error during getting answers: {str(e)}")
+    
 @app.post("/update_answer")
 async def update_answer(current_user: UserCreate = Depends(get_current_active_user)):
     try:
