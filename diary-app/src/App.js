@@ -27,7 +27,9 @@ import Teacher_login from './components/Teacher_login';
 import Teacher_startpage from './components/Teacher_startpage'
 import Teacher_newlogin from './components/Teacher_newlogin'
 import Teacher_page from './components/Teacher_page'
-import User_inf from './components/User_inf'
+import User_diary_inf from './components/User_diary_inf'
+import User_quiz_inf from './components/User_quiz_inf'
+import Diary_and_Quiz from './components/Diary_and_Quiz'
 // This is a main App component
 function App() {
   return (
@@ -61,7 +63,9 @@ function App() {
           <Route path='/Teacher_startpage' element={<Teacher_startpage/>} />
           <Route path='/Teacher_newlogin' element={<Teacher_newlogin/>} />
           <Route path='/Teacher_page' element={<Teacher_page/>} />
-          <Route path='/user_inf' element={<User_inf/>} />
+          <Route path='/user_diary_inf/:user_id' element={<User_diary_inf/>} />
+          <Route path='/user_quiz_inf/:user_id' element={<User_quiz_inf/>} />
+          <Route path='/Diary_and_Quiz/:user_id' element={<Diary_and_Quiz/>} />
         </Routes>
       </div>
     </Router>

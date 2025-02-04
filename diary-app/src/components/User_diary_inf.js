@@ -15,14 +15,19 @@ const User_inf = () => {
     if (!tokenRef.current || !user_id) return; // トークンまたはuser_idがない場合は処理を終了
 
     try {
-      const response = await axios.get(
-        `http://localhost:8000/get_indiviual_diaries/${user_id}`, // user_idをURLに追加
-        {
-          headers: {
-            Authorization: `Bearer ${tokenRef.current}`, // トークンをヘッダーに含める
+        const response = await axios.post(
+          "http://localhost:8000/get_individual_diaries", // エンドポイントからパスパラメータを削除
+          {
+            user_id: user_id, // JSON形式で送信
           },
-        }
-      );
+          {
+            headers: {
+              Authorization: `Bearer ${tokenRef.current}`, // トークンをヘッダーに含める
+              "Content-Type": "application/json", // JSONリクエストのヘッダー
+            },
+          }
+        );
+      
 
       const diaryData = response.data.diaries;
       setDiaryCount(response.data.diary_count); // 追加: diary_count をセット
@@ -44,6 +49,32 @@ const User_inf = () => {
     } catch (error) {
       console.error("Error fetching diaries:", error);
     }
+  };
+  const [quizData, setQuizData] = useState([]);
+  const [correctCount, setCorrectCount] = useState(0);
+  const [totalQuiz, setTotalQuiz] = useState(0);
+  const [percent, setPercent] = useState(0);
+  const [openSetIndex, setOpenSetIndex] = useState(null);
+  const fetchQuizData = async () => {
+      try {
+          // クイズ履歴の取得
+          const response = await axios.get("http://localhost:8000/get_individual_quiz", {
+              user_id: user_id, // JSON形式で送信
+          },
+              {
+                  headers: {
+                      Authorization: `Bearer ${tokenRef.current}`, // トークンをヘッダーに含める
+                      "Content-Type": "application/json", // JSONリクエストのヘッダー
+                  },
+              });
+          const formattedData = response.data.correct_count
+              .map((set) => Object.values(set)[0])
+              .sort((a, b) => new Date(b.answer_date) - new Date(a.answer_date));
+
+          setQuizData(formattedData);
+      } catch (error) {
+          console.error("Error fetching quiz data:", error);
+      }
   };
 
   // トークン確認と日記取得
@@ -125,7 +156,7 @@ const User_inf = () => {
         あなたの日記数: {diaryCount}件
       </h3>
       <button
-        onClick={() => navigate("/Chat")}
+        onClick={() => navigate("/Teacher_page")}
         style={{
           marginBottom: "20px",
           padding: "10px 20px",

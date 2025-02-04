@@ -125,3 +125,6 @@ class UserResponse(BaseModel):
     diary_count: int
     nickname: str = None
     is_admin: bool
+    
+class UserRequest(BaseModel):
+    user_id:str

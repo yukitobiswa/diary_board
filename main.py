@@ -40,7 +40,8 @@ from BM import (
     UserInDB,
     ReactionRequest,
     TeacherLogin,
-    UserResponse
+    UserResponse,
+    UserRequest
 )
 
 
@@ -711,9 +712,9 @@ async def get_my_diary(current_user: UserCreate = Depends(get_current_active_use
         ]
     })
 
-@app.get("/get_indiviual_diaries/{user_id}")
-async def get_my_diary(user_id:str,current_user: UserCreate = Depends(get_current_active_user)):
-    
+@app.post("/get_individual_diaries")
+async def get_my_diary(request:UserRequest,current_user: UserCreate = Depends(get_current_active_user)):
+    user_id = request.user_id
     with SessionLocal() as session:
         # multilingual_diaryテーブルから指定したユーザーの日記を取得し、翻訳情報を結合
         result = (
@@ -1569,7 +1570,74 @@ async def get_answer_quiz(current_user: UserCreate = Depends(get_current_active_
     except Exception as e:
         logging.error(f"Error during getting answers: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Error during getting answers: {str(e)}")
-    
+
+@app.get("/get_individual_quiz")
+async def get_answer_quiz(request: UserRequest, current_user: UserCreate = Depends(get_current_active_user)):
+    try:
+        userId = request.user_id
+        with SessionLocal() as session:
+            results = session.query(AnswerTable).filter(AnswerTable.user_id == userId).filter(AnswerTable.team_id == current_user.team_id) \
+                .order_by(AnswerTable.answer_date.asc()).all()
+
+            set_answer = []
+            temp_set = []
+            set_num = 1
+
+            for i, answer in enumerate(results):
+                quiz_result = session.query(MQuizTable).filter(MQuizTable.diary_id == answer.diary_id, MQuizTable.quiz_id == answer.quiz_id, MQuizTable.language_id == current_user.main_language).first()
+                
+                if quiz_result is None:
+                    continue  # もしクイズ結果が見つからなければスキップする
+                
+                temp_set.append({
+                    'user_id': answer.user_id,
+                    'quiz_id': answer.quiz_id,
+                    'diary_id': answer.diary_id,
+                    'answer_date': answer.answer_date.strftime('%Y-%m-%d %H:%M:%S'),
+                    'judgement': answer.judgement,
+                    'question': quiz_result.question,
+                    'choices': {
+                        "a": quiz_result.a,
+                        "b": quiz_result.b,
+                        "c": quiz_result.c,
+                        "d": quiz_result.d
+                    }
+                })
+                first_answer_date = None  # セットの最初の回答日を記録
+                if len(temp_set) == 5 or i == len(results) - 1:
+                    if not first_answer_date:
+                        first_answer_date = answer.answer_date.strftime('%Y-%m-%d %H:%M:%S')
+                
+                    set_result = session.query(ASetTable).filter(ASetTable.user_id == userId, ASetTable.team_id == current_user.team_id,ASetTable.diary_id == answer.diary_id).first()
+                    set_title = session.query(MDiaryTable).filter(MDiaryTable.diary_id == answer.diary_id, MDiaryTable.language_id == current_user.main_language).first()
+                    
+                    if set_title is None:
+                        continue  # set_titleが見つからない場合スキップする
+                    
+                    set_name = session.query(UserTable).filter(UserTable.name == set_title.user_id, UserTable.team_id == current_user.team_id).first()
+                    
+                    if set_name is None:
+                        continue  # set_nameが見つからない場合スキップする
+                    
+                    set_result = {
+                        "title": set_title.title,
+                        "name": set_name.name,
+                        "correct_set": set_result.correct_set if set_result else 0,
+                        "answer_date": first_answer_date,
+                        "questions": temp_set,
+                    }
+                    set_answer.append({set_num: set_result})
+                    set_num += 1
+                    temp_set = []
+
+        return JSONResponse(content={
+            "correct_count": set_answer,
+        })
+
+    except Exception as e:
+        logging.error(f"Error during getting answers: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Error during getting answers: {str(e)}")
+
 @app.get("/get_total_answer")
 async def get_total_answer(current_user: UserCreate = Depends(get_current_active_user)):
     try:
@@ -1775,7 +1843,7 @@ async def teacher_login(teacher_login: TeacherLogin):
     else:
         return JSONResponse(content={"message": "Invalid password"}, status_code=400)
     
-@app.get("/get_student_inf", response_model=List[UserResponse])
+@app.get("/get_student_inf")
 async def get_student_inf(current_user: UserResponse = Depends(get_current_active_user)):
     with SessionLocal() as session:
         users = (
