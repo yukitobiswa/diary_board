@@ -39,9 +39,9 @@ const GroupsPage = () => {
   // Map numeric age to grade labels
   const getGradeLabel = (age) => {
     if (age >= 1 && age <= 6) {
-      return `小学${age}年生`;
+      return `Elementary${age}`;
     } else if (age >= 7 && age <= 9) {
-      return `中学${age - 6}年生`;
+      return `Junior${age - 6}`;
     }
     return "";
   };
@@ -79,7 +79,7 @@ const GroupsPage = () => {
       navigate("/teacher_startpage");
     } catch (error) {
       console.error("Error:", error);
-      setErrorMessage("グループ作成に失敗しました。");
+      setErrorMessage("ERROR occurred. Please try again.");
       setSuccessMessage("");
     }
   };
@@ -131,12 +131,12 @@ const GroupsPage = () => {
 
   return (
     <div style={styles.container}>
-      <h2>グループ作成</h2>
+      <h2>Team create</h2>
 
       {/* グループ名入力 */}
       <div>
         <label htmlFor="groupName" style={{ display: "block", marginBottom: "10px" }}>
-          グループ名
+          Team name
         </label>
         <input
           id="groupName"
@@ -150,7 +150,7 @@ const GroupsPage = () => {
       {/* 招待パスワード入力 */}
       <div>
         <label htmlFor="invitePassword" style={{ display: "block", marginBottom: "10px" }}>
-          招待パスワード
+          Invite password
         </label>
         <input
           id="invitePassword"
@@ -164,7 +164,7 @@ const GroupsPage = () => {
       {/* 国選択（チェックボックス） */}
       <div style={styles.checkboxGroup}>
         <label htmlFor="country" style={{ display: "block", marginBottom: "10px" }}>
-          国を選択
+          Country
         </label>
         {country_map.map((country) => (
           <div key={country}>
@@ -185,7 +185,7 @@ const GroupsPage = () => {
       {/* 年齢選択 */}
       <div>
         <label htmlFor="age" style={{ display: "block", marginBottom: "10px" }}>
-          年齢
+          Age
         </label>
         <select
           id="age"
@@ -198,7 +198,7 @@ const GroupsPage = () => {
             "7", "8", "9", // 中学1年生から3年生
           ].map((ageOption) => (
             <option key={ageOption} value={ageOption}>
-              {ageOption < 7 ? `小学${ageOption}年生` : `中学${ageOption - 6}年生`}
+              {ageOption < 7 ? `Element${ageOption}` : `Junior${ageOption - 6}`}
             </option>
           ))}
         </select>
@@ -207,7 +207,7 @@ const GroupsPage = () => {
       {/* メンバー数入力 */}
       <div>
         <label htmlFor="memberCount" style={{ display: "block", marginBottom: "10px" }}>
-          メンバー数
+          Member count
         </label>
         <input
           id="memberCount"
@@ -226,10 +226,10 @@ const GroupsPage = () => {
 
       {/* ボタン */}
       <button onClick={handleCreateGroup} style={styles.button}>
-        作成
+        Create
       </button>
       <button onClick={handleGoBack} style={{ ...styles.button, backgroundColor: "#4CAF50" }}>
-        戻る
+        Back
       </button>
     </div>
   );

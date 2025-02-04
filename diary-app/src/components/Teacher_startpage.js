@@ -15,7 +15,7 @@ const Teacher_startpage = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         if (password === '') {
-            setError('パスワードを入力してください');
+            setError('ERROR : パスワードを入力してください');
             setSuccess('');
             return;
         }
@@ -79,7 +79,7 @@ const Teacher_startpage = () => {
             color: "#FFF",
             border: "none",
             borderRadius: "8px",
-            fontSize: "16px",
+            fontSize: "20px",
             cursor: "pointer",
             transition: "background-color 0.3s",
             flex: "1",
@@ -91,7 +91,7 @@ const Teacher_startpage = () => {
             color: "#FFF",
             border: "none",
             borderRadius: "8px",
-            fontSize: "16px",
+            fontSize: "20px",
             cursor: "pointer",
             transition: "background-color 0.3s",
             flex: "1",
@@ -110,12 +110,12 @@ const Teacher_startpage = () => {
     return (
         <div style={styles.container}>
             <button onClick={() => navigate('/StartPage')} style={styles.button}>
-                戻る
+                ◁️Back
             </button>
-            <h1 style={{ fontSize: "24px", marginBottom: "20px", color: "#333" }}>教員ログイン</h1>
+            <h1 style={{ fontSize: "24px", marginBottom: "20px", color: "#333" }}>Teacher Login</h1>
             <form onSubmit={handleSubmit}>
                 <div style={{ marginBottom: "20px" }}>
-                    <label style={{ fontSize: "16px", display: "block", marginBottom: "8px", color: "#555" }}>グループ ID:</label>
+                    <label style={{ fontSize: "16px", display: "block", marginBottom: "8px", color: "#555" }}>Team ID:</label>
                     <input
                         type="text"
                         value={teamId}
@@ -124,7 +124,7 @@ const Teacher_startpage = () => {
                     />
                 </div>
                 <div style={{ marginBottom: "20px" }}>
-                    <label style={{ fontSize: "16px", display: "block", marginBottom: "8px", color: "#555" }}>ユーザー ID:</label>
+                    <label style={{ fontSize: "16px", display: "block", marginBottom: "8px", color: "#555" }}>Teacher ID:</label>
                     <input
                         type="text"
                         value={userId}
@@ -133,7 +133,7 @@ const Teacher_startpage = () => {
                     />
                 </div>
                 <div style={{ marginBottom: "20px" }}>
-                    <label style={{ fontSize: "16px", display: "block", marginBottom: "8px", color: "#555" }}>パスワード:</label>
+                    <label style={{ fontSize: "16px", display: "block", marginBottom: "8px", color: "#555" }}>Password:</label>
                     <input
                         type="password"
                         value={password}
@@ -143,13 +143,13 @@ const Teacher_startpage = () => {
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", marginTop: "20px" }}>
                     <button onClick={() => navigate('/Teacher_newlogin')} style={styles.formButton}>
-                        新規登録
+                        New！🆕
                     </button>
                     <button type="submit" style={styles.loginButton}>
-                        ログイン
+                        Go！🚀
                     </button>
                     <button onClick={() => navigate('/register')} style={styles.formButton}>
-                        グループ作成
+                        New Team👥
                     </button>
                 </div>
             </form>

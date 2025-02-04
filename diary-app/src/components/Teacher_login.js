@@ -12,7 +12,7 @@ const Teacher_login = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         if (password === '') {
-            setError('パスワードを入力してください');
+            setError('ERROR: パスワードを入力してください');
             setSuccess('');
             return;
         }
@@ -24,16 +24,16 @@ const Teacher_login = () => {
         )
             .then(response => {
                 if (response.data.message === "Successful") {
-                    setSuccess('ログイン成功！');
+                    setSuccess('OK! ログインに成功しました！');
                     setError('');
                     navigate('/teacher_startpage');  // ログイン成功後に/teacher_startpageに遷移
                 } else {
-                    setError('ログインに失敗しました。');
+                    setError('ERROR: パスワードが違います');
                     setSuccess('');
                 }
             })
             .catch(error => {
-                setError('エラーが発生しました');
+                setError('ERROR: ログインに失敗しました');
                 setSuccess('');
             });
     };
@@ -61,18 +61,19 @@ const Teacher_login = () => {
                     borderRadius: "8px",
                     fontSize: "14px",
                     cursor: "pointer",
+                    backgroundColor: "#4CAF50", // 緑色
                     marginBottom: "20px",
                     transition: "background-color 0.3s",
                     textAlign: "left", // 左寄せ
                     display: "block",
                 }}
             >
-                戻る
+                ◁️Back
             </button>
-            <h1 style={{ fontSize: "24px", marginBottom: "20px", color: "#333" }}>教員ログイン</h1>
+            <h1 style={{ fontSize: "24px", marginBottom: "20px", color: "#333" }}>Teacher Login</h1>
             <form onSubmit={handleSubmit}>
                 <div style={{ marginBottom: "20px" }}>
-                    <label style={{ fontSize: "16px", display: "block", marginBottom: "8px", color: "#555" }}>パスワード:</label>
+                    <label style={{ fontSize: "16px", display: "block", marginBottom: "8px", color: "#555" }}>Password:</label>
                     <input
                         type="password"
                         value={password}
@@ -92,17 +93,18 @@ const Teacher_login = () => {
                         style={{
                             padding: "20px 30px",
                             backgroundColor: "#4CAF50",
+                            backgroundColor: "#FF9800", // オレンジ色
                             color: "#FFF",
                             border: "none",
                             borderRadius: "8px",
-                            fontSize: "16px",
+                            fontSize: "20px",
                             cursor: "pointer",
                             transition: "background-color 0.3s",
                             flex: "1",
                             margin: "0 5px",
                         }}
                     >
-                        ログイン
+                        Go！🚀
                     </button>
                 </div>
             </form>

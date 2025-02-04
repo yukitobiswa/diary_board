@@ -26,7 +26,7 @@ const Quiz2 = () => {
       try {
         const token = localStorage.getItem("access_token");
         if (!token) {
-          setError("ログインセッションがありません。再度ログインしてください。");
+          setError("ERROR:もう一度ログインしてください");
           return;
         }
 
@@ -47,8 +47,8 @@ const Quiz2 = () => {
 
         setCategories(updatedCategories);
       } catch (error) {
-        console.error("クイズデータ取得エラー:", error);
-        setError("クイズデータの取得中にエラーが発生しました。");
+        console.error("ERROR:", error);
+        setError("ERROR : もう一度お試しください");
       }
     };
 
@@ -63,14 +63,14 @@ const Quiz2 = () => {
         setSelectedCategories([...selectedCategories, id]);
         setError("");
       } else {
-        setError("※5個選択までです");
+        setError("※Please select 5 quizzes : クイズは5つ選択してください");
       }
     }
   };
 
   const handleSaveQuiz = async () => {
     if (selectedCategories.length !== 5) {
-      setError("問題を5つ選択してください！");
+      setError("※Please select 5 quizzes : クイズは5つ選択してください");
       return;
     }
 
@@ -82,7 +82,7 @@ const Quiz2 = () => {
     try {
       const token = localStorage.getItem("access_token");
       if (!token) {
-        setError("ログインセッションがありません。再度ログインしてください。");
+        setError("ERROR:もう一度ログインしてください");
         setIsSaving(false);
         return;
       }
@@ -99,11 +99,11 @@ const Quiz2 = () => {
       );
 
       console.log(response.data);
-      alert("クイズが保存されました！");
-      navigate(`/Chat`);
+      alert("OK！: クイズを保存しました");
+      navigate('/Chat');
     } catch (error) {
-      console.error("クイズ保存エラー:", error);
-      setError("クイズ保存中にエラーが発生しました。");
+      console.error("ERROR:", error);
+      setError("ERROR : もう一度お試しください");
     } finally {
       setIsSaving(false);
     }
@@ -121,8 +121,8 @@ const Quiz2 = () => {
         textAlign: "center",
       }}
     >
-      <h1 style={{ fontSize: "24px", marginBottom: "20px" }}>クイズ選択</h1>
-      <p style={{ fontSize: "16px", color: "#555" }}>以下のクイズから<strong>5つ</strong>選んでください。</p>
+      <h1 style={{ fontSize: "24px", marginBottom: "20px" }}>Quiz Select</h1>
+      <p style={{ fontSize: "16px", color: "#555" }}>Please select 5 quizzez</p>
       <div style={{ margin: "20px 0", display: "flex", flexDirection: "column", alignItems: "center" }}>
         {categories.map((category) => (
           <button
@@ -167,10 +167,10 @@ const Quiz2 = () => {
           transition: "background-color 0.3s",
         }}
       >
-        {isSaving ? "クイズ保存中..." : "クイズ保存"}
+        {isSaving ? "Saving quizzes now..." : "Save quizzes"}
       </button>
     </div>
   );
 };
 
-export default Quiz2;
+export default Quiz2; 

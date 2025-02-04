@@ -49,16 +49,16 @@ const Result = () => {
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.header}>結果発表</h1>
+      <h1 style={styles.header}>Results Announcement 🎉</h1>
       {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
       <div style={styles.resultBox}>
-        <h2>今回の結果: {correctCount} / 5</h2>
-        <h3>累計正解数: {totalCorrectCount}</h3>
-        <h3>現在の称号: <span style={styles.title}>{currentTitle}</span></h3>
+        <h2>This Round's Results : {correctCount} / 5</h2>
+        <h3>Total Correct Answers : {totalCorrectCount}</h3>
+        <h3>Current Nickname: <span style={styles.title}>{currentTitle}</span></h3>
       </div>
-      <p style={styles.congratulations}>おつかれさまでした！</p>
+      <p style={styles.congratulations}>Thanks for playing!👏</p>
       <button style={styles.button} onClick={() => navigate("/Chat")}>
-        チャット画面に戻る
+      Go to Homepage 🏠
       </button>
 
       {/* 称号更新時のスペシャルエフェクト */}

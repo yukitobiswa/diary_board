@@ -164,33 +164,33 @@ const ChatApp = () => {
       if (response.data.is_admin) {
         navigate("/teacher_page");
       } else {
-        alert("権限がありません");
+        alert("You are not authorized to access this page.");
       }
     } catch (error) {
       console.error("Error verifying token:", error);
-      alert("トークンの検証に失敗しました。");
+      alert("Please login again.");
       navigate("/startpage");
     }
   };
 
   const handleMenuItemClick = (item) => {
     switch (item) {
-      case "クイズランキング":
+      case "Ranking🏆":
         navigate("/Ranking");
         break;
-      case "日記履歴":
+      case "Diary✉️":
         navigate("/log");
         break;
-      case "クイズ履歴":
+      case "Quiz✅":
         navigate("/Quiz_log")
         break;
-      case "設定":
+      case "Setting⚙️":
         navigate("/Setting");
         break;
       case "ログアウト":
         navigate("/StartPage");
         break;
-      case "教員ページ":
+      case "Teacher Page👨‍  🏫":
         handleTeacherPageRedirect();
         break;
       default:
@@ -265,9 +265,9 @@ const ChatApp = () => {
               <br />
               <br />
               <br />
-              メニュー</h3>
+              Menu</h3>
             <ul style={{ listStyleType: "none", padding: 0 }}>
-              {["クイズランキング", "日記履歴", "クイズ履歴", "設定"].map((item) => (
+              {["Ranking🏆", "Diary✉️", "Quiz✅", "Setting⚙️"].map((item) => (
                 <li
                   key={item}
                   onClick={() => handleMenuItemClick(item)}
@@ -295,7 +295,7 @@ const ChatApp = () => {
                 width: "100%",
               }}
             >
-              閉じる
+              Close✖
             </button>
           </div>
         )}
@@ -314,7 +314,7 @@ const ChatApp = () => {
               marginBottom: "10px",
             }}
           >
-            教員ページ
+            Teacher Page👨‍  🏫
           </button>
           <button
             onClick={() => handleMenuItemClick("ログアウト")}
@@ -328,7 +328,7 @@ const ChatApp = () => {
               cursor: "pointer",
             }}
           >
-            ログアウト
+            Logout...🚪 
           </button>
         </div>
       </div>
@@ -361,13 +361,13 @@ const ChatApp = () => {
       {/* Main Content */}
       <div style={{ marginLeft: menuOpen ? "250px" : "0", flex: 1, padding: "10px" }}>
         <div style={{ maxWidth: "6000px", margin: "50px auto 0" }}>
-          <h1 style={{ textAlign: "center" }}>{teamName}のDiary Board！</h1>
-          <h2 style={{ textAlign: "center" }}>みんなと日記を共有しよう！</h2>
+          <h1 style={{ textAlign: "center" }}>{teamName} Diary Board！</h1>
+          <h2 style={{ textAlign: "center" }}>🌟 Let’s Share with Everyone! みんなで共有しよう! 🌟</h2>
           {/* Display Diaries */}
           {/* 日記がない場合に「日記がありません」と表示 */}
           {messages.length === 0 ? (
             <p style={{ textAlign: "center", color: "#888", fontSize: "16px" }}>
-              日記がありません
+              No Diary yet...😢
             </p>
           ) : (
             <div
@@ -392,7 +392,7 @@ const ChatApp = () => {
                       boxShadow: "0 2px 3px rgba(0,0,0,0.1)",
                     }}
                   >
-                    <p style={{ margin: 0, color: "#333" }}>User: {message.user_name}</p>
+                    <p style={{ margin: 0, color: "#333" }}>Name: {message.user_name}</p>
                     <h4>{message.title}</h4>
                     <p>{message.content}</p>
                     <span style={{ fontSize: "12px", color: "#999" }}>{message.diary_time}</span>
@@ -497,7 +497,7 @@ const ChatApp = () => {
               cursor: loading ? "not-allowed" : "pointer",
             }}
           >
-            {loading ? "日記投稿中..." : "日記を投稿する"}
+            {loading ? "Sending now... 📮" : "Send diary✉️"}
           </button>
         </div>
       </div>

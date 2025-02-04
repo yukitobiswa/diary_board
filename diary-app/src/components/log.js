@@ -119,9 +119,9 @@ const HistoryPage = () => {
 
   return (
     <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-      <h2 style={{ textAlign: "center" }}>日記履歴</h2>
+      <h2 style={{ textAlign: "center" }}>My Diary History✉️</h2>
       <h3 style={{ textAlign: "center", color: "#333" }}>
-        あなたの日記数: {diaryCount}件
+        My Diary: {diaryCount}
       </h3>
       <button
         onClick={() => navigate("/Chat")}
@@ -135,34 +135,35 @@ const HistoryPage = () => {
           cursor: "pointer",
         }}
       >
-        戻る
+        ◀️Back
       </button>
       {messages.length === 0 ? (
         <p style={{ textAlign: "center", color: "#777", marginTop: "20px" }}>
-          まだ履歴がありません
+          No diary... 😢
         </p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "20px", marginTop: "30px" }}>
           {messages.map((message) => (
             <div key={message.diary_id} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
               <div
-                style={{
-                  padding: "15px",
-                  backgroundColor: "#ffa500",
-                  border: "1px solid #ffa500",
-                  borderRadius: "10px",
-                  boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
-                  cursor: "pointer",
-                  textAlign: "center",
-                  fontWeight: "bold",
-                  color: "#000",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  position: "relative",
-                }}
-                onClick={() => toggleDiary(message.diary_id)}
-              >
+  style={{
+    padding: "15px",
+    backgroundColor: "#ffcc30", // 薄いオレンジ
+    border: "1px solid #ffb74d", // より薄いオレンジ
+    borderRadius: "15px",
+    boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
+    cursor: "pointer",
+    textAlign: "center",
+    fontWeight: "bold",
+    color: "#000",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    position: "relative",
+  }}
+  onClick={() => toggleDiary(message.diary_id)}
+>
+
                 <span style={{ fontSize: "14px", color: "#555" }}>
                   {message.diary_time}
                 </span>
@@ -180,7 +181,7 @@ const HistoryPage = () => {
                 >
                   {message.title}
                   <span style={{ fontSize: "16px", color: "#333", fontWeight: "normal" }}>
-                    ユーザ：{message.user_name}
+                    Name：{message.user_name}
                   </span>
                 </span>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -198,7 +199,7 @@ const HistoryPage = () => {
                       backgroundColor: "white",
                     }}
                   >
-                    🗑️
+                    🚮
                   </span>
                   <span
                     style={{
@@ -223,7 +224,7 @@ const HistoryPage = () => {
                     boxShadow: "0 2px 3px rgba(0,0,0,0.1)",
                   }}
                 >
-                  <p><strong>内容:</strong> {message.content}</p>
+                  <p><strong>Content:</strong> {message.content}</p>
                 </div>
               )}
             </div>

@@ -4,10 +4,10 @@ import { useNavigate } from "react-router-dom";
 
 const QuizCategorySelector = () => {
   const categories = [
-    { id: 1, label: "culture" },
-    { id: 2, label: "language" },
-    { id: 3, label: "ranking" },
-    { id: 4, label: "myself" },
+    { id: 1, label: "culture(文化)" },
+    { id: 2, label: "language(言語)" },
+    { id: 3, label: "ranking(順位)" },
+    { id: 4, label: "myself(自分)" },
   ];
 
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -26,7 +26,7 @@ const QuizCategorySelector = () => {
         setSelectedCategories([...selectedCategories, id]);
         setError(""); // エラー解除
       } else {
-        setError("カテゴリは2つまで選択可能です。");
+        setError("You can select up to 2 categories. : カテゴリを2つ選択してください。");
       }
     }
   };
@@ -34,7 +34,7 @@ const QuizCategorySelector = () => {
   // クイズ開始時のリクエスト送信
   const handleQuizStart = async () => {
     if (selectedCategories.length !== 2) {
-      setError("カテゴリを2つ選択してください！");
+      setError("Please select 2 categories.");
       return;
     }
 
@@ -49,7 +49,7 @@ const QuizCategorySelector = () => {
     try {
       const token = localStorage.getItem("access_token");
       if (!token) {
-        alert("ログインセッションが無効です。もう一度ログインしてください。");
+        alert("Please log in again.: もう一度ログインしてください。");
         setIsLoading(false);
         return;
       }
@@ -65,15 +65,15 @@ const QuizCategorySelector = () => {
         }
       );
 
-      alert(`クイズを開始します: ${selectedCategories.join(", ")}`);
+      alert(`OK！: クイズを作成しました${selectedCategories.join(", ")}`);
       navigate("/Quiz2");
     } catch (error) {
-      console.error("クイズ生成エラー:", error);
+      console.error("ERROR:", error);
 
       if (error.response) {
-        setError(`エラーが発生しました: ${error.response.data.error || error.response.data.message}`);
+        setError(`ERROR: ${error.response.data.error || error.response.data.message}`);
       } else {
-        setError(`エラーが発生しました: ${error.message}`);
+        setError(`ERROR: ${error.message}`);
       }
     } finally {
       setIsLoading(false); // クイズ生成終了
@@ -92,9 +92,9 @@ const QuizCategorySelector = () => {
         textAlign: "center",
       }}
     >
-      <h1 style={{ fontSize: "24px", marginBottom: "20px" }}>クイズのカテゴリ選択</h1>
+      <h1 style={{ fontSize: "24px", marginBottom: "20px" }}>QUIZ ✅ </h1>
       <p style={{ fontSize: "16px", color: "#555" }}>
-        以下のカテゴリから<strong>2つ</strong>選んでください。
+        <strong></strong>Select 2 categories for the quiz.
       </p>
       <div style={{ margin: "20px 0" }}>
         {categories.map((category) => (
@@ -136,7 +136,7 @@ const QuizCategorySelector = () => {
           transition: "background-color 0.3s",
         }}
       >
-        {isLoading ? "クイズ生成中..." : "クイズへ"}
+        {isLoading ? "Making Quiz now..." : "Make Quiz！"}
       </button>
       {error && (
         <p style={{ textAlign: "center", color: "#FF0000", marginTop: "20px", fontSize: "14px" }}>
