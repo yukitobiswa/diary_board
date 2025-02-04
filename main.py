@@ -1535,34 +1535,55 @@ async def get_answer_quiz(current_user: UserCreate = Depends(get_current_active_
             temp_set = []
             set_num = 1
 
-            for i,answer in enumerate(results):
-                quiz_result = session.query(MQuizTable).filter(MQuizTable.diary_id == answer.diary_id,MQuizTable.quiz_id == answer.quiz_id,MQuizTable.language_id==current_user.main_language).first()
-                temp_set.append({'user_id':answer.user_id,
-                                'quiz_id':answer.quiz_id,
-                                'diary_id':answer.diary_id,
-                                'answer_date':answer.answer_date.strftime('%Y-%m-%d %H:%M:%S'),
-                                'judgement':answer.judgement,
-                                'question':quiz_result.question,
-                                })
+            for i, answer in enumerate(results):
+                quiz_result = session.query(MQuizTable).filter(MQuizTable.diary_id == answer.diary_id, MQuizTable.quiz_id == answer.quiz_id, MQuizTable.language_id == current_user.main_language).first()
+                
+                if quiz_result is None:
+                    continue  # もしクイズ結果が見つからなければスキップする
+                
+                temp_set.append({
+                    'user_id': answer.user_id,
+                    'quiz_id': answer.quiz_id,
+                    'diary_id': answer.diary_id,
+                    'answer_date': answer.answer_date.strftime('%Y-%m-%d %H:%M:%S'),
+                    "choice":answer.choices,
+                    'judgement': answer.judgement,
+                    'question': quiz_result.question,
+                    'choices': {
+                        "a": quiz_result.a,
+                        "b": quiz_result.b,
+                        "c": quiz_result.c,
+                        "d": quiz_result.d,
+                        "correct": quiz_result.correct
+                    }
+                })
                 first_answer_date = None  # セットの最初の回答日を記録
-                if len(temp_set) == 5 or i == len(results) -1:
+                if len(temp_set) == 5 or i == len(results) - 1:
                     if not first_answer_date:
                         first_answer_date = answer.answer_date.strftime('%Y-%m-%d %H:%M:%S')
                 
-                    set_result = session.query(ASetTable).filter(ASetTable.user_id==current_user.user_id,ASetTable.diary_id==answer.diary_id).first()
-                    set_title = session.query(MDiaryTable).filter(MDiaryTable.diary_id==answer.diary_id,MDiaryTable.language_id==current_user.main_language).first()
-                    set_name = session.query(UserTable).filter(UserTable.name == set_title.user_id and UserTable.team_id == current_user.team_id).first()
-                    pre_answer = {
-                        "title":set_title.title,
-                        "name":set_name.name,
-                        "correct_set":set_result.correct_set,
+                    set_result = session.query(ASetTable).filter(ASetTable.user_id == current_user.user_id, ASetTable.team_id == current_user.team_id,ASetTable.diary_id == answer.diary_id).first()
+                    set_title = session.query(MDiaryTable).filter(MDiaryTable.diary_id == answer.diary_id, MDiaryTable.language_id == current_user.main_language).first()
+                    
+                    if set_title is None:
+                        continue  # set_titleが見つからない場合スキップする
+                    
+                    set_name = session.query(UserTable).filter(UserTable.name == set_title.user_id, UserTable.team_id == current_user.team_id).first()
+                    
+                    if set_name is None:
+                        continue  # set_nameが見つからない場合スキップする
+                    
+                    set_result = {
+                        "title": set_title.title,
+                        "name": set_name.name,
+                        "correct_set": set_result.correct_set if set_result else 0,
                         "answer_date": first_answer_date,
-                        "questions":temp_set,
+                        "questions": temp_set,
                     }
-                    set_answer.append({set_num: pre_answer})
+                    set_answer.append({set_num: set_result})
                     set_num += 1
                     temp_set = []
-                    
+
         return JSONResponse(content={
             "correct_count": set_answer,
         })
