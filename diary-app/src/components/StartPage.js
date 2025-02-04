@@ -59,10 +59,10 @@ const StartPage = () => {
         backgroundColor: "#FFF",
       }}
     >
-      <h1 style={{ fontSize: "24px", marginBottom: "20px", color: "#333" }}>ログイン</h1>
+      <h1 style={{ fontSize: "24px", marginBottom: "20px", color: "#333" }}>Diary Board</h1>
       <form onSubmit={handleSubmit}>
-      <div style={{ marginBottom: "20px" }}>
-          <label style={{ fontSize: "16px", display: "block", marginBottom: "8px", color: "#555" }}>グループ ID:</label>
+        <div style={{ marginBottom: "20px" }}>
+          <label style={{ fontSize: "16px", display: "block", marginBottom: "8px", color: "#555" }}>Team ID:</label>
           <input
             type="text"
             value={teamId}
@@ -77,7 +77,7 @@ const StartPage = () => {
           />
         </div>
         <div style={{ marginBottom: "20px" }}>
-          <label style={{ fontSize: "16px", display: "block", marginBottom: "8px", color: "#555" }}>ユーザー ID:</label>
+          <label style={{ fontSize: "16px", display: "block", marginBottom: "8px", color: "#555" }}>User ID:</label>
           <input
             type="text"
             value={userId}
@@ -92,7 +92,7 @@ const StartPage = () => {
           />
         </div>
         <div style={{ marginBottom: "20px" }}>
-          <label style={{ fontSize: "16px", display: "block", marginBottom: "8px", color: "#555" }}>パスワード:</label>
+          <label style={{ fontSize: "16px", display: "block", marginBottom: "8px", color: "#555" }}>password:</label>
           <input
             type="password"
             value={password}
@@ -107,56 +107,56 @@ const StartPage = () => {
           />
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: "20px" }}>
-        <button
+          <button
             onClick={() => navigate('/newlogin')}
             style={{
-              padding: "20px 30px",
+              padding: "15px 30px",
               backgroundColor: "#FFA500",
               color: "#FFF",
               border: "none",
               borderRadius: "8px",
-              fontSize: "16px",
+              fontSize: "20px",
               cursor: "pointer",
               transition: "background-color 0.3s",
               flex: "1",
               margin: "0 5px",
             }}
           >
-            新規登録
-        </button>
+            New！🆕
+          </button>
           <button
             type="submit"
             style={{
-              padding: "20px 30px",
+              padding: "15px 30px",
               backgroundColor: "#4CAF50",
               color: "#FFF",
               border: "none",
               borderRadius: "8px",
-              fontSize: "16px",
+              fontSize: "20px",
               cursor: "pointer",
               transition: "background-color 0.3s",
               flex: "1",
               margin: "0 5px",
             }}
           >
-            ログイン
+            Go！🚀
           </button>
           <button
             onClick={() => navigate('/Teacher_login')}
             style={{
-              padding: "20px 30px",
+              padding: "15px 30px",
               backgroundColor: "#FFA500",
               color: "#FFF",
               border: "none",
               borderRadius: "8px",
-              fontSize: "16px",
+              fontSize: "20px",
               cursor: "pointer",
               transition: "background-color 0.3s",
               flex: "1",
               margin: "0 5px",
             }}
           >
-            教員ページへ
+            Teacher👨‍🏫
           </button>
         </div>
       </form>

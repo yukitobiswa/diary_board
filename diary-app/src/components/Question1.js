@@ -20,7 +20,7 @@ const Question1 = () => {
       });
       return response.data.already;
     } catch (err) {
-      console.error("既存クイズ確認エラー:", err);
+      console.error("ERROR", err);
       return false; // エラー時に false を返す
     }
   };
@@ -37,7 +37,7 @@ const Question1 = () => {
       setIsAlreadyAnswered(already);
 
       if (already) {
-        alert("この日記のクイズは既に回答済みです。");
+        alert("This quiz is already answered. : このクイズは既に回答済みです。");
         navigate("/Chat");
         return;
       }
@@ -54,10 +54,10 @@ const Question1 = () => {
         );
         setQuiz(minQuiz);
       } else {
-        console.error("No quizzes found");
+        console.error("No quizzes found. : クイズが見つかりませんでした。");
       }
     } catch (err) {
-      console.error("クイズ取得エラー:", err);
+      console.error("ERROR : クイズ取得エラー", err);
     }
   };
 
@@ -72,7 +72,7 @@ const Question1 = () => {
 
   const submitAnswer = async () => {
     if (selectAnswer == null) {
-      alert("答えを選択してください。");
+      alert("Please select an answer. : 答えを選択してください。");
       return false;
     }
 
@@ -89,7 +89,7 @@ const Question1 = () => {
       });
       return true;
     } catch (err) {
-      console.error("クイズの送信エラー:", err);
+      console.error("ERROR : クイズ送信エラー", err);
       return false;
     }
   };
@@ -99,7 +99,7 @@ const Question1 = () => {
     if (success) {
       navigate(`/Answer1/${quiz.diary_id}`, { state: { selectedOption } });
     } else {
-      alert("答えを選択してください。");
+      alert("Please select an answer. : 答えを選択してください。");
     }
   };
 
@@ -127,7 +127,7 @@ const Question1 = () => {
         ))}
       </div>
       <button onClick={handleSubmit} style={styles.submitButton}>
-        次へ
+        Answer✅
       </button>
     </div>
   );
@@ -158,7 +158,7 @@ const styles = {
   },
   submitButton: {
     marginTop: "30px",
-    backgroundColor: "#4CAF50",
+    backgroundColor: "#FFA500",
     color: "#fff",
     border: "none",
     padding: "15px 30px",

@@ -84,7 +84,7 @@ const Setting = () => {
       alert(updateResponse.data.message);
     } catch (error) {
       console.error("プロフィール更新中にエラーが発生しました:", error);
-      alert(error.response?.data?.detail || "プロフィール更新中にエラーが発生しました");
+      alert(error.response?.data?.detail || "ERROR");
     }
   };
 
@@ -137,17 +137,17 @@ const Setting = () => {
 
   return (
     <div style={styles.container}>
-      <h2>プロフィール設定</h2>
+      <h2>My Profile</h2>
 
       <div style={{ marginBottom: "20px" }}>
         <div style={styles.displayOnly}>
-          <strong>称号:</strong> {nickname || "称号が設定されていません"}
+          <strong>Nickname:</strong> {nickname || "称号が設定されていません"}
         </div>
       </div>
 
       <div>
         <label htmlFor="username" style={{ display: "block", marginBottom: "10px" }}>
-          ユーザ名
+          Name
         </label>
         <input
           id="username"
@@ -160,10 +160,10 @@ const Setting = () => {
 
       <div>
         <label htmlFor="language" style={{ display: "block", marginBottom: "10px" }}>
-          学びたい言語
+          Learn Language
         </label>
         <select id="language" value={language} onChange={handleLanguageChange} style={styles.select}>
-          <option value="">選択してください</option>
+          <option value="">Please select</option>
           {languageOptions.map((option) => (
             <option key={option.id} value={option.id}>
               {option.label}
@@ -173,10 +173,10 @@ const Setting = () => {
       </div>
 
       <button onClick={updateProfile} style={styles.button}>
-        更新
+        New！🆕
       </button>
       <button onClick={handleBack} style={{ ...styles.button, backgroundColor: "#4CAF50" }}>
-        戻る
+      ◁️Back
       </button>
     </div>
   );

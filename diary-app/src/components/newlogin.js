@@ -37,7 +37,7 @@ const NewRegister = () => {
     console.log("Learn Language:", studyLanguage);
   
     if (userId === '' || password === '' || teamId === '' || username === '') {
-      setError('すべてのフィールドが必要です！');
+      setError('Please fill in all fields!: すべてのフィールドが必要です！');
       return;
     }
   
@@ -51,7 +51,7 @@ const NewRegister = () => {
       learn_language: studyLanguage,
     })
     .then(response => {
-      setSuccess('登録に成功しました！');
+      setSuccess('OK! ユーザー登録が完了しました！');
       setError('');
       navigate('/'); // 登録成功後の遷移先
     })
@@ -59,14 +59,14 @@ const NewRegister = () => {
       console.error('Registration error:', error);  // エラーの詳細をコンソールに表示
       if (error.response) {
         if (error.response.data.detail === "User ID already exists") {
-          setError("ユーザーIDが既に存在しています");
+          setError("ERROR: このユーザーIDは既に使用されています。");
         } else {
           setError(`サーバーエラー: ${error.response.data.detail || error.message}`);
         }
       } else if (error.request) {
-        setError('サーバーへのリクエストに失敗しました。');
+        setError('ERROR: サーバーに接続できません。');
       } else {
-        setError(`登録中にエラーが発生しました: ${error.message}`);
+        setError(`ERROR: ${error.message}`);
       }
     });
   };
@@ -78,10 +78,10 @@ const NewRegister = () => {
   };
   return (
     <div className="container add-course" style={{ maxWidth: "400px", margin: "0 auto", padding: "20px" }}>
-      <h1 style={{ textAlign: "center" }}>ユーザー新規登録</h1>
+      <h1 style={{ textAlign: "center" }}>Create a New Account✨</h1>
       <form onSubmit={handleRegister} style={{ backgroundColor: "#F9F9F9", padding: "20px", borderRadius: "8px" }}>
         <div style={{ marginBottom: "15px" }}>
-          <label>ユーザーID:</label>
+          <label>User ID:</label>
           <input
             type="text"
             value={userId}
@@ -96,7 +96,7 @@ const NewRegister = () => {
           />
         </div>
         <div style={{ marginBottom: "15px" }}>
-          <label>チームID:</label>
+          <label>Team ID:</label>
           <input
             type="text"
             value={teamId}
@@ -111,7 +111,7 @@ const NewRegister = () => {
           />
         </div>
         <div style={{ marginBottom: "15px" }}>
-          <label>パスワード:</label>
+          <label>Password:</label>
           <input
             type="password"
             value={password}
@@ -126,7 +126,7 @@ const NewRegister = () => {
           />
         </div>
         <div style={{ marginBottom: "15px" }}>
-          <label>ユーザー名:</label>
+          <label>User Name:</label>
           <input
             type="text"
             value={username}
@@ -141,7 +141,7 @@ const NewRegister = () => {
           />
         </div>
         <div style={{ marginBottom: "15px" }}>
-          <label>好みの言語:</label>
+          <label>Main Language:</label>
           <select
             value={language}
             onChange={(e) => setLanguage(Number(e.target.value))}  // 数字に変換
@@ -161,7 +161,7 @@ const NewRegister = () => {
           </select>
         </div>
         <div style={{ marginBottom: "15px" }}>
-          <label>学習言語:</label>
+          <label>Learn Language:</label>
           <select
             value={studyLanguage}
             onChange={(e) => setStudyLanguage(Number(e.target.value))}  // 数字に変換
@@ -180,26 +180,26 @@ const NewRegister = () => {
             ))}
           </select>
         </div>
-        <button
+                <button
           type="submit"
           style={{
             width: "100%",
             padding: "10px",
-            backgroundColor: "#007BFF",
+            backgroundColor: "#FF9800", // オレンジ色
             color: "white",
             border: "none",
             borderRadius: "5px",
             cursor: "pointer",
           }}
         >
-          登録
+          New！🆕
         </button>
-        {/* 戻るボタン */}
+
         <div style={{ marginTop: "20px", textAlign: "left" }}>
           <button
             onClick={handleGoBack}
             style={{
-              backgroundColor: "#2196F3",
+              backgroundColor: "#4CAF50", // 緑色
               color: "#fff",
               padding: "8px 12px",
               border: "none",
@@ -207,9 +207,10 @@ const NewRegister = () => {
               cursor: "pointer",
             }}
           >
-            ← 戻る
+            ◁️Back
           </button>
         </div>
+
       </form>
       {success && <p style={{ color: "green", marginTop: "10px" }}>{success}</p>}
       {error && <p style={{ color: "red", marginTop: "10px" }}>{error}</p>}

@@ -21,7 +21,7 @@ const Question2 = () => {
       console.log("Already quiz response:", response.data);
       return response.data.already; // true なら既に回答済み、false なら未回答
     } catch (err) {
-      console.error("既存クイズ確認エラー:", err);
+      console.error("ERROR:", err);
       return true; // エラーの場合、既に回答済みと見なす
     }
   };
@@ -31,7 +31,7 @@ const Question2 = () => {
     try {
       const already = await alreadyQuiz(); // クイズが既に回答済みか確認
       if (already) {
-        alert("この日記のクイズは既に回答済みです。");
+        alert("This quiz is already answered : このクイズは既に回答済みです。"); // 既に回答済みの場合はアラートを表示
         navigate("/Chat"); // ホーム画面など適切なページへリダイレクト
         return;
       }
@@ -69,7 +69,7 @@ const Question2 = () => {
 
   const submitAnswer = async () => {
     if (selectAnswer == null) {
-      alert("答えを選択してください。");
+      alert("Please select an answer. : 答えを選択してください。");
       return false; // 選択されていない場合はfalseを返す
     }
     const token = localStorage.getItem("access_token");
@@ -85,10 +85,10 @@ const Question2 = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      console.log("答えが正常に送信されました");
+      console.log("クイズの送信成功");
       return true; // 成功した場合はtrueを返す
     } catch (err) {
-      console.error("クイズの送信エラー:", err);
+      console.error("ERROR:", err);
       return false; // エラーが発生した場合はfalseを返す
     }
   };
@@ -98,7 +98,7 @@ const Question2 = () => {
     if (success) {
       navigate(`/Answer2/${quiz.diary_id}`, { state: { selectedOption } }); // 選択されたオプションに基づいて次の画面へ遷移
     } else {
-      alert("答えを選択してください。");
+      alert("Please select an answer. : 答えを選択してください。");
     }
   };
 
@@ -126,7 +126,7 @@ const Question2 = () => {
         ))}
       </div>
       <button onClick={handleSubmit} style={styles.submitButton}>
-        次へ
+        Answer✅
       </button>
     </div>
   );
@@ -157,7 +157,7 @@ const styles = {
   },
   submitButton: {
     marginTop: "30px",
-    backgroundColor: "#4CAF50", // 緑色のボタン
+    backgroundColor: "#FFA500", // 緑色のボタン
     color: "#fff",
     border: "none",
     padding: "15px 30px",

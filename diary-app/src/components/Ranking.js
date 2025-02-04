@@ -57,7 +57,7 @@ const Ranking = () => {
   }, []);
 
   if (loading) {
-    return <div style={styles.loading}>ランキングを読み込み中...</div>;
+    return <div style={styles.loading}>Loading...</div>;
   }
 
   if (error) {
@@ -66,14 +66,14 @@ const Ranking = () => {
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.header}>クイズ正解数ランキング</h1>
+      <h1 style={styles.header}>Quiz Ranking✅</h1>
       <table style={styles.table}>
         <thead>
           <tr>
-            <th style={styles.th}>順位</th>
-            <th style={styles.th}>名前</th>
-            <th style={styles.th}>ニックネーム</th>
-            <th style={styles.th}>正解数</th>
+            <th style={styles.th}>Rank</th>
+            <th style={styles.th}>Name</th>
+            <th style={styles.th}>Nickname</th>
+            <th style={styles.th}>Correct</th>
           </tr>
         </thead>
         <tbody>
@@ -91,14 +91,14 @@ const Ranking = () => {
         </tbody>
       </table>
 
-      <h1 style={styles.header}>日記数ランキング</h1>
+      <h1 style={styles.header}>Diary Ranking✉️</h1>
       <table style={styles.table}>
         <thead>
           <tr>
-            <th style={styles.th}>順位</th>
-            <th style={styles.th}>名前</th>
-            <th style={styles.th}>ニックネーム</th>
-            <th style={styles.th}>日記数</th>
+            <th style={styles.th}>Rank</th>
+            <th style={styles.th}>Name</th>
+            <th style={styles.th}>Nickname</th>
+            <th style={styles.th}>Diary Count</th>
           </tr>
         </thead>
         <tbody>
@@ -116,14 +116,14 @@ const Ranking = () => {
         </tbody>
       </table>
 
-      <h1 style={styles.header}>合計スコアランキング</h1>
+      <h1 style={styles.header}>Total Ranking🏆</h1>
       <table style={styles.table}>
         <thead>
           <tr>
-            <th style={styles.th}>順位</th>
-            <th style={styles.th}>名前</th>
-            <th style={styles.th}>ニックネーム</th>
-            <th style={styles.th}>合計スコア</th>
+            <th style={styles.th}>Rank</th>
+            <th style={styles.th}>Name</th>
+            <th style={styles.th}>Nickname</th>
+            <th style={styles.th}>Total Score</th>
           </tr>
         </thead>
         <tbody>
@@ -142,7 +142,7 @@ const Ranking = () => {
       </table>
 
       <button style={styles.backButton} onClick={() => navigate("/Chat")}>
-        チャットに戻る
+      ◁️Back
       </button>
     </div>
   );

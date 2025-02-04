@@ -75,7 +75,7 @@ const QuizHistoryPage = () => {
   }, []);
   return (
     <div style={{ padding: "30px", fontFamily: "Arial, sans-serif" }}>
-      <h2 style={{ textAlign: "center" }}>クイズ履歴</h2>
+      <h2 style={{ textAlign: "center" }}>My Quiz History</h2>
 
       {/* Quiz Stats */}
       <div
@@ -92,13 +92,13 @@ const QuizHistoryPage = () => {
         }}
       >
         <div>
-          <strong style={{ color: "#28a745", fontSize: "20px" }}>正解数:</strong>
+          <strong style={{ color: "#28a745", fontSize: "20px" }}>Correct Count:</strong>
           <span style={{ color: "#28a745", fontWeight: "bold", fontSize: "24px" }}>
             {correctCount}
           </span>
         </div>
         <div>
-          <strong style={{ color: "#28a745", fontSize: "20px" }}>正解率:</strong>
+          <strong style={{ color: "#28a745", fontSize: "20px" }}>Correct Rate:</strong>
           <span style={{ color: "#28a745", fontWeight: "bold", fontSize: "24px" }}>
             {percent.toFixed(1)}%
           </span>
@@ -118,13 +118,13 @@ const QuizHistoryPage = () => {
           cursor: "pointer",
         }}
       >
-        戻る
+        ◀️Back
       </button>
 
       {/* Quiz History */}
       {quizData.length === 0 ? (
         <p style={{ textAlign: "center", color: "#777", fontSize: "16px", marginTop: "20px" }}>
-          まだ履歴がありません
+          No quiz...😢
         </p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "25px", marginTop: "30px" }}>
@@ -132,11 +132,11 @@ const QuizHistoryPage = () => {
             <div key={index} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
               <div
                 style={{
-                  padding: "15px",  // Reduced padding for quiz items
-                  backgroundColor: "#ffa500",  // Change background color to orange
-                  border: "1px solid #ff9000",  // Change border color to orange
+                  padding: "20px",
+                  backgroundColor: "#ffcc30", // 薄いオレンジ
+                  border: "1px solid #ffb74d", // より薄いオレンジ
                   borderRadius: "15px",
-                  boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+                  boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
                   cursor: "pointer",
                   textAlign: "center",
                   fontWeight: "bold",
@@ -148,6 +148,7 @@ const QuizHistoryPage = () => {
                 }}
                 onClick={() => setOpenSetIndex(openSetIndex === index ? null : index)}
               >
+
                 <span style={{ fontSize: "14px", color: "#555" }}>{set.answer_date}</span>
                 <span
                   style={{

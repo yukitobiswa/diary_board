@@ -47,7 +47,7 @@ const Answer1 = () => {
       // 音声ファイルを取得
       await fetchAudio();
     } catch (err) {
-      console.error("クイズ取得エラー:", err);
+      console.error("ERROR", err);
     }
   };
 
@@ -78,7 +78,7 @@ const Answer1 = () => {
       // 音声ファイルをセット
       setAudioFiles(audioFilesArray);
     } catch (err) {
-      console.error("音声取得エラー:", err);
+      console.error("ERROR", err);
     }
   };
 
@@ -163,12 +163,12 @@ const Answer1 = () => {
       </div>
       {selectedChoice && (
         <div style={styles.result}>
-          <p><strong>あなたの選択:</strong> {selectedChoice.toUpperCase()}</p>
-          <p><strong>正解:</strong> {correctChoice}</p>
+          <p><strong>Your Select:</strong> {selectedChoice.toUpperCase()}</p>
+          <p><strong>Correct:</strong> {correctChoice}</p>
         </div>
       )}
       <button onClick={handleSubmit} style={styles.submitButton}>
-        次へ
+        Next!!!
       </button>
     </div>
   );
