@@ -61,7 +61,7 @@ const NewRegister = () => {
         if (error.response.data.detail === "User ID already exists") {
           setError("ERROR: このユーザーIDは既に使用されています。");
         } else {
-          setError(`サーバーエラー: ${error.response.data.detail || error.message}`);
+          setError(`The User ID already exists: ${error.response.data.detail || error.message}`);
         }
       } else if (error.request) {
         setError('ERROR: サーバーに接続できません。');

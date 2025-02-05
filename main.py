@@ -25,14 +25,9 @@ import zipfile
 from BM import (
     Token,
     OAuth2PasswordRequestFormWithTeam,
-    UserPydantic,
     UserCreate,
     TeamCreate,
     DiaryCreate,
-    GetQuiz,
-    Multilingual_DiaryCreate,
-    QuizCreate,
-    Multilingual_QuizCreate,
     AnswerCreate,
     Change_User,
     Category,
@@ -41,7 +36,8 @@ from BM import (
     ReactionRequest,
     TeacherLogin,
     UserResponse,
-    UserRequest
+    UserRequest,
+    PasswordResetRequest
 )
 
 
@@ -108,84 +104,145 @@ def get_user(db, username: str):
    if username in db:
        user_dict = db[username]
        return UserInDB(**user_dict)
+SS_TOKEN_EXPIRE_MINUTES = 30
+
+@app.put("/reset_password")
+async def reset_password(request: PasswordResetRequest):
+    request.hash_password()  # パスワードをハッシュ化
+
+    with SessionLocal() as db:
+        try:
+            # チームIDとユーザーIDでユーザーを検索
+            user = db.query(UserTable).filter(
+                UserTable.team_id == request.team_id, 
+                UserTable.user_id == request.user_id
+            ).first()
+            
+            if not user:
+                # チームIDまたはユーザーIDが見つからない場合
+                # チームIDが存在するかどうかを確認
+                team_exists = db.query(UserTable).filter(UserTable.team_id == request.team_id).first()
+                if not team_exists:
+                    # チームIDが存在しない場合
+                    raise HTTPException(status_code=404, detail="チームIDがありません")
+                # ユーザーIDが存在しない場合
+                raise HTTPException(status_code=400, detail="ユーザーIDがありません。")
+            
+            # パスワードをリセット
+            user.password = request.new_password
+            db.commit()
+            db.refresh(user)
+            return {"message": "パスワードがリセットされました！"}
+        
+        except HTTPException as e:
+            # HTTPExceptionの場合はそのまま返す
+            raise e
+        except Exception as e:
+            # その他のエラーの場合は422エラーを返す
+            raise HTTPException(status_code=422, detail=f"入力データが無効です: {str(e)}")
+
 
 # ユーザーの認証関数
 def authenticate_user(db_session, team_id: str, user_id: str, password: str):
-    user = db_session.query(UserTable).filter(UserTable.user_id == user_id,UserTable.team_id == team_id).first()
-    if not user or not verify_password(password, user.password):
-        return None
+    # チームIDの存在チェック
+    team_exists = db_session.query(UserTable).filter(UserTable.team_id == team_id).first()
+    if not team_exists:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No Team ID: チームIDがありません。",
+        )
+
+    # ユーザーIDの存在チェック
+    user = db_session.query(UserTable).filter(UserTable.user_id == user_id, UserTable.team_id == team_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="No User ID: ユーザーIDがありません。",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # パスワードのチェック
+    if not verify_password(password, user.password):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Incorrect Password: パスワードが違います。",
+        )
+
     return user
+
 
 # アクセストークンの生成関数
 def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None):
-   to_encode = data.copy()
-   if expires_delta:
-       expire = datetime.now(timezone.utc) + expires_delta
-   else:
-       expire = datetime.now(timezone.utc) + timedelta(minutes=15)
-   to_encode.update({"exp": expire})
-   encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-   return encoded_jwt
+    to_encode = data.copy()
+    expire = datetime.now(timezone.utc) + (expires_delta if expires_delta else timedelta(minutes=15))
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 # 現在のユーザーを取得する関数
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
+        detail="Could not validate credentials: 認証情報が無効です。",
         headers={"WWW-Authenticate": "Bearer"},
     )
+
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id: str = payload.get("user_id")
         team_id: str = payload.get("team_id")
-        if not (user_id and team_id):
+
+        if not user_id or not team_id:
             raise credentials_exception
+
     except JWTError:
         raise credentials_exception
 
     with SessionLocal() as session:
-        user = session.query(UserTable).filter(UserTable.user_id == user_id,UserTable.team_id == team_id).first()
+        user = session.query(UserTable).filter(UserTable.user_id == user_id, UserTable.team_id == team_id).first()
         if not user:
             raise credentials_exception
         return user
 
 # 現在のアクティブなユーザーを取得する関数
 async def get_current_active_user(current_user: UserCreate = Depends(get_current_user)):
-   if not current_user.user_id and current_user.team_id:
-       raise HTTPException(status_code=400, detail="Inactive user")
-   return current_user
+    if not current_user.user_id or not current_user.team_id:
+        raise HTTPException(status_code=400, detail="Inactive user: 無効なユーザーです。")
+    return current_user
 
+# ログインしてアクセストークンを発行するエンドポイント
 @app.post("/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestFormWithTeam = Depends()):
     with SessionLocal() as session:
-        user = authenticate_user(session, form_data.team_id,form_data.username, form_data.password)
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Incorrect username or password",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+        try:
+            user = authenticate_user(session, form_data.team_id, form_data.username, form_data.password)
+        except HTTPException as e:
+            raise e
+
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(
-            data={"user_id": user.user_id, "team_id":user.team_id,"is_admin":user.is_admin}, expires_delta=access_token_expires
+            data={"user_id": user.user_id, "team_id": user.team_id, "is_admin": user.is_admin},
+            expires_delta=access_token_expires,
         )
+
         return Token(access_token=access_token, token_type="bearer")
 
+# トークンを検証するエンドポイント
 @app.post("/verify_token")
 async def verify_token(token: str = Depends(oauth2_scheme)):
     try:
-        # トークンをデコードして検証
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = payload.get("user_id")
         team_id = payload.get("team_id")
         is_admin = payload.get("is_admin")
-        if user_id and team_id is None:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
-        return {"valid": True, "user_id": user_id,"team_id":team_id,"is_admin":is_admin}
-    except Exception as e:
-        logging.error(f"Token verification failed: {e}")
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
-    
+
+        if not user_id or not team_id:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token: 無効なトークンです。")
+
+        return {"valid": True, "user_id": user_id, "team_id": team_id, "is_admin": is_admin}
+
+    except JWTError:
+        logging.error("Token verification failed: トークンの検証に失敗しました。")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token: 無効なトークンです。")
 @app.post("/register")
 async def user_register(user: UserCreate):
     user.hash_password()  # パスワードのハッシュ化

@@ -280,7 +280,7 @@ const User_inf = () => {
                           backgroundColor: "white",
                         }}
                       >
-                        🗑️
+                        🚮
                       </span>
                       <span
                         style={{
