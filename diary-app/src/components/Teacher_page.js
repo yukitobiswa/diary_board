@@ -8,7 +8,6 @@ const Teacher_page = () => {
     const [openUserId, setOpenUserId] = useState(null); // アコーディオンの開閉管理
     const navigate = useNavigate();
     const tokenRef = useRef(localStorage.getItem("authToken") || null);
-    const {user_id} = useParams();
     const fetchUsers = async () => {
         if (!tokenRef.current) return;
 
@@ -99,7 +98,7 @@ const Teacher_page = () => {
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        navigate(`/user_inf/${user.user_id}`);
+                                        navigate(`/Diary_and_Quiz/${user.user_id}`);
                                     }}
                                     style={{
                                         padding: "5px 10px",
