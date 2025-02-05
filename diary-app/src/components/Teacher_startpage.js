@@ -11,36 +11,45 @@ const Teacher_startpage = () => {
     const [error, setError] = useState('');
     const navigate = useNavigate();
 
-    // フォーム送信の処理
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (password === '') {
-            setError('ERROR : パスワードを入力してください');
-            setSuccess('');
-            return;
-        }
+  // フォーム送信の処理
+const handleSubmit = (e) => {
+    e.preventDefault();
+    if (password === '') {
+        setError('ERROR : パスワードを入力してください');
+        setSuccess('');
+        return;
+    }
 
-        // POSTリクエストを送信
-        axios.post('http://localhost:8000/token',
-            new URLSearchParams({
-                team_id: teamId,
-                username: userId,
-                password: password
-            }),
-            { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
-        )
-            .then(response => {
-                if (response.data.access_token) {
-                    localStorage.setItem('access_token', response.data.access_token);
-                    setSuccess('Login successfully!');
-                    setError('');
-                    navigate('/Chat'); // Redirect to home page on successful login
-                } else {
-                    setError('Login failed. Invalid credentials.');
-                    setSuccess('');
-                }
-            });
-    };
+    // POSTリクエストを送信
+    axios.post('http://localhost:8000/token',
+        new URLSearchParams({
+            team_id: teamId,
+            username: userId,
+            password: password
+        }),
+        { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+    )
+        .then(response => {
+            if (response.data.access_token) {
+                localStorage.setItem('access_token', response.data.access_token);
+                setSuccess('OK！: ログインに成功しました！');
+                setError('');
+                navigate('/Chat'); // Redirect to home page on successful login
+            } else {
+                setError('ERROR : ログインに失敗しました');
+                setSuccess('');
+            }
+        })
+        .catch(error => {
+            if (error.response && error.response.status === 401) {
+                setError('ERROR : パスワードが間違っています');
+            } else {
+                setError('ERROR : ログインに失敗しました');
+            }
+            setSuccess('');
+        });
+};
+
 
     const styles = {
         container: {
@@ -110,7 +119,7 @@ const Teacher_startpage = () => {
     return (
         <div style={styles.container}>
             <button onClick={() => navigate('/StartPage')} style={styles.button}>
-                ◁️Back
+            ◀ Back
             </button>
             <h1 style={{ fontSize: "24px", marginBottom: "20px", color: "#333" }}>Teacher Login</h1>
             <form onSubmit={handleSubmit}>

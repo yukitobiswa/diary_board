@@ -142,7 +142,7 @@ const Ranking = () => {
       </table>
 
       <button style={styles.backButton} onClick={() => navigate("/Chat")}>
-      ◁️Back
+      ◀ Back
       </button>
     </div>
   );

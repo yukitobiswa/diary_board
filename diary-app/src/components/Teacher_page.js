@@ -65,7 +65,7 @@ const Teacher_page = () => {
                 {title} ({users.length})
             </h3>
             {users.length === 0 ? (
-                <p style={{ textAlign: "center", color: "#777" }}>まだ{title}がいません</p>
+                <p style={{ textAlign: "center", color: "#777" }}>No User</p>
             ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                     {users.map((user) => (
@@ -109,7 +109,7 @@ const Teacher_page = () => {
                                         cursor: "pointer",
                                     }}
                                 >
-                                    日記・クイズ一覧
+                                    Diary & Quiz
                                 </button>
                             </div>
 
@@ -126,9 +126,9 @@ const Teacher_page = () => {
                                         boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
                                     }}
                                 >
-                                    <p><strong>クイズ正解数:</strong> {user.answer_count}</p>
-                                    <p><strong>日記投稿数:</strong> {user.diary_count}</p>
-                                    <p><strong>Nickname:</strong> {user.nickname || "なし"}</p>
+                                    <p><strong>Quiz Count:</strong> {user.answer_count}</p>
+                                    <p><strong>Diary Count:</strong> {user.diary_count}</p>
+                                    <p><strong>Nickname:</strong> {user.nickname || "None"}</p>
                                 </div>
                             )}
                         </div>
@@ -140,7 +140,7 @@ const Teacher_page = () => {
 
     return (
         <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-            <h2 style={{ textAlign: "center" }}>教員ページ</h2>
+            <h2 style={{ textAlign: "center" }}>Teacher Page</h2>
             <button
                 onClick={() => navigate("/Chat")}
                 style={{
@@ -153,14 +153,14 @@ const Teacher_page = () => {
                     cursor: "pointer",
                 }}
             >
-                戻る
+                ◀ Back
             </button>
 
             {/* 教員リスト */}
-            <UserList title="教員" users={teachers} />
+            <UserList title="Teacher" users={teachers} />
 
             {/* 生徒リスト */}
-            <UserList title="生徒" users={students} />
+            <UserList title="Students" users={students} />
         </div>
     );
 };

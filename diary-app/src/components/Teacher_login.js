@@ -68,7 +68,7 @@ const Teacher_login = () => {
                     display: "block",
                 }}
             >
-                ◁️Back
+                ◀ Back
             </button>
             <h1 style={{ fontSize: "24px", marginBottom: "20px", color: "#333" }}>Teacher Login</h1>
             <form onSubmit={handleSubmit}>

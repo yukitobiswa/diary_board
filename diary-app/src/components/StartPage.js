@@ -14,7 +14,7 @@ const StartPage = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (userId === '' || password === '') {
-      setError('All fields are required!');
+      setError('All fields are required! : すべてのフィールドが必要です！');
       return;
     }
 

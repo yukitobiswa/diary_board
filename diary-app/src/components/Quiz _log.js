@@ -27,7 +27,12 @@ const QuizHistoryPage = () => {
       });
       const formattedData = response.data.correct_count
         .map((set) => Object.values(set)[0])
-        .sort((a, b) => new Date(b.answer_date) - new Date(a.answer_date));
+              .sort((a, b) => new Date(b.answer_date) - new Date(a.answer_date));
+            setQuizData(formattedData);
+          } catch (error) {
+            console.error("Error fetching quiz data:", error);
+          }
+        };
 
 
   const fetchTotalAnswerData = async () => {
@@ -118,13 +123,13 @@ const QuizHistoryPage = () => {
           cursor: "pointer",
         }}
       >
-        ◀️Back
+        ◀ Back
       </button>
 
       {/* Quiz History */}
       {quizData.length === 0 ? (
         <p style={{ textAlign: "center", color: "#777", fontSize: "16px", marginTop: "20px" }}>
-          No quiz...😢
+          No Quiz...😢
         </p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "25px", marginTop: "30px" }}>
@@ -163,7 +168,7 @@ const QuizHistoryPage = () => {
                 >
                   {set.title}
                   <span style={{ fontSize: "16px", color: "#333", fontWeight: "normal" }}>
-                    ユーザ：{set.name}
+                    User：{set.name}
                   </span>
                 </span>
                 <div style={{ display: "flex", alignItems: "center" }}>
