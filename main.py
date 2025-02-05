@@ -1696,7 +1696,6 @@ async def create_answer_set(current_user: UserCreate = Depends(get_current_activ
             )
             session.add(new_answer_set)
             session.commit()
-            logging.info(f"Answer created successfully for user_id: {userId}")
         return JSONResponse({"message": "Answer Set Created Successfully!"})
 
     except Exception as e:
