@@ -1678,18 +1678,17 @@ async def get_total_answer(current_user: UserCreate = Depends(get_current_active
         raise HTTPException(status_code=400, detail=f"Error during getting answers: {str(e)}")
     
 @app.post("/create_answer_set")
-async def create_answer_set(request:UserRequest,current_user: UserCreate = Depends(get_current_active_user)):
-    userId = request.user_id
+async def create_answer_set(current_user: UserCreate = Depends(get_current_active_user)):
     try:
         answer_time = datetime.now()
         with SessionLocal() as session:
-            results = session.query(AnswerTable).filter(AnswerTable.user_id == userId).filter(AnswerTable.team_id == current_user.team_id) \
+            results = session.query(AnswerTable).filter(AnswerTable.user_id == current_user.user_id).filter(AnswerTable.team_id == current_user.team_id) \
                 .order_by(AnswerTable.answer_date.desc()).limit(5).all()
             correct_count = sum(1 for answer in results if answer.judgement == 1)
             diary_id = results[0].diary_id if results else None
             new_answer_set = ASetTable(
                 team_id = current_user.team_id,
-                user_id=userId,
+                user_id=current_user.user_id,
                 diary_id=diary_id,
                 answer_time=answer_time,
                 correct_set = (correct_count)
