@@ -366,7 +366,7 @@ async def generate_quiz(category: Category, current_user: UserCreate = Depends(g
 
             # クイズが生成されなかった場合の処理
             if len(quizzes) < 10:
-                return JSONResponse(status_code=404, content={"error": "No quizzes generated."})
+                return JSONResponse(status_code=404, content={"error": "No quizzes generated. : もう一度お試しください"})
             # 既存のキャッシュを削除（同じユーザーの古いキャッシュがある場合）
             session.query(CashQuizTable).filter(CashQuizTable.user_id == current_user.user_id).delete()
             session.commit()

@@ -12,23 +12,22 @@ const QuizHistoryPage = () => {
   const navigate = useNavigate();
   const tokenRef = useRef(localStorage.getItem("authToken") || null);
 
-  const fetchQuizData = async () => {
-    try {
-      // クイズ履歴の取得
-      const response = await axios.get("http://localhost:8000/get_answer_quiz", {
-        headers: {
-          Authorization: `Bearer ${tokenRef.current}`,
-        },
-      });
-      const formattedData = response.data.correct_count
-        .map((set) => Object.values(set)[0])
-        .sort((a, b) => new Date(b.answer_date) - new Date(a.answer_date));
+const fetchQuizData = async () => {
+  try {
+    const response = await axios.get("http://localhost:8000/get_answer_quiz", {
+      headers: { Authorization: `Bearer ${tokenRef.current}` }, // tokenRef.current に修正
+    });
+    console.log("レスポンス:", response.data);
+    const formattedData = response.data.correct_count
+      .map((set) => Object.values(set)[0])
+      .sort((a, b) => new Date(b.answer_date) - new Date(a.answer_date));
 
-      setQuizData(formattedData);
-    } catch (error) {
-      console.error("Error fetching quiz data:", error);
-    }
-  };
+    setQuizData(formattedData);
+  } catch (error) {
+    console.error("Error fetching quiz data:", error);
+  }
+};
+
 
   const fetchTotalAnswerData = async () => {
     try {
