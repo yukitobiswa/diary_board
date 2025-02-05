@@ -176,7 +176,7 @@ const Setting = () => {
         New！🆕
       </button>
       <button onClick={handleBack} style={{ ...styles.button, backgroundColor: "#4CAF50" }}>
-      ◁️Back
+      ◀ Back
       </button>
     </div>
   );

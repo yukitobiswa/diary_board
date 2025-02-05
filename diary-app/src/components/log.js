@@ -135,7 +135,7 @@ const HistoryPage = () => {
           cursor: "pointer",
         }}
       >
-        ◀️Back
+        ◀ Back
       </button>
       {messages.length === 0 ? (
         <p style={{ textAlign: "center", color: "#777", marginTop: "20px" }}>

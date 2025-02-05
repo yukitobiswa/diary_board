@@ -53,7 +53,7 @@ const Teacher_newlogin = () => {
     .then(response => {
       setSuccess('OK！:教員登録に成功しました！');
       setError('');
-      navigate('/'); // 登録成功後の遷移先
+      navigate('/teacher_startpage'); // 登録成功後の遷移先
     })
     .catch(error => {
       console.error('Registration error:', error);  // エラーの詳細をコンソールに表示
@@ -207,7 +207,7 @@ const Teacher_newlogin = () => {
               cursor: "pointer",
             }}
           >
-            ◁️Back
+            ◀ Back
           </button>
         </div>
       </form>

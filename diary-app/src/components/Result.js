@@ -13,39 +13,120 @@ const Result = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
 
+  // 最初に一度だけ結果を取得する
   const fetchResults = async () => {
+    try {
+      console.log("結果を取得中...");
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+        throw new Error("ログイン情報がありません。再度ログインしてください。");
+      }
+      console.log("アクセストークン:", token);
+
+      // ローカルストレージに結果が保存されているか確認
+      const savedResults = localStorage.getItem("quiz_results");
+      if (savedResults) {
+        console.log("ローカルストレージから結果が取得されました:", savedResults);
+        const parsedResults = JSON.parse(savedResults);
+        setCorrectCount(parsedResults.correct_count);
+        setTotalCorrectCount(parsedResults.updated_answer_count);
+        setCurrentTitle(parsedResults.updated_title);
+        setIsTitleUpdated(parsedResults.is_title_updated);
+        setNewTitle(parsedResults.updated_title);
+        return; // 結果が保存されている場合、API呼び出しをスキップ
+      }
+
+      console.log("ローカルストレージに結果がないためAPIを呼び出します");
+
+      // ローカルストレージに結果がない場合はAPIから取得
+      const response = await axios.post("http://localhost:8000/update_answer", {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      console.log("APIレスポンス:", response.data);
+
+      // 取得した結果をstateにセット
+      const resultsData = {
+        correct_count: response.data.correct_count,
+        updated_answer_count: response.data.updated_answer_count,
+        updated_title: response.data.updated_title,
+        is_title_updated: response.data.is_title_updated,
+      };
+
+      setCorrectCount(resultsData.correct_count);
+      setTotalCorrectCount(resultsData.updated_answer_count);
+      setCurrentTitle(resultsData.updated_title);
+      setIsTitleUpdated(resultsData.is_title_updated);
+
+      // タイトルが更新されていればポップアップを表示
+      if (resultsData.is_title_updated) {
+        setNewTitle(resultsData.updated_title);
+        setShowPopup(true);
+      }
+
+      // 結果をローカルストレージに保存
+      localStorage.setItem("quiz_results", JSON.stringify(resultsData));
+    } catch (error) {
+      console.error("API呼び出しエラー:", error);
+      setErrorMessage(error.response?.data?.detail || "結果の取得中にエラーが発生しました。");
+    }
+  };
+
+  // 結果をAPIに送信して保存する
+  const createAnswerSet = async () => {
     try {
       const token = localStorage.getItem("access_token");
       if (!token) {
         throw new Error("ログイン情報がありません。再度ログインしてください。");
       }
 
-      await axios.post("http://localhost:8000/create_answer_set", {}, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      // ローカルストレージから結果を取得
+      const savedResults = localStorage.getItem("quiz_results");
+      if (savedResults) {
+        const parsedResults = JSON.parse(savedResults);
+        const { correct_count, updated_answer_count, updated_title, is_title_updated } = parsedResults;
 
-      const response = await axios.post("http://localhost:8000/update_answer", {}, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+        const response = await axios.post(
+          "http://localhost:8000/create_answer_set", 
+          { 
+            correct_count, 
+            updated_answer_count, 
+            updated_title, 
+            is_title_updated 
+          }, 
+          { 
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
-      setCorrectCount(response.data.correct_count);
-      setTotalCorrectCount(response.data.updated_answer_count);
-      setCurrentTitle(response.data.updated_title);
-      setIsTitleUpdated(response.data.is_title_updated);
-
-      if (response.data.is_title_updated) {
-        setNewTitle(response.data.updated_title);
-        setShowPopup(true);
+        console.log("Answer Set Created:", response.data);
       }
     } catch (error) {
-      setErrorMessage(error.response?.data?.detail || "結果の取得中にエラーが発生しました。");
-      console.error("API呼び出しエラー:", error);
+      console.error("Answer Set作成エラー:", error);
+      setErrorMessage("Answer Setの作成中にエラーが発生しました。");
     }
   };
 
   useEffect(() => {
-    fetchResults();
-  }, []);
+    console.log("useEffectが呼ばれました");
+    fetchResults(); // 最初のレンダリング時にfetchResultsを呼び出す
+    
+    // クリーンアップ: ページを閉じるときにローカルストレージからデータを削除
+    return () => {
+      console.log("コンポーネントがアンマウントされました。結果を削除します。");
+      try {
+        localStorage.removeItem("quiz_results"); // ローカルストレージから結果を削除
+        console.log("ローカルストレージのデータが削除されました");
+      } catch (error) {
+        console.error("ローカルストレージの削除に失敗しました:", error);
+      }
+    };
+  }, []); // 依存配列が空なので、コンポーネントがマウントされたときに一度だけ呼ばれます
+  
+  useEffect(() => {
+    // create_answer_set API呼び出しを行う
+    createAnswerSet();
+  }, [correctCount]); // correctCountが更新されたタイミングで呼び出し
 
   return (
     <div style={styles.container}>
@@ -58,7 +139,7 @@ const Result = () => {
       </div>
       <p style={styles.congratulations}>Thanks for playing!👏</p>
       <button style={styles.button} onClick={() => navigate("/Chat")}>
-      Go to Homepage 🏠
+        Go to Homepage 🏠
       </button>
 
       {/* 称号更新時のスペシャルエフェクト */}

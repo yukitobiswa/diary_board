@@ -169,7 +169,7 @@ const User_inf = () => {
 
   return (
     <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-      <h2 style={{ textAlign: "center" }}>ユーザー履歴</h2>
+      <h2 style={{ textAlign: "center" }}>User History</h2>
 
       <div style={{ display: "flex", justifyContent: "center", gap: "10px", marginBottom: "20px" }}>
         <button
@@ -183,7 +183,7 @@ const User_inf = () => {
             cursor: "pointer",
           }}
         >
-          日記
+          Diary✉️
         </button>
         <button
           onClick={() => setIsDiaryView(false)}
@@ -196,14 +196,14 @@ const User_inf = () => {
             cursor: "pointer",
           }}
         >
-          クイズ
+          Quiz✅
         </button>
       </div>
 
       {isDiaryView ? (
         <>
           <h3 style={{ textAlign: "center",  color: "#28a745", fontSize: "20px" }}>
-            日記数: {diaryCount}件
+            Diary: {diaryCount}
           </h3>
           <button
             onClick={() => navigate("/Teacher_page")}
@@ -217,11 +217,11 @@ const User_inf = () => {
               cursor: "pointer",
             }}
           >
-            戻る
+            ◀ Back
           </button>
           {messages.length === 0 ? (
             <p style={{ textAlign: "center", color: "#777", marginTop: "20px" }}>
-              まだ履歴がありません
+              No diary...😢
             </p>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "20px", marginTop: "30px" }}>
@@ -262,7 +262,7 @@ const User_inf = () => {
                     >
                       {message.title}
                       <span style={{ fontSize: "16px", color: "#333", fontWeight: "normal" }}>
-                        ユーザ：{message.user_name}
+                        User：{message.user_name}
                       </span>
                     </span>
                     <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -305,7 +305,7 @@ const User_inf = () => {
                         boxShadow: "0 2px 3px rgba(0,0,0,0.1)",
                       }}
                     >
-                      <p><strong>内容:</strong> {message.content}</p>
+                      <p><strong>Content:</strong> {message.content}</p>
                     </div>
                   )}
                 </div>
@@ -329,19 +329,19 @@ const User_inf = () => {
             }}
           >
             <div>
-              <strong style={{ color: "#28a745", fontSize: "20px" }}>正解数:</strong>
+              <strong style={{ color: "#28a745", fontSize: "20px" }}>Correct Count:</strong>
               <span style={{ color: "#28a745", fontWeight: "bold", fontSize: "24px" }}>
                 {correctCount}
               </span>
             </div>
             <div>
-              <strong style={{ color: "#28a745", fontSize: "20px" }}>合計問題数:</strong>
+              <strong style={{ color: "#28a745", fontSize: "20px" }}>Total count:</strong>
               <span style={{ color: "#28a745", fontWeight: "bold", fontSize: "24px" }}>
                 {totalQuiz}
               </span>
             </div>
             <div>
-              <strong style={{ color: "#28a745", fontSize: "20px" }}>正解率:</strong>
+              <strong style={{ color: "#28a745", fontSize: "20px" }}>Correct Rate:</strong>
               <span style={{ color: "#28a745", fontWeight: "bold", fontSize: "24px" }}>
                 {percent}%
               </span>
@@ -358,12 +358,13 @@ const User_inf = () => {
               borderRadius: "5px",
               cursor: "pointer",
             }}
+            
           >
-            戻る
+            ◀️ Back
           </button>
           {quizData.length === 0 ? (
             <p style={{ textAlign: "center", color: "#777", fontSize: "16px", marginTop: "20px" }}>
-              No quiz...😢
+              No Quiz...😢
             </p>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "25px", marginTop: "30px" }}>
@@ -402,7 +403,7 @@ const User_inf = () => {
                     >
                       {set.title}
                       <span style={{ fontSize: "16px", color: "#333", fontWeight: "normal" }}>
-                        ユーザ：{set.name}
+                        User：{set.name}
                       </span>
                     </span>
                     <div style={{ display: "flex", alignItems: "center" }}>

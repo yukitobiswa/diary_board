@@ -207,7 +207,7 @@ const NewRegister = () => {
               cursor: "pointer",
             }}
           >
-            ◁️Back
+            ◀ Back
           </button>
         </div>
 

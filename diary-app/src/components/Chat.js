@@ -164,7 +164,7 @@ const ChatApp = () => {
       if (response.data.is_admin) {
         navigate("/teacher_page");
       } else {
-        alert("You are not authorized to access this page.");
+        alert("You are not authorized to access this page. : このページにアクセスする権限がありません。");
       }
     } catch (error) {
       console.error("Error verifying token:", error);
@@ -213,7 +213,7 @@ const ChatApp = () => {
         fetchDiaries();
         setNewMessage("");
         setNewTitle("");
-        alert("Diary added successfully!");
+        alert("OK! Diary sent successfully.✉️ : 日記が送信されました。");
         navigate("/Quiz1");
       } else {
         alert(response.data.message);
@@ -445,7 +445,7 @@ const ChatApp = () => {
           {/* Input Area */}
           <div style={{ marginBottom: "10px" }}>
             <label htmlFor="titleInput" style={{ display: "block", marginBottom: "5px" }}>
-              title
+              Title
             </label>
             <input
               id="titleInput"
@@ -462,7 +462,7 @@ const ChatApp = () => {
               }}
             />
             <label htmlFor="contentInput" style={{ display: "block", marginBottom: "5px" }}>
-              content
+              Content
             </label>
             <textarea
               id="contentInput"

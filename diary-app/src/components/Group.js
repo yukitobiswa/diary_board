@@ -223,14 +223,14 @@ const GroupsPage = () => {
 
       {/* エラーメッセージ */}
       {errorMessage && <div style={{ color: "red", marginBottom: "10px" }}>{errorMessage}</div>}
-
+      <button onClick={handleGoBack} style={{ ...styles.button, backgroundColor: "#4CAF50" }}>
+      ◀ Back
+      </button>
       {/* ボタン */}
       <button onClick={handleCreateGroup} style={styles.button}>
         Create
       </button>
-      <button onClick={handleGoBack} style={{ ...styles.button, backgroundColor: "#4CAF50" }}>
-        Back
-      </button>
+     
     </div>
   );
 };
