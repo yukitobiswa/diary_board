@@ -29,9 +29,8 @@ const ChatApp = () => {
     }
   }, []);
 
-  // Fetch diaries
   const fetchDiaries = useCallback(async () => {
-    if (!tokenRef.current) return; // If token is not set, exit
+    if (!tokenRef.current) return;
     try {
       const response = await axios.get("http://localhost:8000/get_diaries", {
         headers: {
@@ -47,23 +46,44 @@ const ChatApp = () => {
         diary_time: diary.diary_time,
         reactions: diary.reactions || {},
       }));
+      
       setMessages(formattedMessages);
-
+  
+      // **データがセットされた後に最下部にスクロール**
+      setTimeout(() => {
+        if (diaryContainerRef.current) {
+          diaryContainerRef.current.scrollTop = diaryContainerRef.current.scrollHeight;
+        }
+      }, 0);
+  
     } catch (error) {
       console.error("Error fetching diaries:", error);
     }
   }, []);
+  
 
+  const isInitialLoad = useRef(true); // 初回表示フラグ
+
+  // 初回のみ最下部へスクロール
+  useEffect(() => {
+    if (diaryContainerRef.current && isInitialLoad.current) {
+      diaryContainerRef.current.scrollTop = diaryContainerRef.current.scrollHeight;
+      isInitialLoad.current = false; // 初回スクロール後はフラグを無効化
+    }
+  }, [messages]);
+  
+  // ユーザーが最下部にいる場合のみスクロールを維持
   useEffect(() => {
     if (diaryContainerRef.current) {
-      const isUserAtBottom = diaryContainerRef.current.scrollTop + diaryContainerRef.current.clientHeight >= diaryContainerRef.current.scrollHeight - 10;
+      const isUserAtBottom =
+        diaryContainerRef.current.scrollTop + diaryContainerRef.current.clientHeight >=
+        diaryContainerRef.current.scrollHeight - 10;
       if (isUserAtBottom) {
         diaryContainerRef.current.scrollTop = diaryContainerRef.current.scrollHeight;
       }
     }
-  }, [messages]);  
+  }, [messages]);
   
-
   // Verify token and fetch diaries once
   useEffect(() => {
     const verifyToken = async () => {
