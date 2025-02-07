@@ -506,25 +506,29 @@ const ChatApp = () => {
             <label htmlFor="contentInput" style={{ display: "block", marginBottom: "5px" }}>
               Content
             </label>
-            <textarea
-              id="contentInput"
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              onInput={(e) => {
-                e.target.style.height = "auto";
-                e.target.style.height = `${e.target.scrollHeight}px`;
-              }}
-              placeholder=""
-              style={{
-                width: "100%",
-                padding: "10px",
-                borderRadius: "5px",
-                border: "1px solid #ccc",
-                resize: "none",
-                overflow: "hidden",
-              }}
-              rows={1}
-            />
+         <textarea
+  id="contentInput"
+  value={newMessage}
+  onChange={(e) => setNewMessage(e.target.value)}
+  onInput={(e) => {
+    e.target.style.height = "auto";
+    e.target.style.height = `${e.target.scrollHeight}px`;
+  }}
+  placeholder=""
+  style={{
+    width: "100%",
+    padding: "10px",
+    borderRadius: "5px",
+    border: "1px solid #ccc",
+    resize: "none",
+    overflow: "hidden",
+  }}
+  rows={1}
+/>
+<p style={{ color: "red", fontSize: "14px", marginTop: "5px" }}>
+Write more than 200 words！ : 200文字以上書こう！
+</p>
+
           </div>
           <button
             onClick={sendAndAddDiary}

@@ -591,7 +591,7 @@ async def add_diary(diary: DiaryCreate, current_user: UserCreate = Depends(get_c
     if complaining in {1, 2} or wordcount <= 200:
         return {
             "status": False,
-            "message": "悪口が含まれている可能性があるか、文字数が200文字に達していません。書き直してください。"
+            "message": "There might be bad words, or the text is less than 200 words : 悪口が含まれている可能性があるか、文字数が200文字に達していません。書き直してください。"
         }
 
     # 日記を保存
