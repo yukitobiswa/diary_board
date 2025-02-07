@@ -360,7 +360,7 @@ const User_inf = () => {
             }}
             
           >
-            ◀️ Back
+            ◀ Back
           </button>
           {quizData.length === 0 ? (
             <p style={{ textAlign: "center", color: "#777", fontSize: "16px", marginTop: "20px" }}>
