@@ -1726,7 +1726,7 @@ async def get_total_answer(current_user: UserCreate = Depends(get_current_active
                 .order_by(AnswerTable.answer_date.desc()).all()
             correct_count = sum(1 for answer in results if answer.judgement == 1)
             total_quiz = session.query(AnswerTable).filter(AnswerTable.user_id == current_user.user_id).filter(AnswerTable.team_id == current_user.team_id).count()
-            persent = (correct_count/total_quiz)*100
+            persent = round((correct_count / total_quiz) * 100, 1)
             return JSONResponse({"correct_count": correct_count,
                                  "total_quiz": total_quiz,
                                  "persent": persent})
@@ -1769,7 +1769,7 @@ async def get_individual_answer(request:UserRequest,current_user: UserCreate = D
                 .order_by(AnswerTable.answer_date.desc()).all()
             correct_count = sum(1 for answer in results if answer.judgement == 1)
             total_quiz = session.query(AnswerTable).filter(AnswerTable.user_id == userId).filter(AnswerTable.team_id == current_user.team_id).count()
-            persent = (correct_count/total_quiz)*100
+            persent = round((correct_count / total_quiz) * 100, 1)
             return JSONResponse({"correct_count": correct_count,
                                  "total_quiz": total_quiz,
                                  "persent": persent})
