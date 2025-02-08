@@ -1,49 +1,79 @@
+
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 const StartPage = () => {
-  const[teamId,setTeamId] = useState('')
+  const [teamId, setTeamId] = useState('');
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
+  const [teamError, setTeamError] = useState('');
+  const [userError, setUserError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [forgotPassword, setForgotPassword] = useState(false); // 🔹 パスワード再設定リンクを表示するための状態
   const [success, setSuccess] = useState('');
-  const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  // This block is Handler for form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (userId === '' || password === '') {
-      setError('All fields are required! : すべてのフィールドが必要です！');
+
+    // エラーリセット
+    setTeamError('');
+    setUserError('');
+    setPasswordError('');
+    setForgotPassword(false);
+    setSuccess('');
+
+    if (!teamId) {
+      setTeamError('Team ID is required! : チームIDが必要です！');
+      return;
+    }
+    if (!userId) {
+      setUserError('User ID is required! : ユーザーIDが必要です！');
+      return;
+    }
+    if (!password) {
+      setPasswordError('Password is required! : パスワードが必要です！');
       return;
     }
 
-    // This is to make a POST request to add the new course
+    try {
+      const response = await axios.post(
+        'http://localhost:8000/token',
+        new URLSearchParams({
+          team_id: teamId,
+          username: userId,
+          password: password,
+        }),
+        { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+      );
 
-    axios.post('http://localhost:8000/token', 
-      new URLSearchParams({
-        team_id:teamId,
-        username: userId,
-        password: password
-      }), 
-      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
-    )
-      .then(response => {
-        if (response.data.access_token) {
-          localStorage.setItem('access_token', response.data.access_token);
-          setSuccess('Login successfully!');
-          setError('');
-          navigate('/Chat'); // Redirect to home page on successful login
+      if (response.data.access_token) {
+        localStorage.setItem('access_token', response.data.access_token);
+        setSuccess('Login successfully!');
+        navigate('/Chat'); // 成功したらチャットページへ
+      } else {
+        setUserError('Login failed: ユーザーIDまたはパスワードが違います。');
+      }
+    } catch (error) {
+      if (error.response) {
+        const status = error.response.status;
+        const errorMessage = error.response.data.detail;
+
+        if (status === 400) {
+          setTeamError(errorMessage);
+        } else if (status === 401) {
+          setUserError(errorMessage);
+        } else if (status === 403) {
+          setPasswordError(errorMessage);
+          setForgotPassword(true); // 🔹 パスワードリセットを表示する
         } else {
-          setError('Login failed. Invalid credentials.');
-          setSuccess('');
+          setUserError('Login failed: ログインに失敗しました。');
         }
-
-    })
-    .catch(error => {
-      setError('Error');
-      setSuccess('');
-    });
+      } else {
+        setUserError('Network error: ネットワークエラーが発生しました。');
+      }
+    }
   };
 
   return (
@@ -75,6 +105,7 @@ const StartPage = () => {
               fontSize: "16px",
             }}
           />
+          {teamError && <p style={{ color: "red", fontSize: "14px" }}>{teamError}</p>}
         </div>
         <div style={{ marginBottom: "20px" }}>
           <label style={{ fontSize: "16px", display: "block", marginBottom: "8px", color: "#555" }}>User ID:</label>
@@ -90,9 +121,10 @@ const StartPage = () => {
               fontSize: "16px",
             }}
           />
+          {userError && <p style={{ color: "red", fontSize: "14px" }}>{userError}</p>}
         </div>
         <div style={{ marginBottom: "20px" }}>
-          <label style={{ fontSize: "16px", display: "block", marginBottom: "8px", color: "#555" }}>password:</label>
+          <label style={{ fontSize: "16px", display: "block", marginBottom: "8px", color: "#555" }}>Password:</label>
           <input
             type="password"
             value={password}
@@ -105,9 +137,28 @@ const StartPage = () => {
               fontSize: "16px",
             }}
           />
+          {passwordError && <p style={{ color: "red", fontSize: "14px" }}>{passwordError}</p>}
+          {/* 🔹 パスワード再設定リンク */}
+          {forgotPassword && (
+            <p>
+              <button
+                onClick={() => navigate('/reset_password')}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "blue",
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                  fontSize: "14px",
+                  marginTop: "5px",
+                }}
+              >
+                Forgot your password? : パスワードを忘れましたか？
+              </button>
+            </p>
+          )}
         </div>
-        <div style={{ display: "flex", justifyContent: "space-between", marginTop: "20px" }}>
-          <button
+        <button
             onClick={() => navigate('/newlogin')}
             style={{
               padding: "15px 30px",
@@ -158,10 +209,8 @@ const StartPage = () => {
           >
             Teacher👨‍🏫
           </button>
-        </div>
       </form>
       {success && <p style={{ color: "green", marginTop: "20px" }}>{success}</p>}
-      {error && <p style={{ color: "red", marginTop: "20px" }}>{error}</p>}
     </div>
   );
 };

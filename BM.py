@@ -128,3 +128,10 @@ class UserResponse(BaseModel):
     
 class UserRequest(BaseModel):
     user_id:str
+    
+class PasswordResetRequest(BaseModel):
+    team_id: str
+    user_id: str
+    new_password: str
+    def hash_password(self):
+        self.new_password = pwd_context.hash(self.new_password)

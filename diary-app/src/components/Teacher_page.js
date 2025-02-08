@@ -74,8 +74,8 @@ const Teacher_page = () => {
                             <div
                                 style={{
                                     padding: "15px",
-                                    backgroundColor: "#fff",
-                                    border: "1px solid #ccc",
+                                    backgroundColor: "#ffcc30", // 薄いオレンジ
+                                    border: "1px solid #ffb74d", // より薄いオレンジ
                                     borderRadius: "10px",
                                     boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
                                     cursor: "pointer",
@@ -102,7 +102,7 @@ const Teacher_page = () => {
                                     }}
                                     style={{
                                         padding: "5px 10px",
-                                        backgroundColor: "#007bff",
+                                        backgroundColor: "#4caf50",
                                         color: "#fff",
                                         border: "none",
                                         borderRadius: "5px",

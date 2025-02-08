@@ -28,6 +28,8 @@ import Teacher_startpage from './components/Teacher_startpage'
 import Teacher_newlogin from './components/Teacher_newlogin'
 import Teacher_page from './components/Teacher_page'
 import Diary_and_Quiz from './components/Diary_and_Quiz'
+import ResetPassword
+ from './components/reset_password';
 // This is a main App component
 function App() {
   return (
@@ -62,6 +64,8 @@ function App() {
           <Route path='/Teacher_newlogin' element={<Teacher_newlogin/>} />
           <Route path='/Teacher_page' element={<Teacher_page/>} />
           <Route path='/Diary_and_Quiz/:user_id' element={<Diary_and_Quiz/>} />
+          <Route path="/" element={<StartPage />} />
+          <Route path="/reset_password" element={<ResetPassword />} />
         </Routes>
       </div>
     </Router>

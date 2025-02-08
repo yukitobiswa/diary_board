@@ -230,8 +230,8 @@ const User_inf = () => {
                   <div
                     style={{
                       padding: "15px",
-                      backgroundColor: "#ffa500",
-                      border: "1px solid #ffa500",
+                      backgroundColor: "#ffcc30", // 薄いオレンジ
+                      border: "1px solid #ffb74d", // より薄いオレンジ
                       borderRadius: "10px",
                       boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
                       cursor: "pointer",
@@ -280,7 +280,7 @@ const User_inf = () => {
                           backgroundColor: "white",
                         }}
                       >
-                        🗑️
+                        🚮
                       </span>
                       <span
                         style={{
@@ -360,7 +360,7 @@ const User_inf = () => {
             }}
             
           >
-            ◀️ Back
+            ◀ Back
           </button>
           {quizData.length === 0 ? (
             <p style={{ textAlign: "center", color: "#777", fontSize: "16px", marginTop: "20px" }}>
@@ -373,8 +373,8 @@ const User_inf = () => {
                   <div
                     style={{
                       padding: "20px",
-                      backgroundColor: "#ffa500",
-                      border: "1px solid #ffa500",
+                      backgroundColor: "#ffcc30", // 薄いオレンジ
+                      border: "1px solid #ffb74d", // より薄いオレンジ
                       borderRadius: "15px",
                       boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
                       cursor: "pointer",

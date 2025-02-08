@@ -29,9 +29,8 @@ const ChatApp = () => {
     }
   }, []);
 
-  // Fetch diaries
   const fetchDiaries = useCallback(async () => {
-    if (!tokenRef.current) return; // If token is not set, exit
+    if (!tokenRef.current) return;
     try {
       const response = await axios.get("http://localhost:8000/get_diaries", {
         headers: {
@@ -47,21 +46,44 @@ const ChatApp = () => {
         diary_time: diary.diary_time,
         reactions: diary.reactions || {},
       }));
+      
       setMessages(formattedMessages);
-
+  
+      // **データがセットされた後に最下部にスクロール**
+      setTimeout(() => {
+        if (diaryContainerRef.current) {
+          diaryContainerRef.current.scrollTop = diaryContainerRef.current.scrollHeight;
+        }
+      }, 0);
+  
     } catch (error) {
       console.error("Error fetching diaries:", error);
     }
   }, []);
-
-  useEffect(() => {
-    // コンポーネントが最初にマウントされたときと、messagesが更新されるたびにスクロールを最下部にする
-    if (diaryContainerRef.current) {
-      diaryContainerRef.current.scrollTop = diaryContainerRef.current.scrollHeight;
-    }
-  }, [messages]);  // messagesが変わるたびに実行される
   
 
+  const isInitialLoad = useRef(true); // 初回表示フラグ
+
+  // 初回のみ最下部へスクロール
+  useEffect(() => {
+    if (diaryContainerRef.current && isInitialLoad.current) {
+      diaryContainerRef.current.scrollTop = diaryContainerRef.current.scrollHeight;
+      isInitialLoad.current = false; // 初回スクロール後はフラグを無効化
+    }
+  }, [messages]);
+  
+  // ユーザーが最下部にいる場合のみスクロールを維持
+  useEffect(() => {
+    if (diaryContainerRef.current) {
+      const isUserAtBottom =
+        diaryContainerRef.current.scrollTop + diaryContainerRef.current.clientHeight >=
+        diaryContainerRef.current.scrollHeight - 10;
+      if (isUserAtBottom) {
+        diaryContainerRef.current.scrollTop = diaryContainerRef.current.scrollHeight;
+      }
+    }
+  }, [messages]);
+  
   // Verify token and fetch diaries once
   useEffect(() => {
     const verifyToken = async () => {
@@ -93,6 +115,12 @@ const ChatApp = () => {
   }, [fetchDiaries, fetchTeamName, navigate]);
 
   const addReaction = async (messageId, emoji) => {
+    if (!diaryContainerRef.current) return;
+  
+    // 現在のスクロール位置を保存
+    const previousScrollTop = diaryContainerRef.current.scrollTop;
+    const previousScrollHeight = diaryContainerRef.current.scrollHeight;
+  
     // UI上で即座に反映させる
     const updatedMessages = messages.map((message) => {
       if (message.diary_id === messageId) {
@@ -102,31 +130,48 @@ const ChatApp = () => {
       }
       return message;
     });
-
-    setMessages(updatedMessages); // UIに即反映
-
-    // サーバーへのリクエストは後で送る
+  
+    setMessages(updatedMessages);
+  
+    // スクロール位置を復元
+    setTimeout(() => {
+      if (diaryContainerRef.current) {
+        // 新しい要素の追加による高さの変化を考慮
+        const newScrollHeight = diaryContainerRef.current.scrollHeight;
+        diaryContainerRef.current.scrollTop = previousScrollTop + (newScrollHeight - previousScrollHeight);
+      }
+    }, 0);
+  
+    // サーバーへリクエストを送信
     const payload = { diary_id: messageId, emoji };
-
+  
     try {
-      // サーバーに反映
       const response = await axios.post(
         "http://localhost:8000/add_reaction",
         payload,
         { headers: { Authorization: `Bearer ${tokenRef.current}` } }
       );
-
+  
       if (response.status === 200) {
         console.log("Reaction successfully updated on the server.");
-        // サーバーから新しいリアクションデータを取得して反映
+  
+        // サーバーから最新のリアクションデータを取得
         const updatedMessagesFromServer = messages.map((message) => {
           if (message.diary_id === messageId) {
             return { ...message, reactions: response.data.reactions };
           }
           return message;
         });
-
-        setMessages(updatedMessagesFromServer); // サーバーから返ってきたデータでUIを更新
+  
+        setMessages(updatedMessagesFromServer);
+  
+        // 再度スクロール位置を復元
+        setTimeout(() => {
+          if (diaryContainerRef.current) {
+            const newScrollHeight = diaryContainerRef.current.scrollHeight;
+            diaryContainerRef.current.scrollTop = previousScrollTop + (newScrollHeight - previousScrollHeight);
+          }
+        }, 0);
       } else {
         console.error("Error updating reaction on the server:", response.data);
       }
@@ -134,10 +179,7 @@ const ChatApp = () => {
       console.error("Error updating reaction on the server:", error);
     }
   };
-
-
-
-
+  
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
   };
@@ -464,25 +506,29 @@ const ChatApp = () => {
             <label htmlFor="contentInput" style={{ display: "block", marginBottom: "5px" }}>
               Content
             </label>
-            <textarea
-              id="contentInput"
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              onInput={(e) => {
-                e.target.style.height = "auto";
-                e.target.style.height = `${e.target.scrollHeight}px`;
-              }}
-              placeholder=""
-              style={{
-                width: "100%",
-                padding: "10px",
-                borderRadius: "5px",
-                border: "1px solid #ccc",
-                resize: "none",
-                overflow: "hidden",
-              }}
-              rows={1}
-            />
+         <textarea
+  id="contentInput"
+  value={newMessage}
+  onChange={(e) => setNewMessage(e.target.value)}
+  onInput={(e) => {
+    e.target.style.height = "auto";
+    e.target.style.height = `${e.target.scrollHeight}px`;
+  }}
+  placeholder=""
+  style={{
+    width: "100%",
+    padding: "10px",
+    borderRadius: "5px",
+    border: "1px solid #ccc",
+    resize: "none",
+    overflow: "hidden",
+  }}
+  rows={1}
+/>
+<p style={{ color: "red", fontSize: "14px", marginTop: "5px" }}>
+Write more than 200 words！ : 200文字以上書こう！
+</p>
+
           </div>
           <button
             onClick={sendAndAddDiary}
