@@ -5,43 +5,28 @@ import axios from "axios";
 const GroupsPage = () => {
   const [groupName, setGroupName] = useState("");
   const [invitePassword, setInvitePassword] = useState("");
-  const [selectedCountries, setSelectedCountries] = useState([]);  // 国名リスト
-  const [age, setAge] = useState("1");  // 年齢（小学1年生）
-  const [memberCount, setMemberCount] = useState(0);  // メンバー数
+  const [selectedCountries, setSelectedCountries] = useState([]);
+  const [age, setAge] = useState("1"); // 初期値: 小学1年生
+  const [memberCount, setMemberCount] = useState(0);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
 
   const country_map = [
-    "Japan",
-    "United States",
-    "Portugal",
-    "Spain",
-    "China",
-    "Taiwan",
-    "South Korea",
-    "Philippines",
-    "Vietnam",
-    "Indonesia",
-    "Nepal",
-    "France",
-    "Germany",
-    "Italy",
-    "Russia",
-    "India",
-    "Brazil",
-    "Mexico",
-    "Turkey",
-    "Australia",
-    "Peru",
+    "Japan", "United States", "Portugal", "Spain", "China", "Taiwan", 
+    "South Korea", "Philippines", "Vietnam", "Indonesia", "Nepal", 
+    "France", "Germany", "Italy", "Russia", "India", "Brazil", "Mexico", 
+    "Turkey", "Australia", "Peru",
   ];
 
-  // Map numeric age to grade labels
+  // 年齢を学年ラベルに変換
   const getGradeLabel = (age) => {
     if (age >= 1 && age <= 6) {
       return `Elementary${age}`;
     } else if (age >= 7 && age <= 9) {
       return `Junior${age - 6}`;
+    } else if (age === 10) {
+      return "Other";
     }
     return "";
   };
@@ -55,27 +40,21 @@ const GroupsPage = () => {
 
   const handleCreateGroup = async () => {
     try {
-      // Map selected age to grade label
-      const gradeLabel = getGradeLabel(age);
+      const gradeLabel = getGradeLabel(Number(age));
 
-      // リクエストデータ
       const teamData = {
         team_name: groupName,
         team_id: invitePassword,
-        country: selectedCountries,  // 国名リスト
-        age: gradeLabel,  // 年齢を学年に変換
-        member_count: memberCount,  // メンバー数
+        country: selectedCountries,
+        age: gradeLabel, // 学年ラベル
+        member_count: memberCount,
       };
 
-      // データをコンソールに表示
       console.log("送信するデータ:", teamData);
 
-      // FastAPI エンドポイントに POST リクエストを送信
       const response = await axios.post('http://localhost:8000/team_register', teamData);
       setSuccessMessage(response.data.message);
       setErrorMessage("");
-
-      // 成功したらページ遷移
       navigate("/teacher_startpage");
     } catch (error) {
       console.error("Error:", error);
@@ -133,7 +112,6 @@ const GroupsPage = () => {
     <div style={styles.container}>
       <h2>Team create</h2>
 
-      {/* グループ名入力 */}
       <div>
         <label htmlFor="groupName" style={{ display: "block", marginBottom: "10px" }}>
           Team name
@@ -147,7 +125,6 @@ const GroupsPage = () => {
         />
       </div>
 
-      {/* 招待パスワード入力 */}
       <div>
         <label htmlFor="invitePassword" style={{ display: "block", marginBottom: "10px" }}>
           Invite password
@@ -161,7 +138,6 @@ const GroupsPage = () => {
         />
       </div>
 
-      {/* 国選択（チェックボックス） */}
       <div style={styles.checkboxGroup}>
         <label htmlFor="country" style={{ display: "block", marginBottom: "10px" }}>
           Country
@@ -182,7 +158,6 @@ const GroupsPage = () => {
         ))}
       </div>
 
-      {/* 年齢選択 */}
       <div>
         <label htmlFor="age" style={{ display: "block", marginBottom: "10px" }}>
           Age
@@ -196,15 +171,15 @@ const GroupsPage = () => {
           {[
             "1", "2", "3", "4", "5", "6", // 小学1年生から6年生
             "7", "8", "9", // 中学1年生から3年生
+            "10", // Other
           ].map((ageOption) => (
             <option key={ageOption} value={ageOption}>
-              {ageOption < 7 ? `Element${ageOption}` : `Junior${ageOption - 6}`}
+              {ageOption === "10" ? "Other" : ageOption < 7 ? `Element${ageOption}` : `Junior${ageOption - 6}`}
             </option>
           ))}
         </select>
       </div>
 
-      {/* メンバー数入力 */}
       <div>
         <label htmlFor="memberCount" style={{ display: "block", marginBottom: "10px" }}>
           Member count
@@ -218,19 +193,16 @@ const GroupsPage = () => {
         />
       </div>
 
-      {/* 成功メッセージ */}
       {successMessage && <div style={{ color: "green", marginBottom: "10px" }}>{successMessage}</div>}
-
-      {/* エラーメッセージ */}
       {errorMessage && <div style={{ color: "red", marginBottom: "10px" }}>{errorMessage}</div>}
+
       <button onClick={handleGoBack} style={{ ...styles.button, backgroundColor: "#4CAF50" }}>
-      ◀ Back
+        ◀ Back
       </button>
-      {/* ボタン */}
+
       <button onClick={handleCreateGroup} style={styles.button}>
         Create
       </button>
-     
     </div>
   );
 };

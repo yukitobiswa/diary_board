@@ -1,24 +1,17 @@
-
-
 import json
 from urllib import request
 
 age_map = {
-    "Elementary1" : 1,
-    "Elementary2" : 2,
-    "Elementary3" : 3,
-    "Elementary4" : 4,
-    "Elementary5" : 5,
-    "Elementary6" : 6,
-    "Junior1" : 7,
-    "Junior2" : 7,
-    "Junior3" : 7,
-    "Other" : 8
+    "Elementary1": 1, "Elementary2": 2, "Elementary3": 3,
+    "Elementary4": 4, "Elementary5": 5, "Elementary6": 6,
+    "Junior1": 7, "Junior2": 7, "Junior3": 7,
+    "Other": 8
 }
-APPID = "dj00aiZpPTZqbTZSOEVqdDZhaiZzPWNvbnN1bWVyc2VjcmV0Jng9Yzk-"  # <-- ここにあなたのClient ID（アプリケーションID）を設定してください。
-URL = "https://jlp.yahooapis.jp/FuriganaService/V2/furigana"  # 🔥 URLは変更しない
 
-def post(query,grade):
+APPID = "dj00aiZpPTZqbTZSOEVqdDZhaiZzPWNvbnN1bWVyc2VjcmV0Jng9Yzk-"
+URL = "https://jlp.yahooapis.jp/FuriganaService/V2/furigana"
+
+def post(query, grade):
     """ Yahoo API を使ってカナ文字変換する """
     headers = {
         "Content-Type": "application/json",
@@ -30,33 +23,42 @@ def post(query,grade):
         "method": "jlp.furiganaservice.furigana",
         "params": {
             "q": query,
-            "grade": grade  # ✅ すべての漢字をカナに変換（小学1年生相当）
+            "grade": grade
         }
     }
     params = json.dumps(param_dic).encode()
     req = request.Request(URL, params, headers)
-    
+
     try:
         with request.urlopen(req) as res:
             body = res.read()
-        return json.loads(body.decode())  # ✅ JSONとして解析して返す
+        response_json = json.loads(body.decode())
+
+        if "result" not in response_json or "word" not in response_json["result"]:
+            print(f"⚠️ 変換失敗: {query}")
+            return None  # 失敗した場合は `None` を返す
+
+        return response_json
+
     except Exception as e:
         print(f"⚠️ APIリクエスト失敗: {e}")
-        return None
+        return None  # 失敗時は `None` を返す
 
-def convert_to_kana(response):
+def convert_to_kana(response, original_text):
     """ Yahoo API のレスポンスをカナ文字に変換 """
     if not response or "result" not in response:
-        return "⚠️ 変換に失敗しました。"
+        print(f"⚠️ 変換に失敗しました: {original_text}")
+        return original_text  # 失敗した場合は元のテキストを返す
 
     result_text = ""
     for word in response["result"]["word"]:
         if "furigana" in word:
-            result_text += word["furigana"]  # ✅ ふりがなを取得
+            result_text += word["furigana"]
         else:
-            result_text += word["surface"]  # ✅ ひらがながない場合、そのまま
+            result_text += word["surface"]
 
     return result_text
+
 def convert_quiz_to_kana(quiz_data, age):
     """ クイズデータの question と choices をカナに変換 """
     new_quiz_data = []
@@ -66,13 +68,15 @@ def convert_quiz_to_kana(quiz_data, age):
         age = "Other"
 
     for quiz in quiz_data:
+        # ✅ question を変換（失敗時は元のテキストを使用）
         response_question = post(quiz["question"], age_map[age])
-        kana_question = convert_to_kana(response_question)
+        kana_question = convert_to_kana(response_question, quiz["question"])
 
+        # ✅ choices を変換（失敗時は元のテキストを使用）
         kana_choices = []
         for choice in quiz["choices"]:
             response_choice = post(choice, age_map[age])
-            kana_choices.append(convert_to_kana(response_choice))
+            kana_choices.append(convert_to_kana(response_choice, choice))
 
         new_quiz_data.append({
             "question": kana_question,

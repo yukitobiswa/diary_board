@@ -1,4 +1,4 @@
-
+from diary_hiragana import convert_diary
 from langrid.clients import TranslationClient
 from settings import lg_config
 
@@ -17,7 +17,7 @@ languages = {
     11: 'ne'
 }
 
-def translate_diary(title, content, main_language):
+def translate_diary(title, content, main_language,age):
     translations_list = []
     gnmt = TranslationClient('https://langrid.org/service_manager/wsdl/kyoto1.langrid:GoogleTranslateNMT',
                              lg_config['userid'], lg_config['password'])
@@ -32,8 +32,21 @@ def translate_diary(title, content, main_language):
         else:
             translated_title = gnmt.translate(lang,target_lang,title)
             translated_content = gnmt.translate(lang,target_lang,content)
-            translation.append(translated_title)
-            translation.append(translated_content)
+            if target_lang == "ja":
+                converted_title = convert_diary(translated_title,age)
+                converted_content = convert_diary(translated_content,age)
+                translation.append(converted_title)
+                translation.append(converted_content)
+            else:
+                translation.append(translated_title)
+                translation.append(translated_content)
             translations_list.append(translation)
     return translations_list
    
+
+def translate_content(content,language):
+    gnmt = TranslationClient('https://langrid.org/service_manager/wsdl/kyoto1.langrid:GoogleTranslateNMT',
+                             lg_config['userid'], lg_config['password'])
+    lang = languages[language]
+    translated_content = gnmt.translate(lang,"ja",content)
+    return translated_content
