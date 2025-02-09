@@ -85,3 +85,15 @@ def convert_quiz_to_kana(quiz_data, age):
         })
 
     return new_quiz_data
+
+def convert_question(question, age_group):
+    """
+    クイズの質問を、指定された `age_group` のカナ表記に変換する関数。
+    `age_group` に応じて、質問文を簡単なカナに変換。
+    """
+    response = post(question, age_group)
+    
+    if response:
+        return convert_to_kana(response, question)
+    
+    return question  # 変換失敗時は元の質問を返す

@@ -15,6 +15,7 @@ from create_quiz import make_quiz
 from translate_quiz import translate_question,translate_quizz
 from testgpt import filter_diary_entry
 from wordcount import count_words
+from quiz_hiragana import convert_question
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Union
 from fastapi import Request
@@ -460,7 +461,13 @@ async def save_quiz(selected_quizzes: SelectedQuiz, current_user: UserCreate = D
             # クイズ情報が5問選ばれているかを確認
             if len(selected_quizzes.selected_quizzes) != 5:
                 return JSONResponse(status_code=400, content={"error": "You must select exactly 5 questions."})
-            
+            team = current_user.team_id
+             # チームの年齢情報を取得
+            team_age = session.query(TeamTable).filter(TeamTable.team_id == team).first()
+            if team_age is None or team_age.age not in age_map:
+                logging.error(f"Invalid team age: {team_age.age if team_age else 'None'}")
+                raise HTTPException(status_code=400, detail="チームの年齢情報が不正です。")
+            age_group = age_map[team_age.age]  # 年齢グループを取得
             # キャッシュテーブルから選ばれたクイズ情報を取得
             selected_quiz_ids = selected_quizzes.selected_quizzes
             quizzes_to_save = session.query(CashQuizTable).filter(
@@ -478,7 +485,7 @@ async def save_quiz(selected_quizzes: SelectedQuiz, current_user: UserCreate = D
             flattened_quizzes_list = [item for sublist in quizzes_to_save_list for item in sublist]
             
             # translate_quizzがリストの形式で返されると仮定
-            translated_quizzes_to_save = await translate_quizz(flattened_quizzes_list)
+            translated_quizzes_to_save = await translate_quizz(flattened_quizzes_list,age_group)
             
             # クイズ情報を正式なテーブルに保存
             for i, quiz in enumerate(quizzes_to_save):
@@ -842,14 +849,25 @@ async def get_quizzes(current_user: UserCreate = Depends(get_current_active_user
         with SessionLocal() as session:
             # ユーザーに関連するクイズデータを取得
             quizzes = session.query(CashQuizTable).filter(CashQuizTable.user_id == current_user.user_id).filter(CashQuizTable.team_id == current_user.team_id).all()
+            team = current_user.team_id
 
+             # チームの年齢情報を取得
+            team_age = session.query(TeamTable).filter(TeamTable.team_id == team).first()
+
+            if team_age is None or team_age.age not in age_map:
+                logging.error(f"Invalid team age: {team_age.age if team_age else 'None'}")
+                raise HTTPException(status_code=400, detail="チームの年齢情報が不正です。")
+
+            age_group = age_map[team_age.age]  # 年齢グループを取得
             quizzes_dict = [quiz_to_dict(quiz) for quiz in quizzes]
             logging.info(f"Converted quizzes: {quizzes_dict}")
             # ユーザーの言語に応じてクイズの質問を翻訳
-            if current_user.main_language != 1:
+            if current_user.main_language == 1:
+                for quiz in quizzes_dict:
+                    quiz['question'] = convert_question(quiz['question'],age_group )
+            else:
                 for quiz in quizzes_dict:
                     quiz['question'] = await translate_question(quiz['question'], current_user.main_language)
-
             return JSONResponse(content={"quizzes": quizzes_dict})
     except Exception as e:
         logging.error(f"Error fetching quizzes: {str(e)}")
