@@ -38,7 +38,8 @@ from BM import (
     TeacherLogin,
     UserResponse,
     UserRequest,
-    PasswordResetRequest
+    PasswordResetRequest,
+    Change_team
 )
 
 
@@ -375,6 +376,29 @@ async def change_profile(
 
     return {"message": "プロフィールが正常に更新されました！"}
 
+@app.put("/change_team_set")
+async def change_team_set(
+    team_update: Change_team,  # 変更したい情報
+    current_user: UserCreate = Depends(get_current_active_user)
+):
+    try:
+        logger.info("Received team set update request: %s", team_update)  # 受け取ったデータをログ出力
+
+        with SessionLocal() as session:
+            team_current = session.query(TeamTable).filter(TeamTable.team_id == current_user.team_id).first()
+            if not team_current:
+                raise HTTPException(status_code=404, detail="チームが見つかりません")
+            if team_update.country is not None:
+                team_current.country = ','.join(team_update.country)  # 有効な国名をカンマ区切りで保存
+            if team_update.age is not None:
+                team_current.age = team_update.age  # 年齢の更新
+            session.commit()
+
+    except Exception as e:
+        logger.error("Error updating team set: %s", str(e))  # エラーをログ出力
+        raise HTTPException(status_code=500, detail="チーム設定更新中にエラーが発生しました")
+
+    return {"message": "チーム設定が正常に更新されました！"}
 
 @app.post('/team_register')
 async def team_register(team: TeamCreate):

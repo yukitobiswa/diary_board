@@ -201,7 +201,7 @@ const GroupsPage = () => {
       </button>
 
       <button onClick={handleCreateGroup} style={styles.button}>
-        Create
+        New！🆕
       </button>
     </div>
   );

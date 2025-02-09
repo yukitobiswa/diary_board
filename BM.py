@@ -95,6 +95,9 @@ class Change_User(BaseModel):
     user_name: Optional[str] = None  # デフォルト値を設定
     learn_language: Optional[int] = 0
 
+class Change_team(BaseModel):
+    country: List[str]
+    age: str
     
 class Category(BaseModel):
     category1 :int
