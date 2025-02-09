@@ -184,3 +184,24 @@ CREATE TABLE cash_quiz (
     PRIMARY KEY (cash_quiz_id, diary_id),  -- cash_quiz_id と diary_id の組み合わせを主キーに
     FOREIGN KEY (user_id,team_id) REFERENCES user(user_id,team_id)                         -- user_id にインデックスを作成
 );
+
+CREATE TABLE title (
+    title_id INT NOT NULL,
+    language_id INT NOT NULL,
+    title_name VARCHAR(128) NOT NULL,
+    PRIMARY KEY (title_id, language_id),
+    FOREIGN KEY (language_id) REFERENCES language(language_id)
+);
+
+INSERT INTO title (title_id, language_id, title_name) 
+VALUES
+(1, 1, '見習い'),(2, 1, '初心者'),(3, 1, '学者'),(4, 1, '熟練者'),(5, 1, '上級者'),(6, 1, '知略家'),(7, 1, '才人'),(8, 1, '神童'),(9, 1, '天才'),(10, 1, '賢者'),
+(1, 2, 'apprentice'),(2, 2, 'beginner'),(3, 2, 'scholar'),(4, 2, 'expert'),(5, 2, 'Advanced'),(6, 2, 'strategist'),(7, 2, 'talent'),(8, 2, 'prodigy'),(9, 2, 'genius'),(10, 2, 'wise man'),
+(1, 3, 'aprendiz'),(2, 3, 'iniciante'),(3, 3, 'acadêmico'),(4, 3, 'especialista'),(5, 3, 'avançado'),(6, 3, 'estrategista'),(7, 3, 'talento'),(8, 3, 'prodígio'),(9, 3, 'gênio'),(10, 3, 'homem sábio'),
+(1, 4, 'aprendiz'),(2, 4, 'principiante'),(3, 4, 'erudito'),(4, 4, 'experto'),(5, 4, 'avanzado'),(6, 4, 'estratega'),(7, 4, 'talento'),(8, 4, 'prodigio'),(9, 4, 'genio'),(10, 4, 'hombre sabio'),
+(1, 5, '学徒'),(2, 5, '初学者'),(3, 5, '学者'),(4, 5, '专家'),(5, 5, '高级'),(6, 5, '战略家'),(7, 5, '人才'),(8, 5, '神童'),(9, 5, '天才'),(10, 5, '贤者'),
+(1, 6, '學徒'),(2, 6, '初學者'),(3, 6, '學者'),(4, 6, '專家'),(5, 6, '高級'),(6, 6, '戰略家'),(7, 6, '才俊'),(8, 6, '神童'),(9, 6, '天才'),(10, 6, '智者'),
+(1, 7, 'baguhan'),(2, 7, 'magsisimula'),(3, 7, 'iskolar'),(4, 7, 'eksperto'),(5, 7, 'nangunguna'),(6, 7, 'istratehista'),(7, 7, 'talento'),(8, 7, 'prodihe'),(9, 7, 'henyo'),(10, 7, 'matandang tao'),
+(1, 8, 'người học việc'),(2, 8, 'người mới bắt đầu'),(3, 8, 'học giả'),(4, 8, 'chuyên gia'),(5, 8, 'nâng cao'),(6, 8, 'chiến lược gia'),(7, 8, 'tài năng'),(8, 8, 'thần đồng'),(9, 8, 'thiên tài'),(10, 8, 'người thông thái'),
+(1, 9, 'magang'),(2, 9, 'pemula'),(3, 9, 'sarjana'),(4, 9, 'ahli'),(5, 9, 'Lanjutan'),(6, 9, 'strategis'),(7, 9, 'bakat'),(8, 9, 'ajaib'),(9, 9, 'jenius'),(10, 9, 'orang bijak'),
+(1, 10, 'अधिकारिक'),(2, 10, 'सुरुआतकर्ता'),(3, 10, 'विद्यार्थी'),(4, 10, 'विशेषज्ञ'),(5, 10, 'उन्नत'),(6, 10, 'रणनीतिज्ञ'),(7, 10, 'प्रतिभा'),(8, 10, 'चमत्कारी'),(9, 10, 'प्रतिभाशाली'),(10, 10, 'ज्ञानी');
