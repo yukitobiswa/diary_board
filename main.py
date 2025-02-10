@@ -680,7 +680,7 @@ async def get_diaries(current_user: UserCreate = Depends(get_current_active_user
                 DiaryTable.sad,
             )
             .join(DiaryTable, DiaryTable.diary_id == MDiaryTable.diary_id)  # DiaryTableと結合
-            .join(UserTable, UserTable.user_id == MDiaryTable.user_id)  # UserTableと結合
+            .join(UserTable, UserTable.team_id == team_id,UserTable.user_id == MDiaryTable.user_id)  # UserTableと結合
             .filter(UserTable.team_id == team_id)  # チームIDでフィルタ
             .filter(MDiaryTable.language_id == main_language)  # main_languageでフィルタ
             .filter(MDiaryTable.is_visible == 1)  # is_visible が 1 の日記をフィルタ
@@ -733,7 +733,7 @@ async def get_my_diary(current_user: UserCreate = Depends(get_current_active_use
                 DiaryTable.sad,
             )
             .join(DiaryTable, DiaryTable.diary_id == MDiaryTable.diary_id)  # DiaryTableと結合
-            .join(UserTable, UserTable.user_id == MDiaryTable.user_id)  # UserTableと結合
+            .join(UserTable, UserTable.team_id == team_id,UserTable.user_id == MDiaryTable.user_id)  # UserTableと結合
             .filter(UserTable.team_id == team_id)  # チームIDでフィルタ
             .filter(MDiaryTable.language_id == main_language)  # main_languageでフィルタ
             .filter(MDiaryTable.user_id == user_id)  # user_idでフィルタ
