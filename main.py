@@ -766,33 +766,37 @@ async def get_diaries(current_user: UserCreate = Depends(get_current_active_user
 
 @app.get("/get_my_diary")
 async def get_my_diary(current_user: UserCreate = Depends(get_current_active_user)):
-    team_id = current_user.team_id  # 現在のユーザーの team_id を取得
-    main_language = current_user.main_language  # 現在のユーザーの main_language を取得
-    user_id = current_user.user_id  # 現在のユーザーの user_id を取得
+    """
+    ログインユーザー自身の日記を取得する。
+    """
+    team_id = current_user.team_id
+    main_language = current_user.main_language
+    user_id = current_user.user_id
 
     with SessionLocal() as session:
-        # multilingual_diaryテーブルから指定したユーザーの日記を取得し、翻訳情報を結合
         result = (
             session.query(
-                UserTable.name,  # UserTableからuser_nameを取得
-                UserTable.diary_count,  # 追加: ユーザーの日記数
+                UserTable.name.label("user_name"),  # ユーザー名
+                UserTable.diary_count,  # ユーザーの日記数
                 MDiaryTable.diary_id,
                 MDiaryTable.title,
                 MDiaryTable.content,
                 MDiaryTable.diary_time,
-                DiaryTable.thumbs_up,  # 各リアクションカラムを追加
+                DiaryTable.thumbs_up,
                 DiaryTable.love,
                 DiaryTable.laugh,
                 DiaryTable.surprised,
                 DiaryTable.sad,
             )
-            .join(DiaryTable, MDiaryTable.diary_id == MDiaryTable.diary_id)  # DiaryTableと結合
-            .join(UserTable, UserTable.user_id == MDiaryTable.user_id)  # UserTableと結合
-            .filter(MDiaryTable.team_id == team_id)  # チームIDでフィルタ
-            .filter(MDiaryTable.language_id == main_language)  # main_languageでフィルタ
-            .filter(MDiaryTable.user_id == user_id)  # user_idでフィルタ
-            .filter(MDiaryTable.is_visible == 1)  # is_visible が 1 の日記をフィルタ
-            .filter(DiaryTable.is_visible == 1)  # DiaryTableのis_visibleも1の日記のみ
+            .join(DiaryTable, MDiaryTable.diary_id == DiaryTable.diary_id)  # multilingual_diary と diary を結合
+            .join(UserTable, (DiaryTable.user_id == UserTable.user_id) & (DiaryTable.team_id == UserTable.team_id))  # user と diary を結合
+            .filter(UserTable.team_id == team_id)  # チーム ID でフィルタ
+            .filter(UserTable.user_id == user_id)  # ユーザー ID でフィルタ
+            .filter(DiaryTable.team_id == team_id)  # チーム ID でフィルタ
+            .filter(DiaryTable.user_id == user_id)  # 自分の日記のみ
+            .filter(MDiaryTable.language_id == main_language)  # main_language でフィルタ
+            .filter(MDiaryTable.is_visible == 1)  # multilingual_diary の可視性チェック
+            .filter(DiaryTable.is_visible == 1)  # diary の可視性チェック
             .order_by(DiaryTable.diary_time.asc())  # 日記の時間で並び替え
             .all()
         )
@@ -800,13 +804,12 @@ async def get_my_diary(current_user: UserCreate = Depends(get_current_active_use
     if not result:
         return JSONResponse(content={"error": "No diaries found"}, status_code=404)
 
-    # 結果を整形して返す
     return JSONResponse(content={
         "team_id": team_id,
-        "diary_count": result[0].diary_count,  # 追加: ユーザーの日記数
+        "diary_count": result[0].diary_count,  # ユーザーの日記数
         "diaries": [
             {
-                "user_name": row.name,
+                "user_name": row.user_name,
                 "diary_id": row.diary_id,
                 "title": row.title,
                 "content": row.content,
@@ -817,54 +820,58 @@ async def get_my_diary(current_user: UserCreate = Depends(get_current_active_use
                     "laugh": row.laugh,
                     "surprised": row.surprised,
                     "sad": row.sad,
-                }
+                },
             }
             for row in result
-        ]
+        ],
     })
 
 @app.post("/get_individual_diaries")
-async def get_my_diary(request:UserRequest,current_user: UserCreate = Depends(get_current_active_user)):
+async def get_individual_diaries(request: UserRequest, current_user: UserCreate = Depends(get_current_active_user)):
+    """
+    指定されたユーザーの日記を取得する。
+    """
     user_id = request.user_id
+    team_id = current_user.team_id
+    main_language = current_user.main_language
+
     with SessionLocal() as session:
-        # multilingual_diaryテーブルから指定したユーザーの日記を取得し、翻訳情報を結合
         result = (
             session.query(
-                UserTable.name,  # UserTableからuser_nameを取得
-                UserTable.diary_count,  # 追加: ユーザーの日記数
+                UserTable.name.label("user_name"),  # ユーザー名
+                UserTable.diary_count,  # ユーザーの日記数
                 MDiaryTable.diary_id,
                 MDiaryTable.title,
                 MDiaryTable.content,
                 MDiaryTable.diary_time,
             )
-            .join(DiaryTable, DiaryTable.diary_id == MDiaryTable.diary_id)  # DiaryTableと結合
-            .join(UserTable, UserTable.user_id == MDiaryTable.user_id)  # UserTableと結合
-            .filter(UserTable.team_id == current_user.team_id,UserTable.user_id == user_id)  # チームIDでフィルタ
-            .filter(MDiaryTable.language_id == current_user.main_language)  # main_languageでフィルタ
-            .filter(MDiaryTable.user_id == user_id)  # user_idでフィルタ
-            .filter(MDiaryTable.is_visible == 1)  # is_visible が 1 の日記をフィルタ
-            .filter(DiaryTable.is_visible == 1)  # DiaryTableのis_visibleも1の日記のみ
-            .order_by(DiaryTable.diary_time.asc())  # 日記の時間で並び替え
+            .join(DiaryTable, MDiaryTable.diary_id == DiaryTable.diary_id)  # multilingual_diary と diary を結合
+            .join(UserTable, (UserTable.user_id == MDiaryTable.user_id) & (UserTable.team_id == MDiaryTable.team_id))  # user と multilingual_diary を結合
+            .filter(UserTable.team_id == team_id)  # チーム ID でフィルタ
+            .filter(UserTable.user_id == user_id)  # 指定ユーザーでフィルタ
+            .filter(MDiaryTable.language_id == main_language)  # main_language でフィルタ
+            .filter(MDiaryTable.is_visible == 1)  # multilingual_diary の可視性チェック
+            .filter(DiaryTable.is_visible == 1)  # diary の可視性チェック
+            .order_by(MDiaryTable.diary_time.asc())  # 日記の時間で並び替え
             .all()
         )
 
     if not result:
         return JSONResponse(content={"error": "No diaries found"}, status_code=404)
 
-    # 結果を整形して返す
     return JSONResponse(content={
-        "team_id": current_user.team_id,
-        "diary_count": result[0].diary_count,  # 追加: ユーザーの日記数
+        "team_id": team_id,
+        "diary_count": result[0].diary_count,  # ユーザーの日記数
         "diaries": [
             {
-                "user_name": row.name,
+                "user_name": row.user_name,
                 "diary_id": row.diary_id,
                 "title": row.title,
                 "content": row.content,
                 "diary_time": row.diary_time.strftime('%Y-%m-%d %H:%M:%S'),
             }
             for row in result
-        ]
+        ],
     })
     
 @app.get("/get_quizzes")
