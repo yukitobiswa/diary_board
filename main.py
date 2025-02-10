@@ -44,7 +44,7 @@ from BM import (
 
 
 # Database URL
-DATABASE_URL = "mysql+pymysql://root:yuki108@127.0.0.1/demo"
+DATABASE_URL = "mysql+pymysql://root:yuki0108@127.0.0.1/demo"
 # FastAPI app
 app = FastAPI()
 logger = logging.getLogger(__name__)
@@ -713,41 +713,40 @@ async def get_team_name(current_user: UserCreate = Depends(get_current_active_us
 async def get_diaries(current_user: UserCreate = Depends(get_current_active_user)):
     """
     チームに所属する全てのユーザーの日記を取得し、
-    現在ログインしているユーザーのmain_languageで出力します。
+    現在ログインしているユーザーの main_language で出力します。
     """
-    team_id = current_user.team_id  # 現在のユーザーの team_id を取得
-    main_language = current_user.main_language  # 現在のユーザーの main_language を取得
+    team_id = current_user.team_id
+    main_language = current_user.main_language
 
     with SessionLocal() as session:
-        # multilingual_diaryテーブルからチームに所属するユーザーの日記を取得し、翻訳情報を結合
         result = (
             session.query(
-                UserTable.name,  # UserTableからuser_nameを取得
+                UserTable.name.label("user_name"),  # ユーザー名
                 MDiaryTable.diary_id,
                 MDiaryTable.title,
                 MDiaryTable.content,
                 MDiaryTable.diary_time,
-                DiaryTable.thumbs_up,  # 各リアクションカラムを追加
+                DiaryTable.thumbs_up,
                 DiaryTable.love,
                 DiaryTable.laugh,
                 DiaryTable.surprised,
                 DiaryTable.sad,
             )
-            .join(DiaryTable, DiaryTable.diary_id == MDiaryTable.diary_id)  # DiaryTableと結合
-            .join(UserTable, UserTable.team_id == team_id,UserTable.user_id == MDiaryTable.user_id)  # UserTableと結合
-            .filter(UserTable.team_id == team_id)  # チームIDでフィルタ
-            .filter(MDiaryTable.language_id == main_language)  # main_languageでフィルタ
-            .filter(MDiaryTable.is_visible == 1)  # is_visible が 1 の日記をフィルタ
-            .filter(DiaryTable.is_visible == 1)  # DiaryTableのis_visibleも1の日記のみ
-            .order_by(DiaryTable.diary_time.asc())  # 日記の時間で並び替え
+            .join(DiaryTable, MDiaryTable.diary_id == DiaryTable.diary_id)  # 日記と翻訳を結合
+            .join(UserTable, DiaryTable.user_id == UserTable.user_id)  # 日記の投稿者情報を結合
+            .filter(MDiaryTable.team_id == team_id)  # MDiaryTable の team_id が current_user の team_id と一致
+            .filter(MDiaryTable.language_id == main_language)  # 言語フィルタ
+            .filter(MDiaryTable.is_visible == 1)  # 翻訳が可視状態
+            .filter(DiaryTable.is_visible == 1)  # 元の日記も可視状態
+            .order_by(MDiaryTable.diary_time.asc())  # 日付順に並び替え
             .all()
         )
 
-    return JSONResponse(content={
+    return {
         "team_id": team_id,
         "diaries": [
             {
-                "user_name": row.name,
+                "user_name": row.user_name,
                 "diary_id": row.diary_id,
                 "title": row.title,
                 "content": row.content,
@@ -758,11 +757,11 @@ async def get_diaries(current_user: UserCreate = Depends(get_current_active_user
                     "laugh": row.laugh,
                     "surprised": row.surprised,
                     "sad": row.sad,
-                }
+                },
             }
             for row in result
-        ]
-    })
+        ],
+    }
 
 @app.get("/get_my_diary")
 async def get_my_diary(current_user: UserCreate = Depends(get_current_active_user)):
@@ -787,8 +786,8 @@ async def get_my_diary(current_user: UserCreate = Depends(get_current_active_use
                 DiaryTable.sad,
             )
             .join(DiaryTable, DiaryTable.diary_id == MDiaryTable.diary_id)  # DiaryTableと結合
-            .join(UserTable, UserTable.team_id == team_id,UserTable.user_id == MDiaryTable.user_id)  # UserTableと結合
-            .filter(UserTable.team_id == team_id)  # チームIDでフィルタ
+            .join(UserTable, UserTable.user_id == MDiaryTable.user_id)  # UserTableと結合
+            .filter(MDiaryTable.team_id == team_id)  # チームIDでフィルタ
             .filter(MDiaryTable.language_id == main_language)  # main_languageでフィルタ
             .filter(MDiaryTable.user_id == user_id)  # user_idでフィルタ
             .filter(MDiaryTable.is_visible == 1)  # is_visible が 1 の日記をフィルタ
