@@ -44,7 +44,7 @@ from BM import (
 
 
 # Database URL
-DATABASE_URL = "mysql+pymysql://root:6213ryoy@127.0.0.1/demo"
+DATABASE_URL = "mysql+pymysql://root:yuki108@127.0.0.1/demo"
 # FastAPI app
 app = FastAPI()
 logger = logging.getLogger(__name__)
