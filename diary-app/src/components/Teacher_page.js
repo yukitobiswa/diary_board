@@ -3,11 +3,12 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 const Teacher_page = () => {
-    const [teachers, setTeachers] = useState([]); // 教員リスト
-    const [students, setStudents] = useState([]); // 生徒リスト
-    const [openUserId, setOpenUserId] = useState(null); // アコーディオンの開閉管理
+    const [teachers, setTeachers] = useState([]);
+    const [students, setStudents] = useState([]);
+    const [openUserId, setOpenUserId] = useState(null);
     const navigate = useNavigate();
     const tokenRef = useRef(localStorage.getItem("authToken") || null);
+
     const fetchUsers = async () => {
         if (!tokenRef.current) return;
 
@@ -19,8 +20,8 @@ const Teacher_page = () => {
             });
 
             const userData = response.data;
-            setTeachers(userData.filter(user => user.is_admin)); // 教員リスト
-            setStudents(userData.filter(user => !user.is_admin)); // 生徒リスト
+            setTeachers(userData.filter(user => user.is_admin));
+            setStudents(userData.filter(user => !user.is_admin));
         } catch (error) {
             console.error("Error fetching users:", error);
         }
@@ -70,31 +71,26 @@ const Teacher_page = () => {
                 <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                     {users.map((user) => (
                         <div key={user.user_id} style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-                            {/* アコーディオンのヘッダー */}
                             <div
                                 style={{
                                     padding: "15px",
-                                    backgroundColor: "#ffcc30", // 薄いオレンジ
-                                    border: "1px solid #ffb74d", // より薄いオレンジ
+                                    backgroundColor: "#ffcc30",
+                                    border: "1px solid #ffb74d",
                                     borderRadius: "10px",
                                     boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
                                     cursor: "pointer",
                                     display: "flex",
                                     alignItems: "center",
-                                    justifyContent: "space-between", // ← 追加：user_idとnameを左寄せ、ボタンを右端へ
-                                    gap: "10px",
+                                    justifyContent: "space-between",
                                 }}
                                 onClick={() => toggleAccordion(user.user_id)}
                             >
-                                {/* 左側: user_id と name */}
                                 <div style={{ display: "flex", alignItems: "center", gap: "10px", flexGrow: 1 }}>
                                     <span style={{ fontSize: "16px", color: "#555", flexShrink: 0 }}>{user.user_id}</span>
                                     <span style={{ fontSize: "20px", color: "black", fontWeight: "bold" }}>
                                         {user.name}
                                     </span>
                                 </div>
-
-                                {/* 右端: 詳細ボタン */}
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
@@ -112,9 +108,6 @@ const Teacher_page = () => {
                                     Diary & Quiz
                                 </button>
                             </div>
-
-
-                            {/* アコーディオンの内容 */}
                             {openUserId === user.user_id && (
                                 <div
                                     style={{
@@ -154,6 +147,22 @@ const Teacher_page = () => {
                 }}
             >
                 ◀ Back
+            </button>
+            {/* Team Setting ボタンの追加 */}
+            <button
+                onClick={() => navigate("/team_set")}
+                style={{
+                    marginBottom: "20px",
+                    padding: "10px 20px",
+                    backgroundColor: "#007bff",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "5px",
+                    cursor: "pointer",
+                    marginLeft: "10px",
+                }}
+            >
+                Team Settings
             </button>
 
             {/* 教員リスト */}

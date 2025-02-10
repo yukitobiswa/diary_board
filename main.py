@@ -15,6 +15,7 @@ from create_quiz import make_quiz
 from translate_quiz import translate_question,translate_quizz
 from testgpt import filter_diary_entry
 from wordcount import count_words
+from quiz_hiragana import convert_question
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Union
 from fastapi import Request
@@ -37,12 +38,13 @@ from BM import (
     TeacherLogin,
     UserResponse,
     UserRequest,
-    PasswordResetRequest
+    PasswordResetRequest,
+    Change_team
 )
 
 
 # Database URL
-DATABASE_URL = "mysql+pymysql://root:yuki0108@127.0.0.1/demo"
+DATABASE_URL = "mysql+pymysql://root:6213ryoy@127.0.0.1/demo"
 # FastAPI app
 app = FastAPI()
 logger = logging.getLogger(__name__)
@@ -249,7 +251,7 @@ async def user_register(user: UserCreate):
 
     with SessionLocal() as session:
         # `user_id` の存在チェック（どのチームでも同じ user_id は登録不可）
-        existing_user = session.query(UserTable).filter(UserTable.user_id == user.user_id).first()
+        existing_user = session.query(UserTable).filter(UserTable.user_id == user.user_id,UserTable.team_id == user.team_id).first()
         if existing_user:
             raise HTTPException(status_code=400, detail="このユーザーIDはすでに登録されています。")
 
@@ -285,7 +287,7 @@ async def user_register(user: UserCreate):
 
     with SessionLocal() as session:
         # `user_id` の存在チェック（どのチームでも同じ user_id は登録不可）
-        existing_user = session.query(UserTable).filter(UserTable.user_id == user.user_id).first()
+        existing_user = session.query(UserTable).filter(UserTable.user_id == user.user_id,UserTable.team_id == user.team_id).first()
         if existing_user:
             raise HTTPException(status_code=400, detail="このユーザーIDはすでに登録されています。")
 
@@ -374,6 +376,29 @@ async def change_profile(
 
     return {"message": "プロフィールが正常に更新されました！"}
 
+@app.put("/change_team_set")
+async def change_team_set(
+    team_update: Change_team,  # 変更したい情報
+    current_user: UserCreate = Depends(get_current_active_user)
+):
+    try:
+        logger.info("Received team set update request: %s", team_update)  # 受け取ったデータをログ出力
+
+        with SessionLocal() as session:
+            team_current = session.query(TeamTable).filter(TeamTable.team_id == current_user.team_id).first()
+            if not team_current:
+                raise HTTPException(status_code=404, detail="チームが見つかりません")
+            if team_update.country is not None:
+                team_current.country = ','.join(team_update.country)  # 有効な国名をカンマ区切りで保存
+            if team_update.age is not None:
+                team_current.age = team_update.age  # 年齢の更新
+            session.commit()
+
+    except Exception as e:
+        logger.error("Error updating team set: %s", str(e))  # エラーをログ出力
+        raise HTTPException(status_code=500, detail="チーム設定更新中にエラーが発生しました")
+
+    return {"message": "チーム設定が正常に更新されました！"}
 
 @app.post('/team_register')
 async def team_register(team: TeamCreate):
@@ -460,7 +485,13 @@ async def save_quiz(selected_quizzes: SelectedQuiz, current_user: UserCreate = D
             # クイズ情報が5問選ばれているかを確認
             if len(selected_quizzes.selected_quizzes) != 5:
                 return JSONResponse(status_code=400, content={"error": "You must select exactly 5 questions."})
-            
+            team = current_user.team_id
+             # チームの年齢情報を取得
+            team_age = session.query(TeamTable).filter(TeamTable.team_id == team).first()
+            if team_age is None or team_age.age not in age_map:
+                logging.error(f"Invalid team age: {team_age.age if team_age else 'None'}")
+                raise HTTPException(status_code=400, detail="チームの年齢情報が不正です。")
+            age_group = age_map[team_age.age]  # 年齢グループを取得
             # キャッシュテーブルから選ばれたクイズ情報を取得
             selected_quiz_ids = selected_quizzes.selected_quizzes
             quizzes_to_save = session.query(CashQuizTable).filter(
@@ -478,7 +509,7 @@ async def save_quiz(selected_quizzes: SelectedQuiz, current_user: UserCreate = D
             flattened_quizzes_list = [item for sublist in quizzes_to_save_list for item in sublist]
             
             # translate_quizzがリストの形式で返されると仮定
-            translated_quizzes_to_save = await translate_quizz(flattened_quizzes_list)
+            translated_quizzes_to_save = await translate_quizz(flattened_quizzes_list,age_group)
             
             # クイズ情報を正式なテーブルに保存
             for i, quiz in enumerate(quizzes_to_save):
@@ -570,80 +601,103 @@ def add_reaction(reaction: ReactionRequest):
     except Exception as e:
         logging.error(f"Error adding reaction: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error adding reaction: {str(e)}")
-    
+
+age_map = {
+    "Elementary1": 1, "Elementary2": 2, "Elementary3": 3,
+    "Elementary4": 4, "Elementary5": 5, "Elementary6": 6,
+    "Junior1": 7, "Junior2": 7, "Junior3": 7,
+    "Other": 8
+}
+
 @app.post("/add_diary")
 async def add_diary(diary: DiaryCreate, current_user: UserCreate = Depends(get_current_active_user)):
     """
     現在ログインしているユーザーの情報を利用して日記を追加します。
     """
     diary_time = datetime.now()  # 現在時刻を取得
-    
-    # 悪口チェック
-    try:
-        complaining = filter_diary_entry(diary.content)
-    except ValueError:
-        raise HTTPException(status_code=400, detail="不正なレスポンスを受け取りました。")
 
-    # 文字数チェック
-    wordcount = count_words(diary.content, current_user.main_language)
-
-    # 悪口や文字数不足の場合の処理
-    if complaining in {1, 2} or wordcount <= 200:
-        return {
-            "status": False,
-            "message": "There might be bad words, or the text is less than 200 words : 悪口が含まれている可能性があるか、文字数が200文字に達していません。書き直してください。"
-        }
-
-    # 日記を保存
     with SessionLocal() as session:
+        team = current_user.team_id
+
+        # チームの年齢情報を取得
+        team_age = session.query(TeamTable).filter(TeamTable.team_id == team).first()
+
+        if team_age is None or team_age.age not in age_map:
+            logging.error(f"Invalid team age: {team_age.age if team_age else 'None'}")
+            raise HTTPException(status_code=400, detail="チームの年齢情報が不正です。")
+
+        age_group = age_map[team_age.age]  # 年齢グループを取得
+
+        # 悪口チェック
         try:
-            # DiaryTableに新しいエントリを追加
+            complaining = filter_diary_entry(diary.content)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="不正なレスポンスを受け取りました。")
+        except Exception as e:
+            logging.error(f"Error in filtering diary entry: {e}")
+            raise HTTPException(status_code=500, detail="フィルタリング中にエラーが発生しました。")
+
+        # 文字数チェック
+        try:
+            wordcount = count_words(diary.content, current_user.main_language, age_group)
+        except Exception as e:
+            logging.error(f"Error in counting words: {e}")
+            raise HTTPException(status_code=500, detail="文字数カウント中にエラーが発生しました。")
+
+        # 悪口や文字数不足の場合の処理
+        if complaining in {1, 2} or wordcount < 200:
+            return {
+                "status": False,
+                "message": "There might be bad words, or the text is less than 200 words : 悪口が含まれている可能性があるか、文字数が200文字に達していません。書き直してください。"
+            }
+
+        try:
+            # 日記を保存
             new_diary = DiaryTable(
-                team_id = current_user.team_id,
+                team_id=current_user.team_id,
                 user_id=current_user.user_id,
-                title=diary.title,  # diary.titleを使用
+                title=diary.title,
                 diary_time=diary_time,
-                content=diary.content,  # diary.contentを使用
-                main_language=current_user.main_language 
+                content=diary.content,
+                main_language=current_user.main_language
             )
             session.add(new_diary)
-            session.commit()  # データを確定
-            session.refresh(new_diary)  # 新しいエントリのIDを取得可能にする
+            session.commit()
+            session.refresh(new_diary)  # 新しい日記の ID を取得可能に
 
             # 翻訳された日記を追加
             diary_id = new_diary.diary_id
-            diary_list = translate_diary(diary.title, diary.content, current_user.main_language)
-            
-            translated_entries = []
-            for i, (title, content) in enumerate(diary_list, start=1):
-                translated_entries.append(MDiaryTable(
+            diary_list = translate_diary(diary.title, diary.content, current_user.main_language, age_group)
+
+            translated_entries = [
+                MDiaryTable(
                     diary_id=diary_id,
                     language_id=i,
-                    team_id = current_user.team_id,
+                    team_id=current_user.team_id,
                     user_id=current_user.user_id,
                     title=title,
                     diary_time=diary_time,
                     content=content,
-                ))
-            
-            session.add_all(translated_entries)  # 複数のエントリを一括追加
-            session.commit()  # データを確定
+                )
+                for i, (title, content) in enumerate(diary_list, start=1)
+            ]
 
-            # Update the user's diary_count
+            session.add_all(translated_entries)
+            session.commit()
+
+            # ユーザーの日記カウントを更新
             current_user.diary_count += 1
-            session.merge(current_user)  # Save the updated user record
-            session.commit()  # Confirm the changes
+            session.merge(current_user)
+            session.commit()
 
-            logging.info(
-                f"Diary added successfully: user_id={current_user.user_id}, diary_id={diary_id}"
-            )
+            logging.info(f"Diary added successfully: user_id={current_user.user_id}, diary_id={diary_id}")
+
         except Exception as e:
-            session.rollback()  # エラー時にロールバック
+            session.rollback()
             logging.error(f"Error while adding diary: {e}")
-            raise e
-    
-    return {"status": True, "message": "Diary added successfully!"}
+            raise HTTPException(status_code=500, detail="日記の追加中にエラーが発生しました。")
 
+    return {"status": True, "message": "Diary added successfully!"}
 @app.get("/get_team_name")
 async def get_team_name(current_user: UserCreate = Depends(get_current_active_user)):
     """
@@ -819,14 +873,25 @@ async def get_quizzes(current_user: UserCreate = Depends(get_current_active_user
         with SessionLocal() as session:
             # ユーザーに関連するクイズデータを取得
             quizzes = session.query(CashQuizTable).filter(CashQuizTable.user_id == current_user.user_id).filter(CashQuizTable.team_id == current_user.team_id).all()
+            team = current_user.team_id
 
+             # チームの年齢情報を取得
+            team_age = session.query(TeamTable).filter(TeamTable.team_id == team).first()
+
+            if team_age is None or team_age.age not in age_map:
+                logging.error(f"Invalid team age: {team_age.age if team_age else 'None'}")
+                raise HTTPException(status_code=400, detail="チームの年齢情報が不正です。")
+
+            age_group = age_map[team_age.age]  # 年齢グループを取得
             quizzes_dict = [quiz_to_dict(quiz) for quiz in quizzes]
             logging.info(f"Converted quizzes: {quizzes_dict}")
             # ユーザーの言語に応じてクイズの質問を翻訳
-            if current_user.main_language != 1:
+            if current_user.main_language == 1:
+                for quiz in quizzes_dict:
+                    quiz['question'] = convert_question(quiz['question'],age_group )
+            else:
                 for quiz in quizzes_dict:
                     quiz['question'] = await translate_question(quiz['question'], current_user.main_language)
-
             return JSONResponse(content={"quizzes": quizzes_dict})
     except Exception as e:
         logging.error(f"Error fetching quizzes: {str(e)}")
@@ -1003,8 +1068,8 @@ async def get_quiz_audio(diary_id: int, current_user: UserCreate = Depends(get_c
             2: "en",  # 英語
             3: "pt",  # ポルトガル語
             4: "es",  # スペイン語
-            5: "zh-CN",  # 簡体中文
-            6: "zh-TW",  # 繁体中文
+            5: "zh",  # 簡体中文
+            6: "zh",  # 繁体中文
             7: "ko",  # 韓国語
             8: "tl",  # タガログ語
             9: "vi",  # ベトナム語
@@ -1067,8 +1132,8 @@ async def get_quiz_audio(diary_id: int, current_user: UserCreate = Depends(get_c
             2: "en",  # 英語
             3: "pt",  # ポルトガル語
             4: "es",  # スペイン語
-            5: "zh-CN",  # 簡体中文
-            6: "zh-TW",  # 繁体中文
+            5: "zh",  # 簡体中文
+            6: "zh",  # 繁体中文
             7: "ko",  # 韓国語
             8: "tl",  # タガログ語
             9: "vi",  # ベトナム語
@@ -1131,8 +1196,8 @@ async def get_quiz_audio(diary_id: int, current_user: UserCreate = Depends(get_c
             2: "en",  # 英語
             3: "pt",  # ポルトガル語
             4: "es",  # スペイン語
-            5: "zh-CN",  # 簡体中文
-            6: "zh-TW",  # 繁体中文
+            5: "zh",  # 簡体中文
+            6: "zh",  # 繁体中文
             7: "ko",  # 韓国語
             8: "tl",  # タガログ語
             9: "vi",  # ベトナム語
@@ -1195,8 +1260,8 @@ async def get_quiz_audio(diary_id: int, current_user: UserCreate = Depends(get_c
             2: "en",  # 英語
             3: "pt",  # ポルトガル語
             4: "es",  # スペイン語
-            5: "zh-CN",  # 簡体中文
-            6: "zh-TW",  # 繁体中文
+            5: "zh",  # 簡体中文
+            6: "zh",  # 繁体中文
             7: "ko",  # 韓国語
             8: "tl",  # タガログ語
             9: "vi",  # ベトナム語

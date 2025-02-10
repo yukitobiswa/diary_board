@@ -1,7 +1,7 @@
 from langrid.clients import TranslationClient
 from settings import lg_config
 import asyncio
-
+from quiz_hiragana import convert_question
 # 入力言語および出力言語のリスト
 languages = {
     1: 'ja',  # 日本語
@@ -29,8 +29,10 @@ async def translate_question(question, main_language):
     # 翻訳の呼び出しを await で待機
     translated_question = gnmt.translate("ja", lang, question)
     return translated_question
+
+
 import asyncio
-async def translate_quizz(quiz_set):
+async def translate_quizz(quiz_set,age):
     """
     複数のクイズセットをすべての言語に翻訳する
     """
@@ -44,7 +46,13 @@ async def translate_quizz(quiz_set):
         for target_lang_id, target_lang in languages.items():
             try:
                 if target_lang_id == 1:  # 日本語（そのまま）
-                    translation = quiz  # 日本語はそのまま
+                    translation = await asyncio.gather(
+                        asyncio.to_thread(convert_question,quiz[0],age),  # 質問
+                        asyncio.to_thread(convert_question,quiz[1],age),  # 質問
+                        asyncio.to_thread(convert_question,quiz[2],age),  # 質問
+                        asyncio.to_thread(convert_question,quiz[3],age),  # 質問
+                        asyncio.to_thread(convert_question,quiz[4],age),  # 質問
+                    )
                 else:
                     # 非同期で翻訳を取得
                     translation = await asyncio.gather(
