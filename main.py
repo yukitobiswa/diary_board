@@ -734,6 +734,7 @@ async def get_diaries(current_user: UserCreate = Depends(get_current_active_user
             )
             .join(DiaryTable, MDiaryTable.diary_id == DiaryTable.diary_id)  # 日記と翻訳を結合
             .join(UserTable, DiaryTable.user_id == UserTable.user_id)  # 日記の投稿者情報を結合
+            .filter(UserTable.team_id == team_id) 
             .filter(MDiaryTable.team_id == team_id)  # MDiaryTable の team_id が current_user の team_id と一致
             .filter(MDiaryTable.language_id == main_language)  # 言語フィルタ
             .filter(MDiaryTable.is_visible == 1)  # 翻訳が可視状態
@@ -759,7 +760,7 @@ async def get_diaries(current_user: UserCreate = Depends(get_current_active_user
                     "sad": row.sad,
                 },
             }
-            for row in result
+        for row in result
         ],
     }
 
@@ -785,7 +786,7 @@ async def get_my_diary(current_user: UserCreate = Depends(get_current_active_use
                 DiaryTable.surprised,
                 DiaryTable.sad,
             )
-            .join(DiaryTable, DiaryTable.diary_id == MDiaryTable.diary_id)  # DiaryTableと結合
+            .join(DiaryTable, MDiaryTable.diary_id == MDiaryTable.diary_id)  # DiaryTableと結合
             .join(UserTable, UserTable.user_id == MDiaryTable.user_id)  # UserTableと結合
             .filter(MDiaryTable.team_id == team_id)  # チームIDでフィルタ
             .filter(MDiaryTable.language_id == main_language)  # main_languageでフィルタ
