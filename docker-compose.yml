@@ -1,6 +1,29 @@
 version: "3.8"
 
 services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password  # ✅ セキュリティを考慮して別のパスワードを使用
+      MYSQL_DATABASE: demo
+      MYSQL_USER: user
+      MYSQL_PASSWORD: 6213ryoy
+    ports:
+      - "3306:3306"  # ✅ 外部公開して複数人でアクセス可能に
+    volumes:
+      - mysql-data:/var/lib/mysql  # ✅ MySQL のデータを永続化
+      - ./mysql/my.cnf:/etc/mysql/conf.d/my.cnf  # ✅ 追加
+    networks:
+      - app-network
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci  #
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   uwsgi:
     build: ./app
     volumes:
@@ -10,14 +33,17 @@ services:
       - "8000:8000"
     environment:
       TZ: "Asia/Tokyo"
-      DATABASE_HOST: host.docker.internal  # ✅ ローカルの MySQL に接続
+      DATABASE_HOST: mysql  # ✅ コンテナの MySQL に接続
       DATABASE_USER: user
       DATABASE_PASSWORD: 6213ryoy
       DATABASE_NAME: demo
     networks:
       - app-network
+    depends_on:
+      mysql:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -45,7 +71,7 @@ services:
       retries: 3
 
 volumes:
-  mysql-data:
+  mysql-data:  # ✅ MySQL のデータを保存し、コンテナを消してもデータを維持
 
 networks:
   app-network:

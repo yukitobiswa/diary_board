@@ -50,7 +50,8 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-DATABASE_URL = "mysql+pymysql://user:6213ryoy@diaryboard_final-mysql-1:3306/demo"
+DATABASE_URL = "mysql+pymysql://user:6213ryoy@mysql:3306/demo"
+
 
 
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
@@ -153,7 +154,9 @@ async def reset_password(request: PasswordResetRequest):
             # その他のエラーの場合は422エラーを返す
             raise HTTPException(status_code=422, detail=f"入力データが無効です: {str(e)}")
 
-
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
 # ユーザーの認証関数（デバッグ用）
 def authenticate_user(db_session, team_id: str, user_id: str, password: str):
     print("DEBUG: authenticate_user called with")
@@ -427,30 +430,66 @@ async def change_team_set(
 
     return {"message": "チーム設定が正常に更新されました！"}
 
+# @app.post('/team_register')
+# async def team_register(team: TeamCreate):
+#     try:
+#         with SessionLocal() as session:
+#             # countryリストをカンマ区切りの文字列に変換
+#             country_str = ",".join(team.country)  # ['Japan', 'Brazil', 'Indonesia', 'Vietnam'] -> 'Japan,Brazil,Indonesia,Vietnam'
+            
+#             # 新しいチームを作成
+#             new_team = TeamTable(
+#                 team_id=team.team_id,
+#                 team_name=team.team_name,
+#                 team_time=datetime.now(),
+#                 country=country_str,  # 変換した文字列を保存
+#                 age=team.age,  # age をそのまま設定
+#                 member_count=team.member_count  # member_count をそのまま設定
+#             )
+#             session.add(new_team)
+#             session.commit()
+#             logging.info(f"Team registered successfully: {team.team_id}")
+        
+#         return JSONResponse({"message": "Register Successfully!"})
+    
+#     except Exception as e:
+#         logging.error(f"Error during registration: {str(e)}")
+#         raise HTTPException(status_code=400, detail=f"Error during registration: {str(e)}")
+
+
 @app.post('/team_register')
 async def team_register(team: TeamCreate):
+    logger.info(f"Received team data: {team}")
+
     try:
         with SessionLocal() as session:
+            logger.info("Session started successfully")
+
             # countryリストをカンマ区切りの文字列に変換
-            country_str = ",".join(team.country)  # ['Japan', 'Brazil', 'Indonesia', 'Vietnam'] -> 'Japan,Brazil,Indonesia,Vietnam'
-            
+            if not team.country:
+                logger.warning("Warning: team.country is None or empty")
+            country_str = ",".join(team.country)
+            logger.info(f"Converted country list to string: {country_str}")
+
             # 新しいチームを作成
             new_team = TeamTable(
                 team_id=team.team_id,
                 team_name=team.team_name,
                 team_time=datetime.now(),
-                country=country_str,  # 変換した文字列を保存
-                age=team.age,  # age をそのまま設定
-                member_count=team.member_count  # member_count をそのまま設定
+                country=country_str,
+                age=team.age,
+                member_count=team.member_count
             )
+            logger.info(f"New team object created: {new_team}")
+
             session.add(new_team)
             session.commit()
-            logging.info(f"Team registered successfully: {team.team_id}")
+            logger.info(f"Team registered successfully: {team.team_id}")
         
         return JSONResponse({"message": "Register Successfully!"})
     
     except Exception as e:
-        logging.error(f"Error during registration: {str(e)}")
+        logger.error(f"Error during registration: {str(e)}", exc_info=True)
         raise HTTPException(status_code=400, detail=f"Error during registration: {str(e)}")
 
 @app.post("/generate_quiz")
@@ -2096,10 +2135,6 @@ async def delete_diary(diary_id: int, current_user: UserCreate = Depends(get_cur
     except Exception as e:
         logging.error(f"Error during deleting diary: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Error during deleting diary: {str(e)}")
-
-@app.get("/")
-async def root():
-    return {"message": "Hello, World!"}
 
 @app.exception_handler(404)
 async def page_not_found(request: Request, exc):
