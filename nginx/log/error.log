@@ -1,0 +1,6 @@
+2025/02/11 16:21:10 [error] 29#29: *34 open() "/usr/share/nginx/html/StartPage" failed (2: No such file or directory), client: 172.19.0.1, server: , request: "GET /StartPage HTTP/1.1", host: "localhost"
+2025/02/11 16:22:40 [error] 29#29: *39 open() "/usr/share/nginx/html/StartPage" failed (2: No such file or directory), client: 172.19.0.1, server: , request: "GET /StartPage HTTP/1.1", host: "localhost"
+2025/02/11 16:23:43 [error] 29#29: *43 directory index of "/usr/share/nginx/html/" is forbidden, client: 127.0.0.1, server: , request: "GET / HTTP/1.1", host: "localhost"
+2025/02/11 16:29:32 [error] 29#29: *10 directory index of "/usr/share/nginx/html/" is forbidden, client: 127.0.0.1, server: , request: "GET / HTTP/1.1", host: "localhost"
+2025/02/11 16:32:12 [error] 29#29: *2 open() "/usr/share/nginx/html/static/js/main.374d0cc7.js" failed (2: No such file or directory), client: 172.19.0.1, server: , request: "GET /static/js/main.374d0cc7.js HTTP/1.1", host: "localhost", referrer: "http://localhost/"
+2025/02/11 16:43:00 [error] 29#29: *37 open() "/usr/share/nginx/html/StartPage" failed (2: No such file or directory), client: 172.19.0.1, server: , request: "GET /StartPage HTTP/1.1", host: "localhost"

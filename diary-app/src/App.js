@@ -1,6 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Profile from './components/StartPage';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Login from './components/Login';
 import NewLogin from './components/newlogin';
 import ChatApp from './components/Chat';
@@ -38,7 +37,7 @@ function App() {
       <div>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/" element={<Profile />} />
+          <Route path="/" element={<Navigate to="StartPage" />} />
           <Route path="/newlogin" element={<NewLogin />} />
           <Route path="/Chat" element={<ChatApp />} />
           <Route path="/Quiz1" element={<Quiz1 />} />
@@ -65,7 +64,7 @@ function App() {
           <Route path='/Teacher_newlogin' element={<Teacher_newlogin/>} />
           <Route path='/Teacher_page' element={<Teacher_page/>} />
           <Route path='/Diary_and_Quiz/:user_id' element={<Diary_and_Quiz/>} />
-          <Route path="/" element={<StartPage />} />
+          <Route path="/StartPage" element={<StartPage />} />
           <Route path="/reset_password" element={<ResetPassword />} />
           <Route path="/team_set" element={<TeamSetting />} />
         </Routes>

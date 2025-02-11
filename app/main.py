@@ -41,15 +41,26 @@ from BM import (
     PasswordResetRequest,
     Change_team
 )
+"""
+docker-compose down
+docker-compose build
+docker-compose up -d
+"""
+import os
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+DATABASE_URL = "mysql+pymysql://user:6213ryoy@diaryboard_final-mysql-1:3306/demo"
 
 
-# Database URL
-DATABASE_URL = "mysql+pymysql://root:6213ryoy@127.0.0.1/demo"
+engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 # FastAPI app
 app = FastAPI()
 logger = logging.getLogger(__name__)
 origins = [
-    "http://localhost:3000",
+   "http://localhost", "http://localhost:3000"
 ]
 
 app.add_middleware(
@@ -64,13 +75,12 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 login_manager = LoginManager("your_secret_key", token_url="/token")
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-# Database setup
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 metadata = MetaData()
 metadata.reflect(bind=engine)
 # Set up logging
 logging.basicConfig(level=logging.INFO)
+
 
 # Reflect database tables
 Base = automap_base()
@@ -144,10 +154,21 @@ async def reset_password(request: PasswordResetRequest):
             raise HTTPException(status_code=422, detail=f"入力データが無効です: {str(e)}")
 
 
-# ユーザーの認証関数
+# ユーザーの認証関数（デバッグ用）
 def authenticate_user(db_session, team_id: str, user_id: str, password: str):
+    print("DEBUG: authenticate_user called with")
+    print(f"  team_id = {team_id}")
+    print(f"  user_id = {user_id}")
+    print(f"  password = {password}")
+    print("DEBUG: db_session =", db_session)  # 追加
+    # データベースセッションの確認
+    if db_session is None:
+        raise ValueError("Database session is None. Check database connection.")
+
     # チームIDの存在チェック
     team_exists = db_session.query(UserTable).filter(UserTable.team_id == team_id).first()
+    print(f"DEBUG: team_exists = {team_exists}")
+
     if not team_exists:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -156,6 +177,8 @@ def authenticate_user(db_session, team_id: str, user_id: str, password: str):
 
     # ユーザーIDの存在チェック
     user = db_session.query(UserTable).filter(UserTable.user_id == user_id, UserTable.team_id == team_id).first()
+    print(f"DEBUG: user = {user}")
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -164,12 +187,16 @@ def authenticate_user(db_session, team_id: str, user_id: str, password: str):
         )
 
     # パスワードのチェック
-    if not verify_password(password, user.password):
+    password_check = verify_password(password, user.password)
+    print(f"DEBUG: password_check = {password_check}")
+
+    if not password_check:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Incorrect Password: パスワードが違います。",
         )
 
+    print("DEBUG: Authentication successful")
     return user
 
 
@@ -2070,7 +2097,9 @@ async def delete_diary(diary_id: int, current_user: UserCreate = Depends(get_cur
         logging.error(f"Error during deleting diary: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Error during deleting diary: {str(e)}")
 
-        
+@app.get("/")
+async def root():
+    return {"message": "Hello, World!"}
 
 @app.exception_handler(404)
 async def page_not_found(request: Request, exc):
