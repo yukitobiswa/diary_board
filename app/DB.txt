@@ -195,13 +195,24 @@ CREATE TABLE title (
 
 INSERT INTO title (title_id, language_id, title_name) 
 VALUES
-(1, 1, '見習い'),(2, 1, '初心者'),(3, 1, '学者'),(4, 1, '熟練者'),(5, 1, '上級者'),(6, 1, '知略家'),(7, 1, '才人'),(8, 1, '神童'),(9, 1, '天才'),(10, 1, '賢者'),
-(1, 2, 'apprentice'),(2, 2, 'beginner'),(3, 2, 'scholar'),(4, 2, 'expert'),(5, 2, 'Advanced'),(6, 2, 'strategist'),(7, 2, 'talent'),(8, 2, 'prodigy'),(9, 2, 'genius'),(10, 2, 'wise man'),
-(1, 3, 'aprendiz'),(2, 3, 'iniciante'),(3, 3, 'acadêmico'),(4, 3, 'especialista'),(5, 3, 'avançado'),(6, 3, 'estrategista'),(7, 3, 'talento'),(8, 3, 'prodígio'),(9, 3, 'gênio'),(10, 3, 'homem sábio'),
-(1, 4, 'aprendiz'),(2, 4, 'principiante'),(3, 4, 'erudito'),(4, 4, 'experto'),(5, 4, 'avanzado'),(6, 4, 'estratega'),(7, 4, 'talento'),(8, 4, 'prodigio'),(9, 4, 'genio'),(10, 4, 'hombre sabio'),
-(1, 5, '学徒'),(2, 5, '初学者'),(3, 5, '学者'),(4, 5, '专家'),(5, 5, '高级'),(6, 5, '战略家'),(7, 5, '人才'),(8, 5, '神童'),(9, 5, '天才'),(10, 5, '贤者'),
-(1, 6, '學徒'),(2, 6, '初學者'),(3, 6, '學者'),(4, 6, '專家'),(5, 6, '高級'),(6, 6, '戰略家'),(7, 6, '才俊'),(8, 6, '神童'),(9, 6, '天才'),(10, 6, '智者'),
-(1, 7, 'baguhan'),(2, 7, 'magsisimula'),(3, 7, 'iskolar'),(4, 7, 'eksperto'),(5, 7, 'nangunguna'),(6, 7, 'istratehista'),(7, 7, 'talento'),(8, 7, 'prodihe'),(9, 7, 'henyo'),(10, 7, 'matandang tao'),
-(1, 8, 'người học việc'),(2, 8, 'người mới bắt đầu'),(3, 8, 'học giả'),(4, 8, 'chuyên gia'),(5, 8, 'nâng cao'),(6, 8, 'chiến lược gia'),(7, 8, 'tài năng'),(8, 8, 'thần đồng'),(9, 8, 'thiên tài'),(10, 8, 'người thông thái'),
-(1, 9, 'magang'),(2, 9, 'pemula'),(3, 9, 'sarjana'),(4, 9, 'ahli'),(5, 9, 'Lanjutan'),(6, 9, 'strategis'),(7, 9, 'bakat'),(8, 9, 'ajaib'),(9, 9, 'jenius'),(10, 9, 'orang bijak'),
-(1, 10, 'अधिकारिक'),(2, 10, 'सुरुआतकर्ता'),(3, 10, 'विद्यार्थी'),(4, 10, 'विशेषज्ञ'),(5, 10, 'उन्नत'),(6, 10, 'रणनीतिज्ञ'),(7, 10, 'प्रतिभा'),(8, 10, 'चमत्कारी'),(9, 10, 'प्रतिभाशाली'),(10, 10, 'ज्ञानी');
+(1, 1, 'かけだしのクイズ好き'), (1, 2, 'Novice Quiz Enthusiast'), (1, 3, 'Entusiasta de Quiz Iniciante'), (1, 4, 'Entusiasta de Cuestionarios Principiante'), (1, 5, '初学者的测验爱好者'), (1, 6, '初學者的測驗愛好者'), (1, 7, '초보 퀴즈 애호가'), (1, 8, 'Baguhan na Mahilig sa Pagsusulit'), (1, 9, 'Người đam mê câu đố mới bắt đầu'), (1, 10, 'Penggemar Kuis Pemula'), (1, 11, 'सुरुवाती क्विज प्रेमी'),
+
+(2, 1, 'クイズビギナー'), (2, 2, 'Quiz Beginner'), (2, 3, 'Iniciante em Quiz'), (2, 4, 'Principiante en Cuestionarios'), (2, 5, '测验初学者'), (2, 6, '測驗初學者'), (2, 7, '퀴즈 초보자'), (2, 8, 'Baguhan sa Pagsusulit'), (2, 9, 'Người mới bắt đầu câu đố'), (2, 10, 'Pemula Kuis'), (2, 11, 'क्विज प्रारम्भकर्ता'),
+
+(3, 1, '知識コレクター'), (3, 2, 'Knowledge Collector'), (3, 3, 'Coletor de Conhecimento'), (3, 4, 'Coleccionista de Conocimientos'), (3, 5, '知识收集者'), (3, 6, '知識收集者'), (3, 7, '지식 수집가'), (3, 8, 'Kolektor ng Kaalaman'), (3, 9, 'Nhà sưu tập kiến thức'), (3, 10, 'Pengumpul Pengetahuan'), (3, 11, 'ज्ञान सङ्कलक'),
+
+(4, 1, 'クイズチャレンジャー'), (4, 2, 'Quiz Challenger'), (4, 3, 'Desafiante de Quiz'), (4, 4, 'Desafiante de Cuestionarios'), (4, 5, '测验挑战者'), (4, 6, '測驗挑戰者'), (4, 7, '퀴즈 도전자'), (4, 8, 'Tagapaghamon sa Pagsusulit'), (4, 9, 'Người thách thức câu đố'), (4, 10, 'Penantang Kuis'), (4, 11, 'क्विज चुनौती दिनेको'),
+
+(5, 1, '文化のエキスパート'), (5, 2, 'Culture Expert'), (5, 3, 'Especialista em Cultura'), (5, 4, 'Experto en Cultura'), (5, 5, '文化专家'), (5, 6, '文化專家'), (5, 7, '문화 전문가'), (5, 8, 'Eksperto sa Kultura'), (5, 9, 'Chuyên gia văn hóa'), (5, 10, 'Pakar Budaya'), (5, 11, 'संस्कृतिको विशेषज्ञ'),
+
+(6, 1, 'クイズマスター'), (6, 2, 'Quiz Master'), (6, 3, 'Mestre do Quiz'), (6, 4, 'Maestro de Cuestionarios'), (6, 5, '测验大师'), (6, 6, '測驗大師'), (6, 7, '퀴즈 마스터'), (6, 8, 'Master ng Pagsusulit'), (6, 9, 'Bậc thầy câu đố'), (6, 10, 'Master Kuis'), (6, 11, 'क्विज गुरु'),
+
+(7, 1, 'スーパー頭脳'), (7, 2, 'Super Brain'), (7, 3, 'Super Cérebro'), (7, 4, 'Súper Cerebro'), (7, 5, '超级大脑'), (7, 6, '超級大腦'), (7, 7, '슈퍼 두뇌'), (7, 8, 'Napakatalinong Utak'), (7, 9, 'Bộ não siêu cấp'), (7, 10, 'Otak Super'), (7, 11, 'सुपर मस्तिष्क'),
+
+(8, 1, '知識ヒーロー'), (8, 2, 'Knowledge Hero'), (8, 3, 'Herói do Conhecimento'), (8, 4, 'Héroe del Conocimiento'), (8, 5, '知识英雄'), (8, 6, '知識英雄'), (8, 7, '지식 영웅'), (8, 8, 'Bayani ng Kaalaman'), (8, 9, 'Anh hùng tri thức'), (8, 10, 'Pahlawan Pengetahuan'), (8, 11, 'ज्ञान नायक'),
+
+(9, 1, 'クイズのエリート'), (9, 2, 'Quiz Elite'), (9, 3, 'Elite do Quiz'), (9, 4, 'Élite del Cuestionario'), (9, 5, '测验精英'), (9, 6, '測驗精英'), (9, 7, '퀴즈 엘리트'), (9, 8, 'Elit ng Pagsusulit'), (9, 9, 'Tinh hoa câu đố'), (9, 10, 'Elit Kuis'), (9, 11, 'क्विज अभिजात वर्ग'),
+
+(10, 1, 'クイズの天才'), (10, 2, 'Quiz Genius'), (10, 3, 'Gênio do Quiz'), (10, 4, 'Genio de Cuestionarios'), (10, 5, '测验天才'), (10, 6, '測驗天才'), (10, 7, '퀴즈 천재'), (10, 8, 'Henyo ng Pagsusulit'), (10, 9, 'Thiên tài câu đố'), (10, 10, 'Jenius Kuis'), (10, 11, 'क्विज प्रतिभा'),
+
+(11, 1, '世界の神'), (11, 2, 'God of the World'), (11, 3, 'Deus do Mundo'), (11, 4, 'Dios del Mundo'), (11, 5, '世界之神'), (11, 6, '世界之神'), (11, 7, '세계의 신'), (11, 8, 'Diyos ng Mundo'), (11, 9, 'Thần thế giới'), (11, 10, 'Dewa Dunia'), (11, 11, 'संसारको देवता');
