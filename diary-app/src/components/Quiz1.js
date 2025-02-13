@@ -4,10 +4,10 @@ import { useNavigate } from "react-router-dom";
 
 const QuizCategorySelector = () => {
   const categories = [
-    { id: 1, label: "culture(文化)" },
-    { id: 2, label: "language(言語)" },
-    { id: 3, label: "ranking(順位)" },
-    { id: 4, label: "myself(自分)" },
+    { id: 1, label: "culture(ぶんか)" },
+    { id: 2, label: "language（ことば)" },
+    { id: 3, label: "ranking(ランキング)" },
+    { id: 4, label: "myself(じぶん)" },
   ];
 
   const [selectedCategories, setSelectedCategories] = useState([]);
