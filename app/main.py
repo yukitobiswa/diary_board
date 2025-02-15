@@ -53,7 +53,7 @@ from sqlalchemy.orm import sessionmaker
 #ドッカー使用時
 # DATABASE_URL = "mysql+pymysql://user:6213ryoy@mysql:3306/demo"
 #ローカル使用時
-DATABASE_URL = "mysql+pymysql://root:6213ryoy@127.0.0.1/demo"
+DATABASE_URL = "mysql+pymysql://root:6213ryoy@127.0.0.1/exam"
 
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -100,6 +100,8 @@ MQuizTable = Base.classes.multilingual_quiz if 'multilingual_quiz' in Base.class
 MDiaryTable = Base.classes.multilingual_diary if 'multilingual_diary' in Base.classes else None
 CashQuizTable = Base.classes.cash_quiz if 'cash_quiz' in Base.classes else None
 ASetTable = Base.classes.answer_set if 'answer_set' in Base.classes else None
+TitleTable = Base.classes.title if "title" in Base.classes else None
+
 # シークレットキーとアルゴリズム
 SECRET_KEY = "your_secret_key"
 ALGORITHM = "HS256"
@@ -335,7 +337,6 @@ async def user_register(user: UserCreate):
                 name=user.name,
                 main_language=user.main_language,
                 learn_language=user.learn_language,
-                nickname="駆け出しのクイズ好き",  # デフォルトのニックネーム
                 is_admin = True,
             )
             session.add(new_user)
@@ -368,11 +369,15 @@ async def get_profile(current_user: UserCreate = Depends(get_current_active_user
 
     # 対応する言語コードを取得
     learn_language_code = language_map.get(current_user.learn_language, "")
-
+    with SessionLocal() as session:
+        title = session.query(TitleTable).filter(TitleTable.title_id == current_user.nickname,TitleTable.language_id == current_user.main_language).first()
+        print(title)
+        nickname = title.title_name
+        print(nickname)
     return {
         "user_name": current_user.name,
         "learn_language": learn_language_code,  # 言語コードを返す
-        "nickname" : current_user.nickname
+        "nickname" : nickname
     }
     
 @app.put("/change_profile")
@@ -429,32 +434,6 @@ async def change_team_set(
         raise HTTPException(status_code=500, detail="チーム設定更新中にエラーが発生しました")
 
     return {"message": "チーム設定が正常に更新されました！"}
-
-# @app.post('/team_register')
-# async def team_register(team: TeamCreate):
-#     try:
-#         with SessionLocal() as session:
-#             # countryリストをカンマ区切りの文字列に変換
-#             country_str = ",".join(team.country)  # ['Japan', 'Brazil', 'Indonesia', 'Vietnam'] -> 'Japan,Brazil,Indonesia,Vietnam'
-            
-#             # 新しいチームを作成
-#             new_team = TeamTable(
-#                 team_id=team.team_id,
-#                 team_name=team.team_name,
-#                 team_time=datetime.now(),
-#                 country=country_str,  # 変換した文字列を保存
-#                 age=team.age,  # age をそのまま設定
-#                 member_count=team.member_count  # member_count をそのまま設定
-#             )
-#             session.add(new_team)
-#             session.commit()
-#             logging.info(f"Team registered successfully: {team.team_id}")
-        
-#         return JSONResponse({"message": "Register Successfully!"})
-    
-#     except Exception as e:
-#         logging.error(f"Error during registration: {str(e)}")
-#         raise HTTPException(status_code=400, detail=f"Error during registration: {str(e)}")
 
 
 @app.post('/team_register')
@@ -1630,8 +1609,6 @@ answer_dic = {
 @app.post("/create_answer")
 async def create_answer(answer : AnswerCreate, current_user : UserCreate = Depends(get_current_active_user)):
     try:
-        # フロントエンドから送信されたデータを表示
-        logging.info(f"Received answer data: {answer.dict()}")  # 受け取ったデータをログに出力
         answer_time = datetime.now()  # 現在時刻を取得
         with SessionLocal() as session:
             quiz = session.query(QuizTable).filter(QuizTable.diary_id == answer.diary_id,QuizTable.quiz_id == answer.quiz_id).first()
@@ -1927,58 +1904,51 @@ async def update_answer(current_user: UserCreate = Depends(get_current_active_us
             correct_count = sum(1 for answer in results if answer.judgement == 1)
 
             # 既存のユーザー情報を取得
-            existing_user = session.query(UserTable).filter(UserTable.user_id == current_user.user_id).filter(UserTable.team_id == current_user.team_id).first()
+            existing_user = session.query(UserTable).filter(
+                UserTable.user_id == current_user.user_id, 
+                UserTable.team_id == current_user.team_id
+            ).first()
             if not existing_user:
                 raise HTTPException(status_code=404, detail="ユーザーが見つかりません")
+            
             print(f"Correct answers count: {correct_count}")
+            
             # `answer_count` を更新
             existing_user.answer_count += correct_count
 
-            # 称号の計算
-            titles = [
-                (0, "駆け出しのクイズ好き"),
-                (10, "クイズビギナー"),
-                (20, "知識コレクター"),
-                (30, "クイズチャレンジャー"),
-                (40, "知識のエキスパート"),
-                (50, "クイズマスター"),
-                (60, "スーパー頭脳"),
-                (70, "知識ヒーロー"),
-                (80, "クイズのエリート"),
-                (90, "知識の天才"),
-                (100, "クイズの神"),
-            ]
-
-            # 現在の称号を判定
-            new_title = None
-            for threshold, title in titles:
-                if existing_user.answer_count >= threshold:
-                    new_title = title
-
-            # 称号の更新が必要かチェック
-            is_title_updated = (existing_user.nickname or "") != new_title
-
-            # 変更がある場合のみ更新
-            if is_title_updated:
-                existing_user.nickname = new_title
+            # 閾値リスト
+            thresholds = [10, 30, 50, 100, 150,300, 500, 700, 1000,1500]
+            
+            # 現在の称号 (nickname) を整数として扱う
+            current_nickname = existing_user.nickname if isinstance(existing_user.nickname, int) else 0
+            
+            # 現在の nickname に対応する閾値を取得
+            current_threshold = thresholds[current_nickname] if current_nickname < len(thresholds) else float('inf')
+            
+            # 新しい称号の判定
+            is_title_updated = False
+            if existing_user.answer_count >= current_threshold:
+                existing_user.nickname = current_nickname + 1
+                is_title_updated = True
 
             # データベースに反映
             session.commit()
 
             # 更新後の情報を取得
-            updated_user = session.query(UserTable).filter(UserTable.user_id == current_user.user_id).first()
-
+            updated_user = session.query(UserTable).filter(UserTable.user_id == current_user.user_id,UserTable.team_id == current_user.team_id).first()
+            nickname = session.query(TitleTable).filter(TitleTable.title_id == updated_user.nickname,TitleTable.language_id == updated_user.main_language).first()
         # 正解数、更新後の answer_count、および称号を返す
         return JSONResponse(content={
             "correct_count": correct_count,
             "updated_answer_count": updated_user.answer_count,
-            "updated_title": updated_user.nickname,
+            "updated_title": nickname.title_name,
             "is_title_updated": is_title_updated
         })
 
     except Exception as e:
         logging.error(f"エラー: {str(e)}")
         raise HTTPException(status_code=400, detail=f"エラー: {str(e)}")
+
     
 @app.get("/get_quiz_ranking")
 async def get_ranking(current_user: UserCreate = Depends(get_current_active_user)):
@@ -1993,11 +1963,21 @@ async def get_ranking(current_user: UserCreate = Depends(get_current_active_user
                 .all()
             )
 
-            # ランキングデータの準備
-            ranking = [
-                {"id": user.user_id, "name": user.name, "nickname": user.nickname, "answer_count": user.answer_count}
-                for user in users
-            ]
+            # ユーザーの称号を取得
+            ranking = []
+            for user in users:
+                title = session.query(TitleTable).filter(
+                    TitleTable.title_id == user.nickname,
+                    TitleTable.language_id == current_user.main_language
+                ).first()
+                title_name = title.title_name if title else "Unknown"
+                
+                ranking.append({
+                    "id": user.user_id,
+                    "name": user.name,
+                    "nickname": title_name,  # 称号名を取得
+                    "answer_count": user.answer_count
+                })
 
             logger.info(f"Ranking fetched: {ranking}")  # ランキングデータをログに記録
 
@@ -2006,33 +1986,44 @@ async def get_ranking(current_user: UserCreate = Depends(get_current_active_user
     except Exception as e:
         logger.error(f"Error fetching ranking: {str(e)}")  # エラーの詳細をログに記録
         raise HTTPException(status_code=500, detail="Internal Server Error")
-    
+
 @app.get("/get_diary_ranking")
 async def get_diary_ranking(current_user: UserCreate = Depends(get_current_active_user)):
     try:
         with SessionLocal() as session:
-            # current_userと同じteam_idを持つユーザーを取得し、answer_countで降順ソート
+            # current_userと同じteam_idを持つユーザーを取得し、diary_countで降順ソート
             users = (
                 session.query(UserTable)
                 .filter(UserTable.team_id == current_user.team_id)  # 同じチームのユーザーを取得
-                .order_by(UserTable.diary_count.desc())  # answer_countの降順
+                .order_by(UserTable.diary_count.desc())  # diary_countの降順
                 .limit(5)  # 上位5人を取得
                 .all()
             )
 
-            # ランキングデータの準備
-            ranking = [
-                {"id": user.user_id, "name": user.name,"nickname":user.nickname, "answer_count": user.diary_count}
-                for user in users
-            ]
+            # ユーザーの称号を取得
+            ranking = []
+            for user in users:
+                title = session.query(TitleTable).filter(
+                    TitleTable.title_id == user.nickname,
+                    TitleTable.language_id == current_user.main_language
+                ).first()
+                title_name = title.title_name if title else "Unknown"
+                
+                ranking.append({
+                    "id": user.user_id,
+                    "name": user.name,
+                    "nickname": title_name,  # 称号名を取得
+                    "diary_count": user.diary_count
+                })
 
-            logger.info(f"Ranking fetched: {ranking}")  # ランキングデータをログに記録
+            logger.info(f"Diary ranking fetched: {ranking}")  # ランキングデータをログに記録
 
             return JSONResponse(content={"ranking": ranking, "current_user_id": current_user.user_id})
 
     except Exception as e:
-        logger.error(f"Error fetching ranking: {str(e)}")
-        
+        logger.error(f"Error fetching diary ranking: {str(e)}")  # エラーの詳細をログに記録
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
 @app.get("/get_combined_ranking")
 async def get_combined_ranking(current_user: UserCreate = Depends(get_current_active_user)):
     try:
@@ -2044,14 +2035,20 @@ async def get_combined_ranking(current_user: UserCreate = Depends(get_current_ac
                 .all()
             )
 
-            # ユーザーごとの合計スコア（quiz_answer_count + diary_count）を計算
+            # ユーザーごとの合計スコア（quiz_answer_count + diary_count * 5）を計算
             user_scores = []
             for user in quiz_users:
                 combined_score = user.answer_count + user.diary_count * 5  # 正解数と日記数を足す
+                title = session.query(TitleTable).filter(
+                    TitleTable.title_id == user.nickname,
+                    TitleTable.language_id == current_user.main_language
+                ).first()
+                title_name = title.title_name if title else "Unknown"
+                
                 user_scores.append({
                     "id": user.user_id,
                     "name": user.name,
-                    "nickname": user.nickname,
+                    "nickname": title_name,  # 称号名を取得
                     "answer_count": user.answer_count,
                     "diary_count": user.diary_count,
                     "combined_score": combined_score
@@ -2077,7 +2074,6 @@ async def teacher_login(teacher_login: TeacherLogin):
         return JSONResponse(content={"message": "Successful"})
     else:
         return JSONResponse(content={"message": "Invalid password"}, status_code=400)
-    
 @app.get("/get_student_inf")
 async def get_student_inf(current_user: UserResponse = Depends(get_current_active_user)):
     with SessionLocal() as session:
@@ -2097,12 +2093,13 @@ async def get_student_inf(current_user: UserResponse = Depends(get_current_activ
             main_language=user.main_language,
             learn_language=user.learn_language,
             answer_count=user.answer_count,
-            diary_count=user.diary_count,
-            nickname=user.nickname,
+            diary_count=user.diary_count if user.diary_count is not None else 0,
+            nickname=session.query(TitleTable).filter(TitleTable.title_id == user.nickname, TitleTable.language_id == user.main_language).first().title_name if user.nickname else "Unknown",
             is_admin=user.is_admin
         )
         for user in users
     ]
+
     
 @app.put("/delete_diary/{diary_id}")
 async def delete_diary(diary_id: int, current_user: UserCreate = Depends(get_current_active_user)):
