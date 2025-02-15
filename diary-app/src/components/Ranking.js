@@ -110,7 +110,7 @@ const Ranking = () => {
               <td style={styles.td}>{index + 1}</td>
               <td style={styles.td}>{user.name}</td>
               <td style={styles.td}>{user.nickname || "未設定"}</td>
-              <td style={styles.td}>{user.diary_count}</td>
+              <td style={styles.td}>{user.diary_count ?? "N/A"}</td>
             </tr>
           ))}
         </tbody>
