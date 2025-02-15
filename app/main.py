@@ -300,7 +300,6 @@ async def user_register(user: UserCreate):
                 name=user.name,
                 main_language=user.main_language,
                 learn_language=user.learn_language,
-                nickname="駆け出しのクイズ好き"  # デフォルトのニックネーム
             )
             session.add(new_user)
             session.commit()
