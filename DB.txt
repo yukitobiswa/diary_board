@@ -1,20 +1,59 @@
 team 
-create table team (
-team_id varchar(128)  PRIMARY KEY,
-team_name VARCHAR(128) NOT NULL,
-team_time DATETIME NOT NULL,
-country int,
-age int
+CREATE TABLE team (
+    team_id VARCHAR(128) PRIMARY KEY,
+    team_name VARCHAR(128) NOT NULL,
+    team_time DATETIME NOT NULL,
+    country VARCHAR(128),
+    age VARCHAR(128),
+    member_count INT
 );
-ALTER TABLE team
-    CHANGE COLUMN country country VARCHAR(128),
-    CHANGE COLUMN age age VARCHAR(128),
-    ADD COLUMN member_count INT;
+
+CREATE TABLE user (
+    user_id VARCHAR(128),
+    team_id VARCHAR(128),
+    password VARCHAR(64) NOT NULL,
+    name VARCHAR(32) NOT NULL,
+    main_language INT NOT NULL,
+    learn_language INT NOT NULL,
+    answer_count INT DEFAULT 0,
+    diary_count INT DEFAULT 0,
+    nickname INT DEFAULT 1,
+    is_admin BOOLEAN DEFAULT FALSE,  -- is_admin を追加（デフォルト値は FALSE）
+    PRIMARY KEY (user_id, team_id),
+    FOREIGN KEY (team_id) REFERENCES team(team_id),
+    FOREIGN KEY (main_language) REFERENCES language(language_id),
+    FOREIGN KEY (learn_language) REFERENCES language(language_id)
+);
 
 language
 create table language(
 language_id int auto_increment primary key,
 language_name varchar(16));
+
+#このデータをテーブル挿入と同時に入れてください
+INSERT INTO language (language_name) VALUES ('日本語'),('英語'),('ポルトガル語'),('スペイン語'),('中国語（簡）'),('中国語（繁）'),('韓国語'),('タガログ語'),
+('ベトナム語'),
+('インドネシア語'),
+('ネパール語');
+
+CREATE TABLE diary (
+    diary_id INT AUTO_INCREMENT NOT NULL,
+    team_id VARCHAR(128) NOT NULL,
+    user_id VARCHAR(128) NOT NULL,
+    title VARCHAR(128) NOT NULL,
+    diary_time DATETIME NOT NULL,
+    main_language INT NOT NULL,
+    content TEXT NOT NULL,
+    thumbs_up INT DEFAULT 0,
+    love INT DEFAULT 0,
+    laugh INT DEFAULT 0,
+    surprised INT DEFAULT 0,
+    sad INT DEFAULT 0,
+    is_visible BOOLEAN NOT NULL DEFAULT TRUE,
+    PRIMARY KEY (diary_id),
+    FOREIGN KEY (user_id,team_id) REFERENCES user(user_id,team_id),
+    FOREIGN KEY (main_language) REFERENCES language(language_id)
+);
 
 quiz
 create table quiz(
@@ -54,12 +93,12 @@ CREATE TABLE multilingual_diary (
     title VARCHAR(128) NOT NULL,
     diary_time DATETIME NOT NULL,
     content TEXT NOT NULL,
+    is_visible BOOLEAN NOT NULL DEFAULT TRUE,
     PRIMARY KEY (diary_id, language_id),
     FOREIGN KEY (user_id, team_id) REFERENCES user(user_id, team_id),
     FOREIGN KEY (language_id) REFERENCES language(language_id)
 );
-ALTER TABLE multilingual_diary
-ADD COLUMN is_visible BOOLEAN NOT NULL DEFAULT TRUE;
+
 
 
 multilingual_quiz
@@ -79,53 +118,6 @@ FOREIGN KEY (diary_id) REFERENCES diary(diary_id)
 );
 
 
-INSERT INTO language (language_name) VALUES ('日本語'),('英語'),('ポルトガル語'),('スペイン語'),('中国語（簡）'),('中国語（繁）'),('韓国語'),('タガログ語'),
-('ベトナム語'),
-('インドネシア語'),
-('ネパール語');
-
-CREATE TABLE user (
-    user_id VARCHAR(128),
-    team_id VARCHAR(128),
-    password VARCHAR(64) NOT NULL,
-    name VARCHAR(32) NOT NULL,
-    main_language INT NOT NULL,
-    learn_language INT NOT NULL,
-    answer_count INT DEFAULT 0,
-    diary_count INT DEFAULT 0,
-    nickname INT DEFAULT 1,
-    is_admin BOOLEAN DEFAULT FALSE,  -- is_admin を追加（デフォルト値は FALSE）
-    PRIMARY KEY (user_id, team_id),
-    FOREIGN KEY (team_id) REFERENCES team(team_id),
-    FOREIGN KEY (main_language) REFERENCES language(language_id),
-    FOREIGN KEY (learn_language) REFERENCES language(language_id)
-);
-
-ALTER TABLE user
-ADD COLUMN is_admin BOOLEAN DEFAULT FALSE;
-
-
-こっち
-CREATE TABLE diary (
-    diary_id INT AUTO_INCREMENT NOT NULL,
-    team_id VARCHAR(128) NOT NULL,
-    user_id VARCHAR(128) NOT NULL,
-    title VARCHAR(128) NOT NULL,
-    diary_time DATETIME NOT NULL,
-    main_language INT NOT NULL,
-    content TEXT NOT NULL,
-    thumbs_up INT DEFAULT 0,
-    love INT DEFAULT 0,
-    laugh INT DEFAULT 0,
-    surprised INT DEFAULT 0,
-    sad INT DEFAULT 0,
-    PRIMARY KEY (diary_id),
-    FOREIGN KEY (user_id,team_id) REFERENCES user(user_id,team_id),
-    FOREIGN KEY (main_language) REFERENCES language(language_id)
-);
-
-ALTER TABLE diary
-ADD COLUMN is_visible BOOLEAN NOT NULL DEFAULT TRUE;
 
 CREATE TABLE answer_set(
     set_id INT AUTO_INCREMENT,  -- AUTO_INCREMENTはNOT NULLを自動的に満たすので省略
@@ -138,37 +130,6 @@ CREATE TABLE answer_set(
     FOREIGN KEY (user_id, team_id) REFERENCES user(user_id, team_id),  -- user と team の組み合わせを参照
     FOREIGN KEY (diary_id) REFERENCES diary(diary_id)  -- diary_id を参照
 );
-
-
-CREATE TABLE country (
-    id INT NOT NULL PRIMARY KEY,      -- id 列、主キー
-    country_name VARCHAR(128) NOT NULL -- country_name 列
-);
-
--- データの挿入
-INSERT INTO country (id, country_name) VALUES
-(1, 'Japan'),
-(2, 'United States'),
-(3, 'Portugal'),
-(4, 'Spain'),
-(5, 'China'),
-(6, 'Taiwan'),
-(7, 'South Korea'),
-(8, 'Philippines'),
-(9, 'Vietnam'),
-(10, 'Indonesia'),
-(11, 'Nepal'),
-(12, 'France'),
-(13, 'Germany'),
-(14, 'Italy'),
-(15, 'Russia'),
-(16, 'India'),
-(17, 'Brazil'),
-(18, 'Mexico'),
-(19, 'Turkey'),
-(20, 'Australia'),
-(21, 'Peru');
-
 
 CREATE TABLE cash_quiz (
     cash_quiz_id INT NOT NULL,
@@ -193,6 +154,7 @@ CREATE TABLE title (
     FOREIGN KEY (language_id) REFERENCES language(language_id)
 );
 
+#このデータをテーブル挿入と同時に入れてください
 INSERT INTO title (title_id, language_id, title_name) 
 VALUES
 (1, 1, 'かけだしのクイズ好き'), (1, 2, 'Novice Quiz Enthusiast'), (1, 3, 'Entusiasta de Quiz Iniciante'), (1, 4, 'Entusiasta de Cuestionarios Principiante'), (1, 5, '初学者的测验爱好者'), (1, 6, '初學者的測驗愛好者'), (1, 7, '초보 퀴즈 애호가'), (1, 8, 'Baguhan na Mahilig sa Pagsusulit'), (1, 9, 'Người đam mê câu đố mới bắt đầu'), (1, 10, 'Penggemar Kuis Pemula'), (1, 11, 'सुरुवाती क्विज प्रेमी'),
