@@ -36,7 +36,7 @@ services:
       - ./app:/var/www/
       - ./app/log:/var/log/uwsgi/
     ports:
-      - "8000:8000"
+      - "8001:8000"
     environment:
       TZ: "Asia/Tokyo"
       DATABASE_HOST: mysql  
@@ -62,7 +62,7 @@ services:
       - ./nginx/log:/var/log/nginx
       - ./nginx/build:/usr/share/nginx/html
     ports:
-      - "80:80"
+      - "8081:80"
     environment:
       TZ: "Asia/Tokyo"
     depends_on:
