@@ -30,10 +30,6 @@ services:
       timeout: 5s
       retries: 5
 
-volumes:
-  mysql-data:  # ✅ 既存データを保持
-
-
   uwsgi:
     build: ./app
     volumes:
@@ -43,7 +39,7 @@ volumes:
       - "8000:8000"
     environment:
       TZ: "Asia/Tokyo"
-      DATABASE_HOST: mysql  # ✅ コンテナの MySQL に接続
+      DATABASE_HOST: mysql  
       DATABASE_USER: user
       DATABASE_PASSWORD: 6213ryoy
       DATABASE_NAME: demo
@@ -80,6 +76,8 @@ volumes:
       timeout: 10s
       retries: 3
 
+volumes:
+  mysql-data: 
 
 networks:
   app-network:
