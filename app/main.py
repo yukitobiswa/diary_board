@@ -57,10 +57,12 @@ DATABASE_URL = "mysql+pymysql://user:6213ryoy@mysql:3306/demo"
 
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+app = FastAPI()
+API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000")
+@app.get("/get_config")
+async def get_config():
+    return {"api_base_url": API_BASE_URL}
 
-
-
-app = FastAPI(root_path="/diaryboard/api") 
 logger = logging.getLogger(__name__)
 origins = [
     "http://localhost",
@@ -2145,6 +2147,11 @@ async def page_not_found(request: Request, exc):
 async def internal_server_error(request: Request, exc):
     return JSONResponse(status_code=500, content={"error": "Internal server error"})
 
+import os
+import uvicorn
+
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    HOST = os.getenv("API_HOST", "127.0.0.1")
+    PORT = int(os.getenv("API_PORT", 8000))
+
+    uvicorn.run(app, host=HOST, port=PORT)
