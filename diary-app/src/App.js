@@ -35,9 +35,10 @@ function App() {
   return (
     <Router basename="/diaryboard">
       <Routes>
-        {/* 初期ページを /StartPage にリダイレクト */}
-        <Route path="/" element={<Navigate to="/StartPage" />} />
+        {/* 初期ページを /diaryboard/StartPage にリダイレクト */}
+        <Route path="/" element={<Navigate to="/diaryboard/StartPage" replace />} />
 
+        <Route path="/StartPage" element={<StartPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/newlogin" element={<NewLogin />} />
         <Route path="/Chat" element={<ChatApp />} />
@@ -63,7 +64,6 @@ function App() {
         <Route path="/Result" element={<Result />} />
         <Route path="/Setting" element={<Setting />} />
         <Route path="/register" element={<Group />} />
-        <Route path="/StartPage" element={<StartPage />} />
         <Route path="/Ranking" element={<Ranking />} />
         <Route path="/Quiz_Log" element={<Quiz_log />} />
         <Route path="/Teacher_login" element={<Teacher_login />} />
