@@ -58,8 +58,9 @@ DATABASE_URL = "mysql+pymysql://user:6213ryoy@mysql:3306/demo"
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# FastAPI app
-app = FastAPI()
+
+
+app = FastAPI(root_path="/diaryboard/api") 
 logger = logging.getLogger(__name__)
 origins = [
     "http://localhost",
