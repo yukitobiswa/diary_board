@@ -1,4 +1,4 @@
-
+import { API_BASE_URL } from '../config';
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -41,7 +41,7 @@ const Teacher_startpage = () => {
     
         try {
           const response = await axios.post(
-            'http://localhost:8000/token',
+            `${API_BASE_URL}/token`,
             new URLSearchParams({
               team_id: teamId,
               username: userId,

@@ -33,7 +33,7 @@ import ResetPassword
 // This is a main App component
 function App() {
   return (
-    <Router>
+    <Router basename="/diaryboard">
       <div>
         <Routes>
           <Route path="/login" element={<Login />} />

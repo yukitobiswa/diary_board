@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
+import { API_BASE_URL } from '../config';
 const TeamSetting = () => {
   const [selectedCountries, setSelectedCountries] = useState([]);
   const [age, setAge] = useState("1"); // 初期値: 小学1年生
@@ -39,7 +39,7 @@ const TeamSetting = () => {
     try {
       const token = localStorage.getItem("access_token");
       const updateResponse = await axios.put(
-        "http://localhost:8000/change_team_set",
+        `${API_BASE_URL}/change_team_set`,
         { country: selectedCountries, age: gradeLabel },
         {
           headers: { Authorization: `Bearer ${token}` },

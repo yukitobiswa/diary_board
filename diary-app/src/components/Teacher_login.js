@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-
+import { API_BASE_URL } from '../config';
 const Teacher_login = () => {
     const [password, setPassword] = useState('');
     const [success, setSuccess] = useState('');
@@ -18,7 +18,7 @@ const Teacher_login = () => {
         }
 
         // POSTリクエストを送信
-        axios.post('http://localhost:8000/teacher_login',
+        axios.post(`${API_BASE_URL}/teacher_login`,
             {password: password},
             { headers: { 'Content-Type': 'application/json' } }
         )

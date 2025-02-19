@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-
+import { API_BASE_URL } from '../config';
 const Question3 = () => {
   const { diaryId } = useParams(); // URLからdiaryIdを取得
   const [quiz, setQuiz] = useState(); // クイズデータを保存する状態
@@ -13,7 +13,7 @@ const Question3 = () => {
   const alreadyQuiz = async () => {
     try {
       const token = localStorage.getItem("access_token"); // トークンを取得
-      const response = await axios.get(`http://localhost:8000/already_quiz/${diaryId}`, {
+      const response = await axios.get(`${API_BASE_URL}/already_quiz/${diaryId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -37,7 +37,7 @@ const Question3 = () => {
       }
 
       const token = localStorage.getItem("access_token"); // トークンを取得
-      const response = await axios.get(`http://localhost:8000/get_same_quiz/${diaryId}`, {
+      const response = await axios.get(`${API_BASE_URL}/get_same_quiz/${diaryId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -80,7 +80,7 @@ const Question3 = () => {
     };
     console.log("送信するデータ:", answerData); // デバッグ用にデータを表示
     try {
-      await axios.post("http://localhost:8000/create_answer", answerData, {
+      await axios.post(`${API_BASE_URL}/create_answer`, answerData, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

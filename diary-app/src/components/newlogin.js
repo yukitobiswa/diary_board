@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../config';
 const NewRegister = () => {
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
@@ -42,7 +43,7 @@ const NewRegister = () => {
     }
   
     // POSTリクエストを送信
-    axios.post('http://localhost:8000/register', {
+    axios.post(`${API_BASE_URL}/register`, {
       user_id: userId,
       team_id: teamId,
       password: password,

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
+import { API_BASE_URL } from '../config';
 const Ranking = () => {
   const [quizRanking, setQuizRanking] = useState([]);
   const [diaryRanking, setDiaryRanking] = useState([]);
@@ -17,21 +17,21 @@ const Ranking = () => {
         const token = localStorage.getItem("access_token"); // トークンを取得
 
         // Fetch quiz ranking
-        const quizResponse = await axios.get("http://localhost:8000/get_quiz_ranking", {
+        const quizResponse = await axios.get(`${API_BASE_URL}/get_quiz_ranking`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
         // Fetch diary ranking
-        const diaryResponse = await axios.get("http://localhost:8000/get_diary_ranking", {
+        const diaryResponse = await axios.get(`${API_BASE_URL}/get_diary_ranking`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
         // Fetch combined ranking
-        const combinedResponse = await axios.get("http://localhost:8000/get_combined_ranking", {
+        const combinedResponse = await axios.get(`${API_BASE_URL}/get_combined_ranking`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

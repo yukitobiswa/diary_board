@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
+import { API_BASE_URL } from '../config';
 const Teacher_page = () => {
     const [teachers, setTeachers] = useState([]);
     const [students, setStudents] = useState([]);
@@ -13,7 +13,7 @@ const Teacher_page = () => {
         if (!tokenRef.current) return;
 
         try {
-            const response = await axios.get("http://localhost:8000/get_student_inf", {
+            const response = await axios.get(`${API_BASE_URL}/get_student_inf`, {
                 headers: {
                     Authorization: `Bearer ${tokenRef.current}`,
                 },
@@ -36,7 +36,7 @@ const Teacher_page = () => {
             }
             tokenRef.current = token;
             try {
-                const response = await axios.post("http://localhost:8000/verify_token", {}, {
+                const response = await axios.post(`${API_BASE_URL}/verify_token`, {}, {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },

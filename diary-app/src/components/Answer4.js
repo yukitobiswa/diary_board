@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { API_BASE_URL } from '../config';
 import axios from "axios";
 import JSZip from "jszip"; // jszipをインポート
 
@@ -19,7 +20,7 @@ const Answer4 = () => {
       const token = localStorage.getItem("access_token"); // トークンを取得
 
       // get_same_quiz/{diary_id} からクズを取得
-      const sameQuizResponse = await axios.get(`http://localhost:8000/get_same_quiz/${diaryId}`, {
+      const sameQuizResponse = await axios.get(`${API_BASE_URL}/get_same_quiz/${diaryId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -27,7 +28,7 @@ const Answer4 = () => {
       setSameQuiz(sameQuizResponse.data.quizzes[1]); // 最初のクイズを設定
 
       // get_different_quiz/{diary_id} からクイズを取得
-      const differentQuizResponse = await axios.get(`http://localhost:8000/get_different_quiz/${diaryId}`, {
+      const differentQuizResponse = await axios.get(`${API_BASE_URL}/get_different_quiz/${diaryId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -35,7 +36,7 @@ const Answer4 = () => {
       setDifferentQuiz(differentQuizResponse.data.quizzes[1]); // 最初のクイズを設定
 
       // get_judgement/{diary_id} から正解・不正解を取得
-      const judgementResponse = await axios.get(`http://localhost:8000/get_judgement4/${diaryId}`, {
+      const judgementResponse = await axios.get(`${API_BASE_URL}/get_judgement4/${diaryId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -54,7 +55,7 @@ const Answer4 = () => {
   const fetchAudio = async () => {
     try {
       const token = localStorage.getItem("access_token");
-      const response = await axios.get(`http://localhost:8000/get_quiz_audio4/${diaryId}`, {
+      const response = await axios.get(`${API_BASE_URL}/get_quiz_audio4/${diaryId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Confetti from "react-confetti";
-
+import { API_BASE_URL } from '../config';
 const Result = () => {
   const [correctCount, setCorrectCount] = useState(0);
   const [totalCorrectCount, setTotalCorrectCount] = useState(0);
@@ -39,7 +39,7 @@ const Result = () => {
       console.log("ローカルストレージに結果がないためAPIを呼び出します");
 
       // ローカルストレージに結果がない場合はAPIから取得
-      const response = await axios.post("http://localhost:8000/update_answer", {}, {
+      const response = await axios.post(`${API_BASE_URL}/update_answer`, {}, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -87,7 +87,7 @@ const Result = () => {
         const { correct_count, updated_answer_count, updated_title, is_title_updated } = parsedResults;
 
         const response = await axios.post(
-          "http://localhost:8000/create_answer_set", 
+          `${API_BASE_URL}/create_answer_set`, 
           { 
             correct_count, 
             updated_answer_count, 

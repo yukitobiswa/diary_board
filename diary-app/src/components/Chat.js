@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
+import { API_BASE_URL } from '../config';
 const ChatApp = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
@@ -18,7 +18,7 @@ const ChatApp = () => {
   const fetchTeamName = useCallback(async () => {
     if (!tokenRef.current) return; // トークンがない場合は終了
     try {
-      const response = await axios.get("http://localhost:8000/get_team_name", {
+      const response = await axios.get(`${API_BASE_URL}/get_team_name`, {
         headers: {
           Authorization: `Bearer ${tokenRef.current}`,
         },
@@ -32,7 +32,7 @@ const ChatApp = () => {
   const fetchDiaries = useCallback(async () => {
     if (!tokenRef.current) return;
     try {
-      const response = await axios.get("http://localhost:8000/get_diaries", {
+      const response = await axios.get(`${API_BASE_URL}/get_diaries`, {
         headers: {
           Authorization: `Bearer ${tokenRef.current}`,
         },
@@ -94,7 +94,7 @@ const ChatApp = () => {
       }
       tokenRef.current = token; // Store the token in the ref
       try {
-        const response = await axios.post("http://localhost:8000/verify_token", {}, {
+        const response = await axios.post(`${API_BASE_URL}/verify_token`, {}, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -147,7 +147,7 @@ const ChatApp = () => {
   
     try {
       const response = await axios.post(
-        "http://localhost:8000/add_reaction",
+        `${API_BASE_URL}/add_reaction`,
         payload,
         { headers: { Authorization: `Bearer ${tokenRef.current}` } }
       );
@@ -193,7 +193,7 @@ const ChatApp = () => {
       }
 
       const response = await axios.post(
-        "http://localhost:8000/verify_token",
+        `${API_BASE_URL}/verify_token`,
         {},
         {
           headers: {
@@ -248,7 +248,7 @@ const ChatApp = () => {
     setLoading(true);
     const newDiary = { title: newTitle, content: newMessage };
     try {
-      const response = await axios.post("http://localhost:8000/add_diary", newDiary, {
+      const response = await axios.post(`${API_BASE_URL}/add_diary`, newDiary, {
         headers: { Authorization: `Bearer ${tokenRef.current}` },
       });
       if (response.data.status) {
@@ -268,7 +268,7 @@ const ChatApp = () => {
   };
   const handleQuizClick = async (diaryId) => {
     try {
-      const response = await axios.get(`http://localhost:8000/get_same_quiz/${diaryId}`, {
+      const response = await axios.get(`${API_BASE_URL}/get_same_quiz/${diaryId}`, {
         headers: {
           Authorization: `Bearer ${tokenRef.current}`,
         },

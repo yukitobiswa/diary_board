@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
-
+import { API_BASE_URL } from '../config';
 const User_inf = () => {
   const [messages, setMessages] = useState([]);
   const [diaryCount, setDiaryCount] = useState(0);
@@ -29,7 +29,7 @@ const User_inf = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:8000/get_individual_diaries",
+        `${API_BASE_URL}/get_individual_diaries`,
         { user_id: user_id },
         {
           headers: {
@@ -63,7 +63,7 @@ const User_inf = () => {
   const fetchQuizData = async () => {
     if (!tokenRef.current || !user_id) return;
     try {
-      const response = await axios.post("http://localhost:8000/get_individual_quiz", {
+      const response = await axios.post(`${API_BASE_URL}/get_individual_quiz`, {
         user_id: user_id,
       },
         {
@@ -86,7 +86,7 @@ const User_inf = () => {
     if (!tokenRef.current || !user_id) return;
     try {
       // 正解数や総問題数の取得
-      const response = await axios.post("http://localhost:8000/get_individual_answer", {
+      const response = await axios.post(`${API_BASE_URL}/get_individual_answer`, {
         user_id: user_id,
       },
         {
@@ -112,7 +112,7 @@ const User_inf = () => {
       tokenRef.current = token;
       try {
         const response = await axios.post(
-          "http://localhost:8000/verify_token",
+          `${API_BASE_URL}/verify_token`,
           {},
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -148,7 +148,7 @@ const User_inf = () => {
 
     try {
       const response = await axios.put(
-        `http://localhost:8000/delete_diary/${diaryId}`,
+        `${API_BASE_URL}/delete_diary/${diaryId}`,
         {},
         {
           headers: {

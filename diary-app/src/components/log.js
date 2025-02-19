@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
+import { API_BASE_URL } from '../config';
 const HistoryPage = () => {
   const [messages, setMessages] = useState([]);
   const [diaryCount, setDiaryCount] = useState(0); // 追加: 日記の数を管理
@@ -14,7 +14,7 @@ const HistoryPage = () => {
     if (!tokenRef.current) return; // トークンがセットされていない場合は処理を終了
 
     try {
-      const response = await axios.get("http://localhost:8000/get_my_diary", {
+      const response = await axios.get(`${API_BASE_URL}/get_my_diary`, {
         headers: {
           Authorization: `Bearer ${tokenRef.current}`, // トークンをヘッダーに含める
         },
@@ -53,7 +53,7 @@ const HistoryPage = () => {
       }
       tokenRef.current = token;
       try {
-        const response = await axios.post("http://localhost:8000/verify_token", {}, {
+        const response = await axios.post(`${API_BASE_URL}/verify_token`, {}, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -88,7 +88,7 @@ const HistoryPage = () => {
     try {
       // ゴミ箱アイコンがクリックされた時にAPIを呼び出す
       const response = await axios.put(
-        `http://localhost:8000/delete_diary/${diaryId}`,  // diary_id を URL に含める
+        `${API_BASE_URL}/delete_diary/${diaryId}`,  // diary_id を URL に含める
         {},
         {
           headers: {

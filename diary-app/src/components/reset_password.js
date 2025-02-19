@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-
+import { API_BASE_URL } from '../config';
 const ResetPassword = () => {
   const [teamId, setTeamId] = useState('');
   const [userId, setUserId] = useState('');
@@ -46,7 +46,7 @@ const ResetPassword = () => {
     }
   
     try {
-      const response = await axios.put('http://localhost:8000/reset_password', {
+      const response = await axios.put(`${API_BASE_URL}/reset_password`, {
         team_id: teamId,
         user_id: userId,
         new_password: newPassword,

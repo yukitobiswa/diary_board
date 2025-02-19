@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-
+import { API_BASE_URL } from '../config';
 const Question1 = () => {
   const { diaryId } = useParams();
   const [quiz, setQuiz] = useState(null);
@@ -15,7 +15,7 @@ const Question1 = () => {
   const alreadyQuiz = async () => {
     try {
       const token = localStorage.getItem("access_token");
-      const response = await axios.get(`http://localhost:8000/already_quiz/${diaryId}`, {
+      const response = await axios.get(`${API_BASE_URL}/already_quiz/${diaryId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       return response.data.already;
@@ -43,7 +43,7 @@ const Question1 = () => {
       }
 
       const token = localStorage.getItem("access_token");
-      const response = await axios.get(`http://localhost:8000/get_same_quiz/${diaryId}`, {
+      const response = await axios.get(`${API_BASE_URL}/get_same_quiz/${diaryId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -84,7 +84,7 @@ const Question1 = () => {
     };
 
     try {
-      await axios.post("http://localhost:8000/create_answer", answerData, {
+      await axios.post(`${API_BASE_URL}/create_answer`, answerData, {
         headers: { Authorization: `Bearer ${token}` },
       });
       return true;

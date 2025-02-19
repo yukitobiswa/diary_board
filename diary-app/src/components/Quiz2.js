@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-
+import { API_BASE_URL } from '../config';
 const Quiz2 = () => {
   const [categories, setCategories] = useState([
     { id: 1, label: "Q1 : " },
@@ -30,7 +30,7 @@ const Quiz2 = () => {
           return;
         }
 
-        const response = await axios.get("http://localhost:8000/get_quizzes", {
+        const response = await axios.get(`${API_BASE_URL}/get_quizzes`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -88,7 +88,7 @@ const Quiz2 = () => {
       }
 
       const response = await axios.post(
-        "http://localhost:8000/save_quiz",
+        `${API_BASE_URL}/save_quiz`,
         selectedQuizzes,
         {
           headers: {

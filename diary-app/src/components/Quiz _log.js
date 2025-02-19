@@ -1,4 +1,4 @@
-// 
+import { API_BASE_URL } from '../config';
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -20,7 +20,7 @@ const QuizHistoryPage = () => {
   const fetchQuizData = async () => {
     try {
       // クイズ履歴の取得
-      const response = await axios.get("http://localhost:8000/get_answer_quiz", {
+      const response = await axios.get(`${API_BASE_URL}/get_answer_quiz`, {
         headers: {
           Authorization: `Bearer ${tokenRef.current}`,
         },
@@ -38,7 +38,7 @@ const QuizHistoryPage = () => {
   const fetchTotalAnswerData = async () => {
     try {
       // 正解数や総問題数の取得
-      const response = await axios.get("http://localhost:8000/get_total_answer", {
+      const response = await axios.get(`${API_BASE_URL}/get_total_answer`, {
         headers: {
           Authorization: `Bearer ${tokenRef.current}`,
         },
@@ -61,7 +61,7 @@ const QuizHistoryPage = () => {
       tokenRef.current = token;
       try {
         const response = await axios.post(
-          "http://localhost:8000/verify_token",
+          `${API_BASE_URL}/verify_token`,
           {},
           { headers: { Authorization: `Bearer ${token}` } }
         );

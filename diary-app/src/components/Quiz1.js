@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
+import { API_BASE_URL } from '../config';
 const QuizCategorySelector = () => {
   const categories = [
     { id: 1, label: "culture(ぶんか)" },
@@ -55,7 +55,7 @@ const QuizCategorySelector = () => {
       }
 
       const response = await axios.post(
-        "http://localhost:8000/generate_quiz",
+        `${API_BASE_URL}/generate_quiz`,
         newQuizRequest,
         {
           headers: {

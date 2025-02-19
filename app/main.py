@@ -51,9 +51,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 #ドッカー使用時
-DATABASE_URL = "mysql+pymysql://user:6213ryoy@mysql:3306/demo"
+# DATABASE_URL = "mysql+pymysql://user:6213ryoy@mysql:3306/demo"
 #ローカル使用時
-# DATABASE_URL = "mysql+pymysql://root:6213ryoy@127.0.0.1/exam"
+DATABASE_URL = "mysql+pymysql://root:6213ryoy@127.0.0.1/exam"
 
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

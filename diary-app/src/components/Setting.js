@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
+import { API_BASE_URL } from '../config';
 const Setting = () => {
   const [username, setUsername] = useState("");
   const [language, setLanguage] = useState("");
@@ -26,7 +26,7 @@ const Setting = () => {
     const fetchUserProfile = async () => {
       try {
         const token = localStorage.getItem("access_token");
-        const response = await axios.get("http://localhost:8000/get_profile", {
+        const response = await axios.get(`${API_BASE_URL}/get_profile`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -59,7 +59,7 @@ const Setting = () => {
   const updateProfile = async () => {
     try {
       const token = localStorage.getItem("access_token");
-      const response = await axios.get("http://localhost:8000/get_profile", {
+      const response = await axios.get(`${API_BASE_URL}/get_profile`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -73,7 +73,7 @@ const Setting = () => {
       };
 
       const updateResponse = await axios.put(
-        "http://localhost:8000/change_profile",
+        `${API_BASE_URL}/change_profile`,
         updatedData,
         {
           headers: {

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-
+import { API_BASE_URL } from '../config';
 // This is the AddCourse component for adding a new course
 const Login = () => {
   const[teamId,setTeamId] = useState('')
@@ -21,7 +21,7 @@ const Login = () => {
 
     // This is to make a POST request to add the new course
 
-    axios.post('http://localhost:8000/token', 
+    axios.post(`${API_BASE_URL}/token`, 
       new URLSearchParams({
         team_id: teamId,
         username: userId,
