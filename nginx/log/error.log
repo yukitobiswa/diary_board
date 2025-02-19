@@ -41,3 +41,6 @@
 2025/02/15 21:28:25 [error] 30#30: *55 directory index of "/usr/share/nginx/html/" is forbidden, client: 127.0.0.1, server: , request: "GET / HTTP/1.1", host: "localhost"
 2025/02/15 21:28:32 [error] 30#30: *57 directory index of "/usr/share/nginx/html/" is forbidden, client: 172.19.0.1, server: , request: "GET / HTTP/1.1", host: "localhost"
 2025/02/15 21:28:55 [error] 30#30: *58 directory index of "/usr/share/nginx/html/" is forbidden, client: 127.0.0.1, server: , request: "GET / HTTP/1.1", host: "localhost"
+2025/02/19 10:53:06 [error] 29#29: *127 directory index of "/usr/share/nginx/html/" is forbidden, client: 127.0.0.1, server: , request: "GET / HTTP/1.1", host: "localhost"
+2025/02/19 10:53:36 [error] 29#29: *128 directory index of "/usr/share/nginx/html/" is forbidden, client: 127.0.0.1, server: , request: "GET / HTTP/1.1", host: "localhost"
+2025/02/19 10:54:06 [error] 29#29: *129 directory index of "/usr/share/nginx/html/" is forbidden, client: 127.0.0.1, server: , request: "GET / HTTP/1.1", host: "localhost"
