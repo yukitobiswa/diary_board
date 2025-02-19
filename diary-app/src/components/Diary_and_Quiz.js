@@ -143,7 +143,7 @@ const User_inf = () => {
 
   const deleteDiary = async (diaryId) => {
     if (!tokenRef.current) return;
-    const confirmDelete = window.confirm("本当にこの日記を削除しますか？");
+    const confirmDelete = window.confirm("本当にこの日記を消しますか？");
     if (!confirmDelete) return;
 
     try {

@@ -62,7 +62,10 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 app = FastAPI()
 logger = logging.getLogger(__name__)
 origins = [
-   "http://localhost", "http://localhost:3000"
+    "http://localhost",
+    "http://localhost:3000",
+    "https://si-lab.org",
+    "https://si-lab.org/diaryboard"
 ]
 
 app.add_middleware(
