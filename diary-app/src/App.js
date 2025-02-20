@@ -35,8 +35,8 @@ function App() {
   return (
     <Router basename="/diaryboard">
       <Routes>
-        {/* 初期ページを /diaryboard/StartPage にリダイレクト */}
-        <Route path="/" element={<Navigate to="/diaryboard/StartPage" replace />} />
+        {/* 初期ページを /StartPage にリダイレクト */}
+        <Route path="/" element={<Navigate to="/StartPage" replace />} />
 
         <Route path="/StartPage" element={<StartPage />} />
         <Route path="/login" element={<Login />} />

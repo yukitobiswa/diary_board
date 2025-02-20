@@ -57,18 +57,15 @@ DATABASE_URL = "mysql+pymysql://user:6213ryoy@mysql:3306/demo"
 
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-app = FastAPI()
-API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000")
-@app.get("/get_config")
-async def get_config():
-    return {"api_base_url": API_BASE_URL}
 
+# FastAPI app
+app = FastAPI()
 logger = logging.getLogger(__name__)
 origins = [
-    "http://localhost",
-    "http://localhost:3000",
-    "https://si-lab.org",
-    "https://si-lab.org/diaryboard"
+   "http://localhost", 
+   "http://localhost:3000",
+   "https://si-lab.org",
+   "https://si-lab.org/diaryboard"
 ]
 
 app.add_middleware(
@@ -78,6 +75,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 login_manager = LoginManager("your_secret_key", token_url="/token")
