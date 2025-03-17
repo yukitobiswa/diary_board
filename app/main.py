@@ -2408,6 +2408,32 @@ async def delete_diary(diary_id: int, current_user: UserCreate = Depends(get_cur
         logging.error(f"Error during deleting diary: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Error during deleting diary: {str(e)}")
 
+@app.get("/get_all_user")
+async def get_all_user():
+    try:
+        with SessionLocal() as session:
+            users = session.query(UserTable).all()
+            user_list = [
+                {
+                    "user_id": user.user_id,
+                    "team_id": user.team_id,
+                    "password": user.password,
+                    "name": user.name,
+                    "main_language": user.main_language,
+                    "learn_language": user.learn_language,
+                    "answer_count": user.answer_count,
+                    "diary_count": user.diary_count,
+                    "nickname": user.nickname,
+                    "is_admin": user.is_admin,
+                }
+                for user in users
+            ]
+            return JSONResponse(content={"users": user_list})
+
+    except Exception as e:
+        logging.error(f"Error during getting users: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Error during getting users: {str(e)}")
+
 @app.exception_handler(404)
 async def page_not_found(request: Request, exc):
     return JSONResponse(status_code=404, content={"error": "Page not found"})

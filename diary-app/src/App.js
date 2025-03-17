@@ -23,57 +23,53 @@ import StartPage from './components/StartPage';
 import Ranking from './components/Ranking';
 import Quiz_log from './components/Quiz _log';
 import Teacher_login from './components/Teacher_login';
-import Teacher_startpage from './components/Teacher_startpage';
-import Teacher_newlogin from './components/Teacher_newlogin';
-import Teacher_page from './components/Teacher_page';
-import Diary_and_Quiz from './components/Diary_and_Quiz';
+import Teacher_startpage from './components/Teacher_startpage'
+import Teacher_newlogin from './components/Teacher_newlogin'
+import Teacher_page from './components/Teacher_page'
+import Diary_and_Quiz from './components/Diary_and_Quiz'
 import TeamSetting from './components/team_set';
 import ResetPassword from './components/reset_password';
-
-// Main App Component
+import Member from './components/member';
+// This is a main App component
 function App() {
   return (
-    <Router basename="/diaryboard">
-      <Routes>
-        {/* 初期ページを /StartPage にリダイレクト */}
-        <Route path="/" element={<Navigate to="/StartPage" replace />} />
-
-        <Route path="/StartPage" element={<StartPage />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/newlogin" element={<NewLogin />} />
-        <Route path="/Chat" element={<ChatApp />} />
-        <Route path="/Quiz1" element={<Quiz1 />} />
-        <Route path="/Quiz2" element={<Quiz2 />} />
-        
-        {/* Quiz & Questions */}
-        <Route path="/Question1/:diaryId" element={<Question1 />} />
-        <Route path="/Question2/:diaryId" element={<Question2 />} />
-        <Route path="/Question3/:diaryId" element={<Question3 />} />
-        <Route path="/Question4/:diaryId" element={<Question4 />} />
-        <Route path="/Question5/:diaryId" element={<Question5 />} />
-
-        {/* Answers */}
-        <Route path="/Answer1/:diaryId" element={<Answer1 />} />
-        <Route path="/Answer2/:diaryId" element={<Answer2 />} />
-        <Route path="/Answer3/:diaryId" element={<Answer3 />} />
-        <Route path="/Answer4/:diaryId" element={<Answer4 />} />
-        <Route path="/Answer5/:diaryId" element={<Answer5 />} />
-
-        {/* その他のページ */}
-        <Route path="/log" element={<Log />} />
-        <Route path="/Result" element={<Result />} />
-        <Route path="/Setting" element={<Setting />} />
-        <Route path="/register" element={<Group />} />
-        <Route path="/Ranking" element={<Ranking />} />
-        <Route path="/Quiz_Log" element={<Quiz_log />} />
-        <Route path="/Teacher_login" element={<Teacher_login />} />
-        <Route path="/Teacher_startpage" element={<Teacher_startpage />} />
-        <Route path="/Teacher_newlogin" element={<Teacher_newlogin />} />
-        <Route path="/Teacher_page" element={<Teacher_page />} />
-        <Route path="/Diary_and_Quiz/:user_id" element={<Diary_and_Quiz />} />
-        <Route path="/reset_password" element={<ResetPassword />} />
-        <Route path="/team_set" element={<TeamSetting />} />
-      </Routes>
+    <Router>
+      <div>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<Navigate to="StartPage" />} />
+          <Route path="/newlogin" element={<NewLogin />} />
+          <Route path="/Chat" element={<ChatApp />} />
+          <Route path="/Quiz1" element={<Quiz1 />} />
+          <Route path="/Quiz2" element={<Quiz2 />} />
+          <Route path="/Question1/:diaryId" element={<Question1 />} /> {/* diaryIdを受け取るように変更 */}
+          <Route path="/Question2/:diaryId" element={<Question2 />} />
+          <Route path="/Question3/:diaryId" element={<Question3 />} />
+          <Route path="/Question4/:diaryId" element={<Question4 />} />
+          <Route path="/Question5/:diaryId" element={<Question5 />} />
+          <Route path="/Answer1/:diaryId" element={<Answer1 />} />
+          <Route path="/Answer2/:diaryId" element={<Answer2 />} />
+          <Route path="/Answer3/:diaryId" element={<Answer3 />} />
+          <Route path="/Answer4/:diaryId" element={<Answer4 />} />
+          <Route path="/Answer5/:diaryId" element={<Answer5 />} />
+          <Route path="/log" element={<Log />} />
+          <Route path="/Result/:diaryId" element={<Result />} />
+          <Route path="/Setting" element={<Setting />} />
+          <Route path="/register" element={<Group />} />
+          <Route path="/StartPage" element={<StartPage />} />
+          <Route path="/Ranking" element={<Ranking/>}/>
+          <Route path='/Quiz_Log' element={<Quiz_log/>} />
+          <Route path='/Teacher_login' element={<Teacher_login/>} />
+          <Route path='/Teacher_startpage' element={<Teacher_startpage/>} />
+          <Route path='/Teacher_newlogin' element={<Teacher_newlogin/>} />
+          <Route path='/Teacher_page' element={<Teacher_page/>} />
+          <Route path='/Diary_and_Quiz/:user_id' element={<Diary_and_Quiz/>} />
+          <Route path="/StartPage" element={<StartPage />} />
+          <Route path="/reset_password" element={<ResetPassword />} />
+          <Route path="/team_set" element={<TeamSetting />} />
+          <Route path="/member" element={<Member />} />
+        </Routes>
+      </div>
     </Router>
   );
 }
