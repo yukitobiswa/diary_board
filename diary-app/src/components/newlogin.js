@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { API_BASE_URL } from '../config';
 const NewRegister = () => {
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
@@ -54,7 +53,7 @@ const NewRegister = () => {
     .then(response => {
       setSuccess('OK! ユーザー登録が完了しました！');
       setError('');
-      navigate('/'); // 登録成功後の遷移先
+      navigate('/teacher_startpage'); // 登録成功後の遷移先
     })
     .catch(error => {
       console.error('Registration error:', error);  // エラーの詳細をコンソールに表示
@@ -75,11 +74,11 @@ const NewRegister = () => {
   
 
   const handleGoBack = () => {
-    navigate("/startpage"); // 新規登録画面に遷移
+    navigate("/Teacher_startpage"); // 新規登録画面に遷移
   };
   return (
     <div className="container add-course" style={{ maxWidth: "400px", margin: "0 auto", padding: "20px" }}>
-      <h1 style={{ textAlign: "center" }}>Create a New Account✨</h1>
+      <h1 style={{ textAlign: "center" }}>Create Student✨</h1>
       <form onSubmit={handleRegister} style={{ backgroundColor: "#F9F9F9", padding: "20px", borderRadius: "8px" }}>
         <div style={{ marginBottom: "15px" }}>
           <label>User ID:</label>

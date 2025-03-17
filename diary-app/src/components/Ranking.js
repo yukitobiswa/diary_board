@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { API_BASE_URL } from '../config';
+
 const Ranking = () => {
   const [quizRanking, setQuizRanking] = useState([]);
   const [diaryRanking, setDiaryRanking] = useState([]);

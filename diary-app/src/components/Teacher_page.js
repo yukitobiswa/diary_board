@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { API_BASE_URL } from '../config';
+
 const Teacher_page = () => {
     const [teachers, setTeachers] = useState([]);
     const [students, setStudents] = useState([]);

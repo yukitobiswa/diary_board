@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { API_BASE_URL } from '../config';
+
 const Quiz2 = () => {
   const [categories, setCategories] = useState([
     { id: 1, label: "Q1 : " },
@@ -15,10 +15,11 @@ const Quiz2 = () => {
     { id: 9, label: "Q9 : " },
     { id: 10, label: "Q10 : " },
   ]);
-  
+
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [error, setError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [progress, setProgress] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,13 +32,10 @@ const Quiz2 = () => {
         }
 
         const response = await axios.get(`${API_BASE_URL}/get_quizzes`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         const quizzes = response.data.quizzes;
-
         const updatedCategories = categories.map((category, index) => {
           if (quizzes[index]) {
             category.label = `Q${index + 1}: ${quizzes[index].question}`;
@@ -75,9 +73,20 @@ const Quiz2 = () => {
     }
 
     setIsSaving(true);
-    const selectedQuizzes = {
-      selected_quizzes: selectedCategories,
-    };
+    setProgress(0);
+
+    const interval = setInterval(() => {
+      setProgress((prevProgress) => {
+        if (prevProgress >= 100) {
+          clearInterval(interval);
+          return 100;
+        }
+        return prevProgress + 4; // 約25秒で100%に到達
+      });
+    }, 1000);
+    
+
+    const selectedQuizzes = { selected_quizzes: selectedCategories };
 
     try {
       const token = localStorage.getItem("access_token");
@@ -113,32 +122,32 @@ const Quiz2 = () => {
     <div
       style={{
         border: "1px solid #ccc",
-        padding: "40px",
-        width: "800px",
+        padding: "30px",
+        width: "90%",
+        maxWidth: "400px",
         margin: "50px auto",
         borderRadius: "10px",
         boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
         textAlign: "center",
       }}
     >
-      <h1 style={{ fontSize: "24px", marginBottom: "20px" }}>Quiz Select</h1>
-      <p style={{ fontSize: "16px", color: "#555" }}>Please select 5 quizzez</p>
-      <div style={{ margin: "20px 0", display: "flex", flexDirection: "column", alignItems: "center" }}>
+      <h1 style={{ fontSize: "20px", marginBottom: "15px" }}>Quiz Select</h1>
+      <p style={{ fontSize: "14px", color: "#555" }}>Please select 5 quizzes</p>
+      <div style={{ margin: "20px 0" }}>
         {categories.map((category) => (
           <button
             key={category.id}
             onClick={() => handleSelect(category.id)}
             style={{
               display: "block",
-              margin: "10px 0",
-              padding: "15px",
-              width: "150%",
-              maxWidth: "600px",
+              margin: "5px 0",
+              padding: "10px",
+              width: "100%",
               backgroundColor: selectedCategories.includes(category.id) ? "#FFA500" : "#FFF",
               border: "2px solid #FFA500",
               borderRadius: "8px",
               color: selectedCategories.includes(category.id) ? "#FFF" : "#FFA500",
-              fontSize: "16px",
+              fontSize: "14px",
               cursor: "pointer",
               transition: "background-color 0.3s, color 0.3s",
             }}
@@ -147,8 +156,13 @@ const Quiz2 = () => {
           </button>
         ))}
       </div>
+      {isSaving && (
+        <div style={{ margin: "20px 0", width: "100%", height: "10px", backgroundColor: "#ccc" }}>
+          <div style={{ width: `${progress}%`, height: "100%", backgroundColor: "#4CAF50", transition: "width 1s" }}></div>
+        </div>
+      )}
       {error && (
-        <p style={{ textAlign: "center", color: "#FF0000", marginTop: "20px", fontSize: "14px" }}>
+        <p style={{ textAlign: "center", color: "#FF0000", marginTop: "15px", fontSize: "12px" }}>
           {error}
         </p>
       )}
@@ -157,12 +171,12 @@ const Quiz2 = () => {
         disabled={isSaving}
         style={{
           marginTop: "20px",
-          padding: "15px 30px",
+          padding: "10px 20px",
           backgroundColor: isSaving ? "#ccc" : "#4CAF50",
           color: "#FFF",
           border: "none",
           borderRadius: "8px",
-          fontSize: "18px",
+          fontSize: "16px",
           cursor: isSaving ? "not-allowed" : "pointer",
           transition: "background-color 0.3s",
         }}
@@ -173,4 +187,4 @@ const Quiz2 = () => {
   );
 };
 
-export default Quiz2; 
+export default Quiz2;

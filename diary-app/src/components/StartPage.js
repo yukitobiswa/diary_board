@@ -1,4 +1,3 @@
-import { API_BASE_URL } from '../config';
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -10,14 +9,12 @@ const StartPage = () => {
   const [teamError, setTeamError] = useState('');
   const [userError, setUserError] = useState('');
   const [passwordError, setPasswordError] = useState('');
-  const [forgotPassword, setForgotPassword] = useState(false); // 🔹 パスワード再設定リンクを表示するための状態
+  const [forgotPassword, setForgotPassword] = useState(false);
   const [success, setSuccess] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // エラーリセット
     setTeamError('');
     setUserError('');
     setPasswordError('');
@@ -51,7 +48,7 @@ const StartPage = () => {
       if (response.data.access_token) {
         localStorage.setItem('access_token', response.data.access_token);
         setSuccess('Login successfully!');
-        navigate('/Chat'); // 成功したらチャットページへ
+        navigate('/Chat');
       } else {
         setUserError('Login failed: ユーザーIDまたはパスワードが違います。');
       }
@@ -59,14 +56,13 @@ const StartPage = () => {
       if (error.response) {
         const status = error.response.status;
         const errorMessage = error.response.data.detail;
-
         if (status === 400) {
           setTeamError(errorMessage);
         } else if (status === 401) {
           setUserError(errorMessage);
         } else if (status === 403) {
           setPasswordError(errorMessage);
-          setForgotPassword(true); // 🔹 パスワードリセットを表示する
+          setForgotPassword(true);
         } else {
           setUserError('Login failed: ログインに失敗しました。');
         }
@@ -79,66 +75,64 @@ const StartPage = () => {
   return (
     <div
       style={{
-        border: "1px solid #ccc",
-        padding: "40px",
-        width: "500px",
-        margin: "50px auto",
+        padding: "30px 20px",
+        maxWidth: "400px",
+        margin: "20px auto",
         borderRadius: "10px",
-        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
         textAlign: "center",
         backgroundColor: "#FFF",
       }}
     >
-      <h1 style={{ fontSize: "24px", marginBottom: "20px", color: "#333" }}>Diary Board</h1>
+      <h1 style={{ fontSize: "22px", marginBottom: "20px", color: "#333" }}>Diary Board</h1>
       <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: "20px" }}>
-          <label style={{ fontSize: "16px", display: "block", marginBottom: "8px", color: "#555" }}>Team ID:</label>
+        <div style={{ marginBottom: "15px" }}>
+          <label style={{ fontSize: "14px", display: "block", marginBottom: "5px", color: "#555" }}>Team ID:</label>
           <input
             type="text"
             value={teamId}
             onChange={(e) => setTeamId(e.target.value)}
             style={{
-              width: "100%",
-              padding: "10px",
+              width: "90%",
+              padding: "12px",
               border: "1px solid #ccc",
               borderRadius: "5px",
               fontSize: "16px",
             }}
           />
-          {teamError && <p style={{ color: "red", fontSize: "14px" }}>{teamError}</p>}
+          {teamError && <p style={{ color: "red", fontSize: "12px" }}>{teamError}</p>}
         </div>
-        <div style={{ marginBottom: "20px" }}>
-          <label style={{ fontSize: "16px", display: "block", marginBottom: "8px", color: "#555" }}>User ID:</label>
+        <div style={{ marginBottom: "15px" }}>
+          <label style={{ fontSize: "14px", display: "block", marginBottom: "5px", color: "#555" }}>User ID:</label>
           <input
             type="text"
             value={userId}
             onChange={(e) => setUserId(e.target.value)}
             style={{
-              width: "100%",
-              padding: "10px",
+              width: "90%",
+              padding: "12px",
               border: "1px solid #ccc",
               borderRadius: "5px",
               fontSize: "16px",
             }}
           />
-          {userError && <p style={{ color: "red", fontSize: "14px" }}>{userError}</p>}
+          {userError && <p style={{ color: "red", fontSize: "12px" }}>{userError}</p>}
         </div>
-        <div style={{ marginBottom: "20px" }}>
-          <label style={{ fontSize: "16px", display: "block", marginBottom: "8px", color: "#555" }}>Password:</label>
+        <div style={{ marginBottom: "15px" }}>
+          <label style={{ fontSize: "14px", display: "block", marginBottom: "5px", color: "#555" }}>Password:</label>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             style={{
-              width: "100%",
-              padding: "10px",
+              width: "90%",
+              padding: "12px",
               border: "1px solid #ccc",
               borderRadius: "5px",
               fontSize: "16px",
             }}
           />
-          {passwordError && <p style={{ color: "red", fontSize: "14px" }}>{passwordError}</p>}
-          {/* 🔹 パスワード再設定リンク */}
+          {passwordError && <p style={{ color: "red", fontSize: "12px" }}>{passwordError}</p>}
           {forgotPassword && (
             <p>
               <button
@@ -149,7 +143,7 @@ const StartPage = () => {
                   color: "blue",
                   cursor: "pointer",
                   textDecoration: "underline",
-                  fontSize: "14px",
+                  fontSize: "12px",
                   marginTop: "5px",
                 }}
               >
@@ -159,58 +153,36 @@ const StartPage = () => {
           )}
         </div>
         <button
-            onClick={() => navigate('/newlogin')}
-            style={{
-              padding: "15px 30px",
-              backgroundColor: "#FFA500",
-              color: "#FFF",
-              border: "none",
-              borderRadius: "8px",
-              fontSize: "20px",
-              cursor: "pointer",
-              transition: "background-color 0.3s",
-              flex: "1",
-              margin: "0 5px",
-            }}
-          >
-            New！🆕
-          </button>
-          <button
-            type="submit"
-            style={{
-              padding: "15px 30px",
-              backgroundColor: "#4CAF50",
-              color: "#FFF",
-              border: "none",
-              borderRadius: "8px",
-              fontSize: "20px",
-              cursor: "pointer",
-              transition: "background-color 0.3s",
-              flex: "1",
-              margin: "0 5px",
-            }}
-          >
-            Go！🚀
-          </button>
-          <button
-            onClick={() => navigate('/Teacher_login')}
-            style={{
-              padding: "15px 30px",
-              backgroundColor: "#FFA500",
-              color: "#FFF",
-              border: "none",
-              borderRadius: "8px",
-              fontSize: "20px",
-              cursor: "pointer",
-              transition: "background-color 0.3s",
-              flex: "1",
-              margin: "0 5px",
-            }}
-          >
-            Teacher👨‍🏫
-          </button>
+          type="submit"
+          style={{
+            padding: "30px",
+            backgroundColor: "#FFA500",
+            color: "#FFF",
+            border: "none",
+            borderRadius: "8px",
+            fontSize: "30px",
+            cursor: "pointer",
+          }}
+        >
+          Go！🚀
+        </button>
       </form>
-      {success && <p style={{ color: "green", marginTop: "20px" }}>{success}</p>}
+      <button
+        onClick={() => navigate('/Teacher_login')}
+        style={{
+          marginTop: "20px",
+          padding: "5px",
+          backgroundColor: "#4CAF50",
+          color: "#FFF",
+          border: "none",
+          borderRadius: "8px",
+          fontSize: "18px",
+          cursor: "pointer",
+        }}
+      >
+        Administrator⚙️
+      </button>
+      {success && <p style={{ color: "green", marginTop: "20px", fontSize: "14px" }}>{success}</p>}
     </div>
   );
 };

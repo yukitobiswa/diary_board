@@ -1,57 +1,32 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import { API_BASE_URL } from '../config';
+import Confetti from "react-confetti";
+
 const Question5 = () => {
-  const { diaryId } = useParams(); // URLからdiaryIdを取得
-  const [quiz, setQuiz] = useState(); // クイズデータを保存する状態
+  const { diaryId } = useParams();
+  const [quiz, setQuiz] = useState();
   const [selectedOption, setSelectedOption] = useState(null);
   const [selectAnswer, setSelectAnswer] = useState(null);
+  const [showPopup, setShowPopup] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
   const navigate = useNavigate();
 
-  // クイズが既に回答済みかを確認する関数
-  const alreadyQuiz = async () => {
-    try {
-      const token = localStorage.getItem("access_token"); // トークンを取得
-      const response = await axios.get(`${API_BASE_URL}/already_quiz/${diaryId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      console.log("Already quiz response:", response.data);
-      return response.data.already; // true なら既に回答済み、false なら未回答
-    } catch (err) {
-      console.error("既存クイズ確認エラー:", err);
-      return true; // エラーの場合、既に回答済みと見なす
-    }
-  };
-
-  // クイズを取得する関数
   const fetchQuiz = async () => {
     try {
-      const already = await alreadyQuiz(); // クイズが既に回答済みか確認
-      if (already) {
-        alert("This quiz is already answered : このクイズは既に回答済みです。"); // 既に回答済みの場合はアラートを表示
-        navigate("/Chat"); // ホーム画面など適切なページへリダイレクト
-        return;
-      }
-
-      const token = localStorage.getItem("access_token"); // トークンを取得
+      const token = localStorage.getItem("access_token");
       const response = await axios.get(`${API_BASE_URL}/get_same_quiz/${diaryId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-      console.log(response); // デバッグ用にレスポンスを表示
+      console.log("クイズ取得レスポンス:", response.data);
 
       const quizzes = response.data.quizzes;
-
-      // quiz_id をソートして2番目に小さいクイズを取得
-      if (response.data.quizzes && response.data.quizzes.length > 1) {
-        const sortedQuizzes = response.data.quizzes.sort((a, b) => a.quiz_id - b.quiz_id);
-        setQuiz(sortedQuizzes[4]); // 5番目に小さい quiz_id のクイズを設定
+      if (quizzes && quizzes.length > 4) {
+        const sortedQuizzes = quizzes.sort((a, b) => a.quiz_id - b.quiz_id);
+        console.log("選ばれたクイズ:", sortedQuizzes[4]);
+        setQuiz(sortedQuizzes[4]);
       } else {
-        console.error("クイズが2問以上存在しません");
+        console.error("クイズが5問以上存在しません");
       }
     } catch (err) {
       console.error("クイズ取得エラー:", err);
@@ -63,47 +38,72 @@ const Question5 = () => {
   }, [diaryId]);
 
   const handleOptionChange = (key) => {
-    setSelectedOption(key); // 選択肢を状態にセット
+    console.log(`選択された選択肢: ${key}`);
+    setSelectedOption(key);
     setSelectAnswer(key);
   };
 
   const submitAnswer = async () => {
     if (selectAnswer == null) {
-      alert("Please select an answer : 答えを選択してください。"); // 選択されていない場合はアラートを表示
-      return false; // 選択されていない場合はfalseを返す
+      alert("Please select an answer. : 答えを選択してください。");
+      return false;
     }
+  
     const token = localStorage.getItem("access_token");
     const answerData = {
       quiz_id: quiz.quiz_id,
       diary_id: quiz.diary_id,
       choices: selectAnswer,
     };
-    console.log("送信するデータ:", answerData); // デバッグ用にデータを表示
+  
     try {
-      await axios.post(`${API_BASE_URL}/create_answer`, answerData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const response = await axios.post(`${API_BASE_URL}/create_answer`, answerData, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-      console.log("答えが正常に送信されました");
-      return true; // 成功した場合はtrueを返す
+      console.log("クイズ回答レスポンス:", response.data);
+  
+      if (response.data.is_title_updated) {
+        setNewTitle(response.data.updated_title);
+        setShowPopup(true);  // ✅ showPopupを即座にtrueにする
+        console.log("✅ showPopupの状態 (setShowPopupの後):", true);
+        console.log("ポップアップが表示されるはずです");
+      } else {
+        console.log("❌ 称号更新はありませんでした");
+      }
+  
+      return true;
     } catch (err) {
-      console.error("クイズの送信エラー:", err);
-      return false; // エラーが発生した場合はfalseを返す
+      console.error("ERROR:", err);
+      return false;
     }
   };
-
+  
+  useEffect(() => {
+    if (showPopup) {
+      console.log("🌟 showPopup 状態が true になりました。ポップアップを表示します。");
+    }
+  }, [showPopup]);
+  
   const handleSubmit = async () => {
     const success = await submitAnswer();
     if (success) {
-      navigate(`/Answer5/${quiz.diary_id}`, { state: { selectedOption } }); // 選択されたオプションに基づいて次の画面へ遷移
+      console.log("✅ クイズ回答が成功しました");
+      setTimeout(() => {
+        navigate(`/Answer5/${quiz.diary_id}`, { state: { selectedOption } });
+      }, 5000);  // ✅ ポップアップが出るので3秒遅延が適切
     } else {
-      alert("Please select an answer : 答えを選択してください。"); // 選択されていない場合はアラートを表示
+      console.log("❌ クイズ回答が失敗しました");
+      alert("Please select an answer. : 答えを選択してください。");
     }
   };
+  
+
+  useEffect(() => {
+    console.log("🌟 showPopup 状態の変更が検出されました →", showPopup);
+  }, [showPopup]);
 
   if (!quiz) {
-    return <div>Loading...</div>; // クイズデータが取得されるまでローディング表示
+    return <div>Loading...</div>;
   }
 
   return (
@@ -117,7 +117,7 @@ const Question5 = () => {
               id={`option-${index}`}
               name="quiz"
               value={option}
-              onChange={() => handleOptionChange(key)} // オプション変更時に状態を更新
+              onChange={() => handleOptionChange(key)}
             />
             <label htmlFor={`option-${index}`} style={styles.label}>
               {key.toUpperCase()}. {option}
@@ -128,6 +128,31 @@ const Question5 = () => {
       <button onClick={handleSubmit} style={styles.submitButton}>
         Answer✅
       </button>
+
+      {showPopup && (
+        <>
+          <Confetti
+            width={window.innerWidth}
+            height={window.innerHeight}
+            numberOfPieces={400}
+            recycle={false}
+          />
+          <div style={styles.popupOverlay} onClick={() => setShowPopup(false)}>
+            <div style={styles.popupContent} onClick={(e) => e.stopPropagation()}>
+              <h2 style={styles.celebrationText}>🎉 おめでとうございます！ 🎉</h2>
+              <p style={styles.newTitleText}>
+                <span role="img" aria-label="star">⭐</span>
+                新しい称号を獲得しました！  
+                <strong style={styles.newTitle}>{newTitle}</strong>
+                <span role="img" aria-label="star">⭐</span>  
+              </p>
+              <button style={styles.submitButton} onClick={() => setShowPopup(false)}>
+                閉じる
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };
@@ -153,19 +178,38 @@ const styles = {
   label: {
     marginLeft: "10px",
     flexGrow: 1,
-    color: "#333", // ラベルの色
+    color: "#333",
   },
   submitButton: {
     marginTop: "30px",
-    backgroundColor: "#FFA500", // 緑色のボタン
+    backgroundColor: "#FFA500",
     color: "#fff",
     border: "none",
     padding: "15px 30px",
     borderRadius: "10px",
     cursor: "pointer",
     fontSize: "16px",
-    transition: "background-color 0.3s", // ホバー時の変化を滑らかに
+    transition: "background-color 0.3s",
+  },
+  popupOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1000,
+  },
+  popupContent: {
+    background: "#fff",
+    color: "#333",
+    padding: "30px",
+    borderRadius: "10px",
+    textAlign: "center",
+    zIndex: 1001,
   },
 };
-
 export default Question5;

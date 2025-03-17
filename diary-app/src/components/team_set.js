@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { API_BASE_URL } from '../config';
+
 const TeamSetting = () => {
   const [selectedCountries, setSelectedCountries] = useState([]);
   const [age, setAge] = useState("1"); // 初期値: 小学1年生

@@ -1,51 +1,39 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { API_BASE_URL } from '../config'; 
 import axios from "axios";
-import JSZip from "jszip"; // jszipをインポート
+import JSZip from "jszip";
 
-const Answer3 = () => {
-  const { diaryId } = useParams(); // URLからdiaryIdを取得
-  const [sameQuiz, setSameQuiz] = useState(); // get_same_quiz のデータを保存する状態
-  const [differentQuiz, setDifferentQuiz] = useState(); // get_different_quiz のデータを保存する状態
-  const [judgement, setJudgement] = useState(null); // 正解・不正解を保存する状態
-  const [selectedChoice, setSelectedChoice] = useState(null); // ユーザーの選択を保存
-  const [correctChoice, setCorrectChoice] = useState(null); // 正解の選択肢を保存
-  const [audioFiles, setAudioFiles] = useState([]); // 音声ファイルを保存する状態
+const Answer3= () => {
+  const { diaryId } = useParams();
+  const [sameQuiz, setSameQuiz] = useState();
+  const [differentQuiz, setDifferentQuiz] = useState();
+  const [judgement, setJudgement] = useState(null);
+  const [selectedChoice, setSelectedChoice] = useState(null);
+  const [correctChoice, setCorrectChoice] = useState(null);
+  const [audioFiles, setAudioFiles] = useState([]);
   const navigate = useNavigate();
 
-  // クイズとジャッジメントを取得する関数
   const fetchQuizzes = async () => {
     try {
-      const token = localStorage.getItem("access_token"); // トークンを取得
+      const token = localStorage.getItem("access_token");
 
-      // get_same_quiz/{diary_id} からクズを取得
       const sameQuizResponse = await axios.get(`${API_BASE_URL}/get_same_quiz/${diaryId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-      setSameQuiz(sameQuizResponse.data.quizzes[2]); // 最初のクイズを設定
+      setSameQuiz(sameQuizResponse.data.quizzes[2]);
 
-      // get_different_quiz/{diary_id} からクイズを取得
       const differentQuizResponse = await axios.get(`${API_BASE_URL}/get_different_quiz/${diaryId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-      setDifferentQuiz(differentQuizResponse.data.quizzes[2]); // 最初のクイズを設定
+      setDifferentQuiz(differentQuizResponse.data.quizzes[2]);
 
-      // get_judgement/{diary_id} から正解・不正解を取得
       const judgementResponse = await axios.get(`${API_BASE_URL}/get_judgement3/${diaryId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-      setJudgement(judgementResponse.data.judgement); // ジャッジメントの結果を保存
-      setSelectedChoice(judgementResponse.data.selected_choice); // 選択した選択肢を保存
-      setCorrectChoice(judgementResponse.data.correct_choice); // 正解の選択肢を保存
+      setJudgement(judgementResponse.data.judgement);
+      setSelectedChoice(judgementResponse.data.selected_choice);
+      setCorrectChoice(judgementResponse.data.correct_choice);
 
-      // 音声ファイルを取得
       await fetchAudio();
     } catch (err) {
       console.error("ERROR", err);
@@ -56,27 +44,20 @@ const Answer3 = () => {
     try {
       const token = localStorage.getItem("access_token");
       const response = await axios.get(`${API_BASE_URL}/get_quiz_audio3/${diaryId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        responseType: "arraybuffer", // バイナリデータを受け取る
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: "arraybuffer",
       });
-      // ZIPファイルを解凍
+
       const zip = await JSZip.loadAsync(response.data);
       const audioFilePromises = [];
-      // 音声ファイルのPromiseを配列に格納
       zip.forEach((relativePath, file) => {
         const filePromise = file.async("blob").then((blob) => {
-          return {
-            name: relativePath,
-            url: URL.createObjectURL(blob),
-          };
+          return { name: relativePath, url: URL.createObjectURL(blob) };
         });
         audioFilePromises.push(filePromise);
       });
-      // すべての音声ファイルの読み込みが終わるのを待つ
+
       const audioFilesArray = await Promise.all(audioFilePromises);
-      // 音声ファイルをセット
       setAudioFiles(audioFilesArray);
     } catch (err) {
       console.error("ERROR", err);
@@ -88,46 +69,37 @@ const Answer3 = () => {
   }, [diaryId]);
 
   const handleSubmit = () => {
-    navigate(`/Question4/${diaryId}`); // 次の画面に遷移
+    navigate(`/Question4/${diaryId}`);
   };
 
-  // クイズデータがまだ読み込まれていない場合、ローディングを表示
   if (!sameQuiz || !differentQuiz || audioFiles.length === 0) {
     return <div>Loading...</div>;
   }
 
- // 2つの選択肢を交互に表示する処理
- const mergedChoices = [];
- const sameChoices = Object.entries(sameQuiz.choices);
- const differentChoices = Object.entries(differentQuiz.choices);
- const maxLength = Math.max(sameChoices.length, differentChoices.length);
+  const mergedChoices = [];
+  const sameChoices = Object.entries(sameQuiz.choices);
+  const differentChoices = Object.entries(differentQuiz.choices);
+  const maxLength = Math.max(sameChoices.length, differentChoices.length);
 
- for (let i = 0; i < maxLength; i++) {
-   if (i < sameChoices.length) mergedChoices.push({ key: sameChoices[i][0], text: sameChoices[i][1], type: "same" });
-   if (i < differentChoices.length) mergedChoices.push({ key: differentChoices[i][0], text: differentChoices[i][1], type: "different" });
- }
+  for (let i = 0; i < maxLength; i++) {
+    if (i < sameChoices.length) mergedChoices.push({ key: sameChoices[i][0], text: sameChoices[i][1], type: "same" });
+    if (i < differentChoices.length) mergedChoices.push({ key: differentChoices[i][0], text: differentChoices[i][1], type: "different" });
+  }
 
   const getChoiceStyle = (choice) => {
     if (selectedChoice && correctChoice) {
       if (selectedChoice.toUpperCase() === choice.key.toUpperCase()) {
-        return { backgroundColor: "#4CAF50", color: "#fff" }; // ユーザーの選択肢を緑に
+        return { backgroundColor: "#4CAF50", color: "#fff" };
       }
       if (choice.key.toUpperCase() === correctChoice.toUpperCase()) {
-        return { backgroundColor: "#F44336", color: "#fff" }; // 正解の選択肢を赤に
+        return { backgroundColor: "#F44336", color: "#fff" };
       }
     }
-    return {}; // その他の選択肢は変更なし
+    return {};
   };
 
   const playAudio = (choiceKey) => {
-    const audioName = `${choiceKey}.mp3`; // a, b, c, d に変更
-    console.log(`再生する音声ファイル名: ${audioName}`); // 再生するファイル名を確認
-    console.log("選択されたオプションのキー:", choiceKey);  // choiceKey が正しいか確認
-    console.log("生成された音声ファイル名:", audioName);  // 正しいファイル名が生成されているか確認
-
-    // audioFiles 配列の中身を確認
-    console.log(audioFiles); 
-  
+    const audioName = `${choiceKey}.mp3`;
     const file = audioFiles.find(file => file.name === audioName);
     if (file) {
       const audio = new Audio(file.url);
@@ -140,11 +112,15 @@ const Answer3 = () => {
   return (
     <div style={styles.container}>
       {judgement !== null && (
-        <div style={styles.judgement}>
-          <h3>{judgement ? "O" : "X"}</h3>
+        <div
+          style={{
+            ...styles.judgement,
+            color: "#fff",
+          }}
+        >
+          <h2>{judgement ? "⭕" : "❌"}</h2>
         </div>
       )}
-      {/* sameQuizが表示される部分 */}
       {sameQuiz && (
         <h3>Q3 <u>{sameQuiz.question}</u></h3>
       )}
@@ -156,14 +132,21 @@ const Answer3 = () => {
               ...styles.option,
               ...getChoiceStyle(choice),
             }}
-            onClick={() => playAudio(choice.key)} // 音声を再生
           >
             <p>{choice.key.toUpperCase()}. {choice.text}</p>
+            {index % 2 === 1 && (
+              <button
+                onClick={(e) => { e.stopPropagation(); playAudio(choice.key); }}
+                style={styles.audioButton}
+              >
+                Voice 🗣️
+              </button>
+            )}
           </div>
         ))}
       </div>
       {selectedChoice && (
-        <div style={styles.result}>
+        <div style={styles.resultBox}>
           <p><strong>Your Select:</strong> {selectedChoice.toUpperCase()}</p>
           <p><strong>Correct:</strong> {correctChoice}</p>
         </div>
@@ -191,23 +174,39 @@ const styles = {
   option: {
     marginBottom: "15px",
     padding: "10px",
-    cursor: "pointer",
     border: "1px solid #ccc",
     borderRadius: "5px",
     transition: "background-color 0.3s ease",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  audioButton: {
+    marginLeft: "10px",
+    padding: "5px 10px",
+    border: "none",
+    borderRadius: "5px",
+    backgroundColor: "#FFA500",
+    color: "#fff",
+    cursor: "pointer",
+    fontSize: "14px",
   },
   judgement: {
     textAlign: "center",
     fontSize: "24px",
-    color: "#4CAF50",
     fontWeight: "bold",
+    padding: "15px",
+    borderRadius: "10px",
+    marginBottom: "20px",
   },
-  result: {
+  resultBox: {
     marginTop: "20px",
-    padding: "10px",
+    padding: "15px",
     border: "1px solid #ccc",
     borderRadius: "5px",
     backgroundColor: "#E0F7FA",
+    textAlign: "center",
+    fontWeight: "bold",
   },
   submitButton: {
     marginTop: "30px",

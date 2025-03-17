@@ -1,3 +1,4 @@
+
 from fastapi import FastAPI, Depends, HTTPException, Request, Form, status
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordBearer
@@ -110,6 +111,7 @@ TitleTable = Base.classes.title if "title" in Base.classes else None
 SECRET_KEY = "your_secret_key"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
 
 # パスワードの検証関数
 def verify_password(plain_password, hashed_password):
@@ -693,12 +695,13 @@ async def add_diary(diary: DiaryCreate, current_user: UserCreate = Depends(get_c
             logging.error(f"Error in counting words: {e}")
             raise HTTPException(status_code=500, detail="文字数カウント中にエラーが発生しました。")
 
-        # 悪口や文字数不足の場合の処理
-        if complaining in {1, 2} or wordcount < 200:
+            # 悪口や文字数不足の場合の処理
+        if complaining in {1, 2} or wordcount < 100:
             return {
                 "status": False,
-                "message": "There might be bad words, or the text is less than 200 words : 悪口が含まれている可能性があるか、文字数が200文字に達していません。書き直してください。"
+                "message": f"There might be bad words, or the text is less than 100 words : 悪口が含まれている可能性があるか、文字数が100文字に達していません。書き直してください。 現在の文字数: {wordcount}"
             }
+
 
         try:
             # 日記を保存
@@ -756,7 +759,8 @@ async def get_team_name(current_user: UserCreate = Depends(get_current_active_us
         team = session.query(TeamTable).filter(TeamTable.team_id == current_user.team_id).first()
         if not team:
             raise HTTPException(status_code=404, detail="Team not found")
-        return {"team_name": team.team_name}
+        return {"team_name": team.team_name,
+                "user_name": current_user.name}
     
 @app.get("/get_diaries")
 async def get_diaries(current_user: UserCreate = Depends(get_current_active_user)):
@@ -874,11 +878,10 @@ async def get_my_diary(current_user: UserCreate = Depends(get_current_active_use
             for row in result
         ],
     })
-
 @app.post("/get_individual_diaries")
 async def get_individual_diaries(request: UserRequest, current_user: UserCreate = Depends(get_current_active_user)):
     """
-    指定されたユーザーの日記を取得する。
+    指定されたユーザーの日記と関連するクイズを取得する。
     """
     user_id = request.user_id
     team_id = current_user.team_id
@@ -894,35 +897,152 @@ async def get_individual_diaries(request: UserRequest, current_user: UserCreate 
                 MDiaryTable.content,
                 MDiaryTable.diary_time,
             )
-            .join(DiaryTable, MDiaryTable.diary_id == DiaryTable.diary_id)  # multilingual_diary と diary を結合
-            .join(UserTable, (UserTable.user_id == MDiaryTable.user_id) & (UserTable.team_id == MDiaryTable.team_id))  # user と multilingual_diary を結合
-            .filter(UserTable.team_id == team_id)  # チーム ID でフィルタ
-            .filter(UserTable.user_id == user_id)  # 指定ユーザーでフィルタ
-            .filter(MDiaryTable.language_id == main_language)  # main_language でフィルタ
-            .filter(MDiaryTable.is_visible == 1)  # multilingual_diary の可視性チェック
-            .filter(DiaryTable.is_visible == 1)  # diary の可視性チェック
-            .order_by(MDiaryTable.diary_time.asc())  # 日記の時間で並び替え
+            .join(DiaryTable, MDiaryTable.diary_id == DiaryTable.diary_id)
+            .join(UserTable, (UserTable.user_id == MDiaryTable.user_id) & (UserTable.team_id == MDiaryTable.team_id))
+            .filter(UserTable.team_id == team_id)
+            .filter(UserTable.user_id == user_id)
+            .filter(MDiaryTable.language_id == main_language)
+            .filter(MDiaryTable.is_visible == 1)
+            .filter(DiaryTable.is_visible == 1)
+            .order_by(MDiaryTable.diary_time.asc())
             .all()
         )
 
-    if not result:
-        return JSONResponse(content={"error": "No diaries found"}, status_code=404)
+        if not result:
+            return JSONResponse(content={"error": "No diaries found"}, status_code=404)
 
-    return JSONResponse(content={
-        "team_id": team_id,
-        "diary_count": result[0].diary_count,  # ユーザーの日記数
-        "diaries": [
-            {
+        # 各日記に関連するクイズを取得
+        diaries_with_quizzes = []
+        for row in result:
+            quizzes = (
+                session.query(
+                    MQuizTable.quiz_id,
+                    MQuizTable.diary_id,
+                    MQuizTable.language_id,
+                    MQuizTable.question,
+                    MQuizTable.correct,
+                    MQuizTable.a,
+                    MQuizTable.b,
+                    MQuizTable.c,
+                    MQuizTable.d
+                )
+                .filter(MQuizTable.language_id == main_language)
+                .filter(MQuizTable.diary_id == row.diary_id)
+                .all()
+            )
+
+            diary_data = {
                 "user_name": row.user_name,
                 "diary_id": row.diary_id,
                 "title": row.title,
                 "content": row.content,
                 "diary_time": row.diary_time.strftime('%Y-%m-%d %H:%M:%S'),
+                "quizzes": [
+                    {
+                        "quiz_id": quiz.quiz_id,
+                        "diary_id": quiz.diary_id,
+                        "language_id": quiz.language_id,
+                        "question": quiz.question,
+                        "correct": quiz.correct,
+                        "a": quiz.a,
+                        "b": quiz.b,
+                        "c": quiz.c,
+                        "d": quiz.d,
+                    }
+                    for quiz in quizzes
+                ],
             }
-            for row in result
-        ],
+
+            diaries_with_quizzes.append(diary_data)
+
+    return JSONResponse(content={
+        "team_id": team_id,
+        "diary_count": result[0].diary_count,  # ユーザーの日記数
+        "diaries": diaries_with_quizzes,
     })
-    
+# @app.post("/get_individual_diaries")
+# async def get_individual_diaries(request: UserRequest, current_user: UserCreate = Depends(get_current_active_user)):
+#     """
+#     指定されたユーザーの日記と関連するクイズを取得する。
+#     """
+#     user_id = request.user_id
+#     team_id = current_user.team_id
+#     main_language = current_user.main_language
+
+#     with SessionLocal() as session:
+#         result = (
+#             session.query(
+#                 UserTable.name.label("user_name"),  # ユーザー名
+#                 UserTable.diary_count,  # ユーザーの日記数
+#                 MDiaryTable.diary_id,
+#                 MDiaryTable.title,
+#                 MDiaryTable.content,
+#                 MDiaryTable.diary_time,
+#             )
+#             .join(DiaryTable, MDiaryTable.diary_id == DiaryTable.diary_id)
+#             .join(UserTable, (UserTable.user_id == MDiaryTable.user_id) & (UserTable.team_id == MDiaryTable.team_id))
+#             .filter(UserTable.team_id == team_id)
+#             .filter(UserTable.user_id == user_id)
+#             .filter(MDiaryTable.language_id == main_language)
+#             .filter(MDiaryTable.is_visible == 1)
+#             .filter(DiaryTable.is_visible == 1)
+#             .order_by(MDiaryTable.diary_time.asc())
+#             .all()
+#         )
+
+#         if not result:
+#             return JSONResponse(content={"error": "No diaries found"}, status_code=404)
+
+#         # 各日記に関連するクイズを取得
+#         diaries_with_quizzes = []
+#         for row in result:
+#             quizzes = (
+#                 session.query(
+#                     MQuizTable.quiz_id,
+#                     MQuizTable.diary_id,
+#                     MQuizTable.language_id,
+#                     MQuizTable.question,
+#                     MQuizTable.correct,
+#                     MQuizTable.a,
+#                     MQuizTable.b,
+#                     MQuizTable.c,
+#                     MQuizTable.d
+#                 )
+#                 .filter(MQuizTable.language_id == main_language)
+#                 .filter(MQuizTable.diary_id == row.diary_id)
+#                 .all()
+#             )
+
+#             diary_data = {
+#                 "user_name": row.user_name,
+#                 "diary_id": row.diary_id,
+#                 "title": row.title,
+#                 "content": row.content,
+#                 "diary_time": row.diary_time.strftime('%Y-%m-%d %H:%M:%S'),
+#                 "quizzes": [
+#                     {
+#                         "quiz_id": quiz.quiz_id,
+#                         "diary_id": quiz.diary_id,
+#                         "language_id": quiz.language_id,
+#                         "question": quiz.question,
+#                         "correct": quiz.correct,
+#                         "a": quiz.a,
+#                         "b": quiz.b,
+#                         "c": quiz.c,
+#                         "d": quiz.d,
+#                     }
+#                     for quiz in quizzes
+#                 ],
+#             }
+
+#             diaries_with_quizzes.append(diary_data)
+
+#     return JSONResponse(content={
+#         "team_id": team_id,
+#         "diary_count": result[0].diary_count,  # ユーザーの日記数
+#         "diaries": diaries_with_quizzes,
+#     })
+
 @app.get("/get_quizzes")
 async def get_quizzes(current_user: UserCreate = Depends(get_current_active_user)):
     try:
@@ -1610,24 +1730,38 @@ answer_dic = {
     "c" : 3,
     "d" : 4
 }
+
 @app.post("/create_answer")
-async def create_answer(answer : AnswerCreate, current_user : UserCreate = Depends(get_current_active_user)):
+async def create_answer(answer: AnswerCreate, current_user: UserCreate = Depends(get_current_active_user)):
     try:
         answer_time = datetime.now()  # 現在時刻を取得
+        print(f"[INFO] 現在時刻: {answer_time}")
+
         with SessionLocal() as session:
-            quiz = session.query(QuizTable).filter(QuizTable.diary_id == answer.diary_id,QuizTable.quiz_id == answer.quiz_id).first()
+            quiz = session.query(QuizTable).filter(
+                QuizTable.diary_id == answer.diary_id,
+                QuizTable.quiz_id == answer.quiz_id
+            ).first()
+
             if not quiz:
+                print(f"[ERROR] Quiz with id {answer.quiz_id} not found.")
                 raise HTTPException(
                     status_code=404, 
                     detail=f"Quiz with id {answer.quiz_id} not found."
                 )
-            if quiz.correct == str(answer_dic[answer.choices]):
-                judgement = 1
+
+            print(f"[INFO] クイズの正解: {quiz.correct}, 選択した回答: {answer_dic[answer.choices]}")
+
+            # 正解判定
+            judgement = 1 if quiz.correct == str(answer_dic[answer.choices]) else 0
+            if judgement == 1:
+                print(f"[INFO] 正解です！")
             else:
-                judgement = 0
-                
+                print(f"[INFO] 不正解です...")
+
+            # 回答データの追加
             new_answer = AnswerTable(
-                team_id = current_user.team_id,
+                team_id=current_user.team_id,
                 user_id=current_user.user_id,
                 quiz_id=answer.quiz_id,
                 diary_id=answer.diary_id,
@@ -1637,42 +1771,65 @@ async def create_answer(answer : AnswerCreate, current_user : UserCreate = Depen
                 judgement=judgement
             )
             session.add(new_answer)
+
+            # ユーザー情報の取得
+            db_user = session.query(UserTable).filter(
+                UserTable.user_id == current_user.user_id,
+                UserTable.team_id == current_user.team_id
+            ).first()
+
+            is_title_updated = False  # 新しい称号が更新されたかのフラグ
+            updated_title = ""  # 新しい称号名
+
+            if db_user:
+                print(f"[INFO] 現在のユーザーの回答数: {db_user.answer_count}")
+
+                # ✅ `current_nickname` を最初に定義
+                current_nickname = db_user.nickname if isinstance(db_user.nickname, int) else 0
+                print(f"[INFO] 現在の称号レベル: {current_nickname}")
+
+                # ✅ 正解した場合のみ `answer_count` を更新
+                if judgement == 1:
+                    db_user.answer_count += 1
+                    print(f"[INFO] 更新後の正解数: {db_user.answer_count}")
+
+                    # 称号更新ロジック
+                    thresholds = [0, 5, 10, 15, 100, 150, 300, 500, 700, 1000, 1500]
+                    current_threshold = thresholds[current_nickname] if current_nickname < len(thresholds) else float('inf')
+                    print(f"[INFO] 次の称号の閾値: {current_threshold}")
+
+                    if db_user.answer_count >= current_threshold:
+                        db_user.nickname = current_nickname + 1
+                        print(f"[INFO] 称号が {db_user.nickname} に更新されました！")
+                        is_title_updated = True  # ✅ 新しい称号が更新されたと記録
+
+                session.add(db_user)
+
+            # すべての変更をまとめてコミット
             session.commit()
-            logging.info(f"Answer created successfully for user_id: {current_user.user_id}")
-        return JSONResponse({"message": "Answer Created Successfully!"})
+
+            if db_user:
+                session.refresh(db_user)
+                print(f"[INFO] 最新の正解数: {db_user.answer_count}")
+                print(f"[INFO] 最新の称号レベル: {db_user.nickname}")
+
+                nickname = session.query(TitleTable).filter(
+                    TitleTable.title_id == db_user.nickname,
+                    TitleTable.language_id == current_user.main_language
+                ).first()
+
+                updated_title = nickname.title_name if nickname else "Unknown Title"
+
+        return JSONResponse({
+            "message": "Answer Created Successfully!",
+            "is_title_updated": is_title_updated,
+            "updated_title": updated_title
+        })
 
     except Exception as e:
+        print(f"[ERROR] Error during creating answer: {str(e)}")
         logging.error(f"Error during creating answer: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Error during creating answer: {str(e)}")
-
-@app.get("/already_quiz/{diary_id}")
-async def already_quiz(
-    diary_id: int,
-    current_user: UserCreate = Depends(get_current_active_user)
-):
-    """
-    Check if the quiz for the given diary_id has already been answered by the user.
-    Return true if 6 or more answers exist for the given diary_id.
-    """
-    try:
-        with SessionLocal() as session:
-            team_id = current_user.team_id
-            user = session.query(UserTable).filter(UserTable.team_id == team_id,
-                                                      UserTable.user_id == current_user.user_id).first()
-            # ユーザーIDと日記IDに基づき、AnswerTableをクエリ
-            answer_count = session.query(AnswerTable).filter(
-                AnswerTable.user_id == user.user_id,
-                AnswerTable.diary_id == diary_id
-            ).count()  # 回答数をカウント
-            if answer_count >= 5:
-                # 5つ以上の回答がある場合
-                return {"already": True}
-            else:
-                # 5つ未満の場合
-                return {"already": False}
-    except Exception as e:
-        # エラー発生時にログを出力し、HTTP 500 エラーを返す
-        raise HTTPException(status_code=500, detail=f"Error checking quiz status: {str(e)}")
 
 @app.get("/get_answer")
 async def get_answer(current_user: UserCreate = Depends(get_current_active_user)):
@@ -1703,138 +1860,286 @@ async def get_answer(current_user: UserCreate = Depends(get_current_active_user)
 @app.get("/get_answer_quiz")
 async def get_answer_quiz(current_user: UserCreate = Depends(get_current_active_user)):
     try:
+        userId = current_user.user_id
+        print(f"✅ userId の値 → {current_user.user_id}")
+        print(f"✅ current_user のデータ → user_id: {current_user.user_id}, team_id: {current_user.team_id}")
+
+        set_results = {}
+
         with SessionLocal() as session:
-            results = session.query(AnswerTable).filter(AnswerTable.user_id == current_user.user_id).filter(AnswerTable.team_id == current_user.team_id) \
-                .order_by(AnswerTable.answer_date.asc()).all()
+            # ✅ 回答データを降順で取得 (最新のものが上に)
+            answer_result = session.query(AnswerTable).filter(
+                AnswerTable.user_id == userId,
+                AnswerTable.team_id == current_user.team_id
+            ).order_by(AnswerTable.answer_date.asc()).all()
 
-            set_answer = []
-            temp_set = []
-            set_num = 1
+            print(f"✅ answer_result のデータ (取得数: {len(answer_result)}件) → {answer_result}")
 
-            for i, answer in enumerate(results):
-                quiz_result = session.query(MQuizTable).filter(MQuizTable.diary_id == answer.diary_id, MQuizTable.quiz_id == answer.quiz_id, MQuizTable.language_id == current_user.main_language).first()
-                
-                if quiz_result is None:
-                    continue  # もしクイズ結果が見つからなければスキップする
-                
-                temp_set.append({
-                    'user_id': answer.user_id,
-                    'quiz_id': answer.quiz_id,
-                    'diary_id': answer.diary_id,
-                    'answer_date': answer.answer_date.strftime('%Y-%m-%d %H:%M:%S'),
-                    "choice":answer.choices,
-                    'judgement': answer.judgement,
-                    'question': quiz_result.question,
-                    'choices': {
-                        "a": quiz_result.a,
-                        "b": quiz_result.b,
-                        "c": quiz_result.c,
-                        "d": quiz_result.d,
-                        "correct": quiz_result.correct
-                    }
-                })
-                first_answer_date = None  # セットの最初の回答日を記録
-                if len(temp_set) == 5 or i == len(results) - 1:
-                    if not first_answer_date:
-                        first_answer_date = answer.answer_date.strftime('%Y-%m-%d %H:%M:%S')
-                
-                    set_result = session.query(ASetTable).filter(ASetTable.user_id == current_user.user_id, ASetTable.team_id == current_user.team_id,ASetTable.diary_id == answer.diary_id).first()
-                    set_title = session.query(MDiaryTable).filter(MDiaryTable.diary_id == answer.diary_id, MDiaryTable.language_id == current_user.main_language).first()
-                    
-                    if set_title is None:
-                        continue  # set_titleが見つからない場合スキップする
-                    
-                    set_name = session.query(UserTable).filter(UserTable.name == set_title.user_id, UserTable.team_id == current_user.team_id).first()
-                    
-                    if set_name is None:
-                        continue  # set_nameが見つからない場合スキップする
-                    
-                    set_result = {
+            for answer in answer_result:
+                # ✅ クイズIDとdiary_idの両方を条件にして取得
+                quiz = session.query(MQuizTable).filter(
+                    MQuizTable.quiz_id == answer.quiz_id,
+                    MQuizTable.diary_id == answer.diary_id  # ✅ diary_idも条件に追加
+                ).first()
+
+                if not quiz:
+                    print(f"❌ クイズが見つからない (quiz_id: {answer.quiz_id}, diary_id: {answer.diary_id})")
+                    continue  
+
+                first_answer_date = answer.answer_date.strftime('%Y-%m-%d %H:%M:%S')
+
+                # ✅ 日記タイトルの取得
+                set_title = session.query(MDiaryTable).filter(
+                    MDiaryTable.diary_id == answer.diary_id,
+                    MDiaryTable.language_id == current_user.main_language
+                ).first()
+
+                if set_title is None:
+                    print(f"❌ 日記が見つからない (diary_id: {answer.diary_id})")
+                    continue  
+
+                # ✅ 回答者名の取得
+                set_name = session.query(UserTable).filter(
+                    UserTable.user_id == set_title.user_id,
+                    UserTable.team_id == current_user.team_id
+                ).first()
+
+                if set_name is None:
+                    print(f"❌ ユーザーが見つからない (user_id: {set_title.user_id})")
+                    continue
+
+                # ✅ `diary_id` ごとにまとめる処理
+                if answer.diary_id not in set_results:
+                    set_results[answer.diary_id] = {
                         "title": set_title.title,
                         "name": set_name.name,
-                        "correct_set": set_result.correct_set if set_result else 0,
                         "answer_date": first_answer_date,
-                        "questions": temp_set,
+                        "questions": []
                     }
-                    set_answer.append({set_num: set_result})
-                    set_num += 1
-                    temp_set = []
 
-        return JSONResponse(content={
-            "correct_count": set_answer,
-        })
+                # ✅ クイズデータを `questions` 配列に追加
+                set_results[answer.diary_id]["questions"].append({
+                    'quiz_id': answer.quiz_id,
+                    'question': quiz.question,
+                    'a': quiz.a,
+                    'b': quiz.b,
+                    'c': quiz.c,
+                    'd': quiz.d,
+                    'correct': quiz.correct,
+                    'choice': answer.choices  # ユーザーの選択肢
+                })
+
+        print(f"✅ 最終的な set_results → {set_results}")
+        return JSONResponse(content={"correct_count": set_results})
 
     except Exception as e:
         logging.error(f"Error during getting answers: {str(e)}")
+        print(f"❌ エラー発生: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Error during getting answers: {str(e)}")
 
+@app.get("/already_quiz/{diary_id}")
+async def already_quiz(
+    diary_id: int,
+    current_user: UserCreate = Depends(get_current_active_user)
+):
+    """
+    Check if the first quiz for the given diary_id has already been answered by the user.
+    Return true if the first quiz entry exists in the AnswerTable.
+    """
+    try:
+        with SessionLocal() as session:
+            # その日記IDの最初のクイズを取得
+            first_quiz = session.query(QuizTable).filter(
+                QuizTable.diary_id == diary_id
+            ).order_by(QuizTable.quiz_id).first()
+
+            if not first_quiz:
+                print("[INFO] No quiz found for the given diary_id")
+                return {"already": False}
+
+            print(f"[INFO] First Quiz Info: {first_quiz.question}")
+
+            # その1問目が解かれているか確認 (team_idの条件を追加)
+            first_quiz_answered = session.query(AnswerTable).filter(
+                AnswerTable.user_id == current_user.user_id,
+                AnswerTable.team_id == current_user.team_id,  # team_id の追加
+                AnswerTable.diary_id == diary_id,             # diary_id の追加
+                AnswerTable.quiz_id == first_quiz.quiz_id
+            ).first()
+
+            print(f"[INFO] First Quiz Answered Info: {first_quiz_answered}")
+
+            return {"already": bool(first_quiz_answered)}
+
+    except Exception as e:
+        print(f"[ERROR] Error occurred: {e}")
+        raise HTTPException(status_code=500, detail=f"Error checking quiz status: {str(e)}")
+
+
+# @app.post("/get_individual_quiz")
+# async def get_individual_quiz(request: UserRequest, current_user: UserCreate = Depends(get_current_active_user)):
+#     try:
+#         userId = request.user_id
+#         set_results = {}
+#         set_num = 0
+
+#         with SessionLocal() as session:
+#             # 日記を取得
+#             answer_result = session.query(AnswerTable).filter(
+#                 AnswerTable.user_id == userId, 
+#                 AnswerTable.team_id == current_user.team_id, 
+#                 AnswerTable.language_id == current_user.main_language
+#             ).all()
+
+#             for answer in answer_result:
+#                 set_answer = []
+#                 # 日記IDからクイズを取得
+#                 quiz_result = session.query(MQuizTable).filter(
+#                     MQuizTable.diary_id == answer.diary_id,
+#                     MQuizTable.language_id == current_user.main_language
+#                 ).all()
+
+#                 # クイズを1つずつ辞書に追加
+#                 for quiz in quiz_result:
+#                     first_answer_date = None
+#                     answer = session.query(AnswerTable).filter(
+#                         AnswerTable.user_id == userId,
+#                         AnswerTable.team_id == current_user.team_id,
+#                         AnswerTable.quiz_id == quiz.quiz_id
+#                     ).first()
+
+#                     if not answer:
+#                         continue
+
+#                     first_answer_date = answer.answer_date.strftime('%Y-%m-%d %H:%M:%S')
+
+#                     set_title = session.query(MDiaryTable).filter(
+#                         MDiaryTable.diary_id == answer.diary_id, 
+#                         MDiaryTable.language_id == current_user.main_language
+#                     ).first()
+
+#                     if set_title is None:
+#                         continue
+
+#                     set_name = session.query(UserTable).filter(
+#                         UserTable.name == set_title.user_id,
+#                         UserTable.team_id == current_user.team_id
+#                     ).first()
+
+#                     if set_name is None:
+#                         continue
+
+#                     set_result = {
+#                         "title": set_title.title,
+#                         "name": set_name.name,
+#                         "answer_date": first_answer_date,
+#                         "questions": {
+#                             'user_id': answer.user_id,
+#                             'quiz_id': answer.quiz_id,
+#                             'diary_id': answer.diary_id,
+#                             'answer_date': first_answer_date,
+#                             "choice": answer.choices,
+#                             'judgement': answer.judgement,
+#                             'question': quiz.question,
+#                             'choices': {
+#                                 "a": quiz.a,
+#                                 "b": quiz.b,
+#                                 "c": quiz.c,
+#                                 "d": quiz.d,
+#                                 "correct": quiz.correct
+#                             }
+#                         },
+#                     }
+#                     set_answer.append(set_result)
+
+#                 if set_answer:
+#                     set_results[set_num] = set_answer
+#                     set_num += 1
+
+#         return JSONResponse(content={"correct_count": set_results})
+
+#     except Exception as e:
+#         logging.error(f"Error during getting answers: {str(e)}")
+#         raise HTTPException(status_code=400, detail=f"Error during getting answers: {str(e)}")
+
 @app.post("/get_individual_quiz")
-async def get_answer_quiz(request: UserRequest, current_user: UserCreate = Depends(get_current_active_user)):
+async def get_individual_quiz(request: UserRequest, current_user: UserCreate = Depends(get_current_active_user)):
     try:
         userId = request.user_id
+        print(f"✅ userId の値 → {request.user_id}")
+        print(f"✅ current_user のデータ → user_id: {current_user.user_id}, team_id: {current_user.team_id}")
+
+        set_results = {}
+
         with SessionLocal() as session:
-            results = session.query(AnswerTable).filter(AnswerTable.user_id == userId).filter(AnswerTable.team_id == current_user.team_id) \
-                .order_by(AnswerTable.answer_date.asc()).all()
+            # ✅ 回答データを降順で取得 (最新のものが上に)
+            answer_result = session.query(AnswerTable).filter(
+                AnswerTable.user_id == userId,
+                AnswerTable.team_id == current_user.team_id
+            ).order_by(AnswerTable.answer_date.asc()).all()
 
-            set_answer = []
-            temp_set = []
-            set_num = 1
+            print(f"✅ answer_result のデータ (取得数: {len(answer_result)}件) → {answer_result}")
 
-            for i, answer in enumerate(results):
-                quiz_result = session.query(MQuizTable).filter(MQuizTable.diary_id == answer.diary_id, MQuizTable.quiz_id == answer.quiz_id, MQuizTable.language_id == current_user.main_language).first()
-                
-                if quiz_result is None:
-                    continue  # もしクイズ結果が見つからなければスキップする
-                
-                temp_set.append({
-                    'user_id': answer.user_id,
-                    'quiz_id': answer.quiz_id,
-                    'diary_id': answer.diary_id,
-                    'answer_date': answer.answer_date.strftime('%Y-%m-%d %H:%M:%S'),
-                    "choice":answer.choices,
-                    'judgement': answer.judgement,
-                    'question': quiz_result.question,
-                    'choices': {
-                        "a": quiz_result.a,
-                        "b": quiz_result.b,
-                        "c": quiz_result.c,
-                        "d": quiz_result.d,
-                        "correct": quiz_result.correct
-                    }
-                })
-                first_answer_date = None  # セットの最初の回答日を記録
-                if len(temp_set) == 5 or i == len(results) - 1:
-                    if not first_answer_date:
-                        first_answer_date = answer.answer_date.strftime('%Y-%m-%d %H:%M:%S')
-                
-                    set_result = session.query(ASetTable).filter(ASetTable.user_id == userId, ASetTable.team_id == current_user.team_id,ASetTable.diary_id == answer.diary_id).first()
-                    set_title = session.query(MDiaryTable).filter(MDiaryTable.diary_id == answer.diary_id, MDiaryTable.language_id == current_user.main_language).first()
-                    
-                    if set_title is None:
-                        continue  # set_titleが見つからない場合スキップする
-                    
-                    set_name = session.query(UserTable).filter(UserTable.name == set_title.user_id, UserTable.team_id == current_user.team_id).first()
-                    
-                    if set_name is None:
-                        continue  # set_nameが見つからない場合スキップする
-                    
-                    set_result = {
+            for answer in answer_result:
+                # ✅ クイズIDとdiary_idの両方を条件にして取得
+                quiz = session.query(MQuizTable).filter(
+                    MQuizTable.quiz_id == answer.quiz_id,
+                    MQuizTable.diary_id == answer.diary_id  # ✅ diary_idも条件に追加
+                ).first()
+
+                if not quiz:
+                    print(f"❌ クイズが見つからない (quiz_id: {answer.quiz_id}, diary_id: {answer.diary_id})")
+                    continue  
+
+                first_answer_date = answer.answer_date.strftime('%Y-%m-%d %H:%M:%S')
+
+                # ✅ 日記タイトルの取得
+                set_title = session.query(MDiaryTable).filter(
+                    MDiaryTable.diary_id == answer.diary_id,
+                    MDiaryTable.language_id == current_user.main_language
+                ).first()
+
+                if set_title is None:
+                    print(f"❌ 日記が見つからない (diary_id: {answer.diary_id})")
+                    continue  
+
+                # ✅ 回答者名の取得
+                set_name = session.query(UserTable).filter(
+                    UserTable.user_id == set_title.user_id,
+                    UserTable.team_id == current_user.team_id
+                ).first()
+
+                if set_name is None:
+                    print(f"❌ ユーザーが見つからない (user_id: {set_title.user_id})")
+                    continue
+
+                # ✅ `diary_id` ごとにまとめる処理
+                if answer.diary_id not in set_results:
+                    set_results[answer.diary_id] = {
                         "title": set_title.title,
                         "name": set_name.name,
-                        "correct_set": set_result.correct_set if set_result else 0,
                         "answer_date": first_answer_date,
-                        "questions": temp_set,
+                        "questions": []
                     }
-                    set_answer.append({set_num: set_result})
-                    set_num += 1
-                    temp_set = []
 
-        return JSONResponse(content={
-            "correct_count": set_answer,
-        })
+                # ✅ クイズデータを `questions` 配列に追加
+                set_results[answer.diary_id]["questions"].append({
+                    'quiz_id': answer.quiz_id,
+                    'question': quiz.question,
+                    'a': quiz.a,
+                    'b': quiz.b,
+                    'c': quiz.c,
+                    'd': quiz.d,
+                    'correct': quiz.correct,
+                    'choice': answer.choices  # ユーザーの選択肢
+                })
+
+        print(f"✅ 最終的な set_results → {set_results}")
+        return JSONResponse(content={"correct_count": set_results})
 
     except Exception as e:
         logging.error(f"Error during getting answers: {str(e)}")
+        print(f"❌ エラー発生: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Error during getting answers: {str(e)}")
 
 @app.get("/get_total_answer")
@@ -1853,31 +2158,31 @@ async def get_total_answer(current_user: UserCreate = Depends(get_current_active
         logging.error(f"Error during getting answers: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Error during getting answers: {str(e)}")
     
-@app.post("/create_answer_set")
-async def create_answer_set(current_user: UserCreate = Depends(get_current_active_user)):
-    try:
-        answer_time = datetime.now()
-        with SessionLocal() as session:
-            results = session.query(AnswerTable).filter(AnswerTable.user_id == current_user.user_id).filter(AnswerTable.team_id == current_user.team_id) \
-                .order_by(AnswerTable.answer_date.desc()).limit(5).all()
-            correct_count = sum(1 for answer in results if answer.judgement == 1)
-            diary_id = results[0].diary_id if results else None
-            new_answer_set = ASetTable(
-                team_id = current_user.team_id,
-                user_id=current_user.user_id,
-                diary_id=diary_id,
-                answer_time=answer_time,
-                correct_set = (correct_count)
+# @app.post("/create_answer_set")
+# async def create_answer_set(current_user: UserCreate = Depends(get_current_active_user)):
+#     try:
+#         answer_time = datetime.now()
+#         with SessionLocal() as session:
+#             results = session.query(AnswerTable).filter(AnswerTable.user_id == current_user.user_id).filter(AnswerTable.team_id == current_user.team_id) \
+#                 .order_by(AnswerTable.answer_date.desc()).limit(5).all()
+#             correct_count = sum(1 for answer in results if answer.judgement == 1)
+#             diary_id = results[0].diary_id if results else None
+#             new_answer_set = ASetTable(
+#                 team_id = current_user.team_id,
+#                 user_id=current_user.user_id,
+#                 diary_id=diary_id,
+#                 answer_time=answer_time,
+#                 correct_set = (correct_count)
 
-            )
-            session.add(new_answer_set)
-            session.commit()
-            logging.info(f"Answer created successfully for user_id: {current_user.user_id}")
-        return JSONResponse({"message": "Answer Set Created Successfully!"})
+#             )
+#             session.add(new_answer_set)
+#             session.commit()
+#             logging.info(f"Answer created successfully for user_id: {current_user.user_id}")
+#         return JSONResponse({"message": "Answer Set Created Successfully!"})
 
-    except Exception as e:
-        logging.error(f"Error during creating answer: {str(e)}")
-        raise HTTPException(status_code=400, detail=f"Error during creating answer: {str(e)}")
+#     except Exception as e:
+#         logging.error(f"Error during creating answer: {str(e)}")
+#         raise HTTPException(status_code=400, detail=f"Error during creating answer: {str(e)}")
    
 @app.post("/get_individual_answer")
 async def get_individual_answer(request:UserRequest,current_user: UserCreate = Depends(get_current_active_user)):
@@ -1896,57 +2201,23 @@ async def get_individual_answer(request:UserRequest,current_user: UserCreate = D
         logging.error(f"Error during getting answers: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Error during getting answers: {str(e)}")
     
-@app.post("/update_answer")
-async def update_answer(current_user: UserCreate = Depends(get_current_active_user)):
+@app.get("/quiz_correct_count/{diary_id}")
+async def quiz_correct_count(diary_id: int, current_user: UserCreate = Depends(get_current_active_user)):
     try:
         with SessionLocal() as session:
-            # 現在のユーザーの最新5件の解答を降順で取得
-            results = session.query(AnswerTable).filter(AnswerTable.user_id == current_user.user_id) \
-                .order_by(AnswerTable.answer_date.desc()).limit(5).all()
-            
+            # 現在のユーザーの該当diary_idの正解数を取得
+            results = session.query(AnswerTable).filter(
+                AnswerTable.user_id == current_user.user_id,
+                AnswerTable.team_id == current_user.team_id,
+                AnswerTable.diary_id == diary_id
+            ).all()
+
             # 正解数をカウント
             correct_count = sum(1 for answer in results if answer.judgement == 1)
 
-            # 既存のユーザー情報を取得
-            existing_user = session.query(UserTable).filter(
-                UserTable.user_id == current_user.user_id, 
-                UserTable.team_id == current_user.team_id
-            ).first()
-            if not existing_user:
-                raise HTTPException(status_code=404, detail="ユーザーが見つかりません")
-            
-            print(f"Correct answers count: {correct_count}")
-            
-            # `answer_count` を更新
-            existing_user.answer_count += correct_count
-
-            # 閾値リスト
-            thresholds = [10, 30, 50, 100, 150,300, 500, 700, 1000,1500]
-            
-            # 現在の称号 (nickname) を整数として扱う
-            current_nickname = existing_user.nickname if isinstance(existing_user.nickname, int) else 0
-            
-            # 現在の nickname に対応する閾値を取得
-            current_threshold = thresholds[current_nickname] if current_nickname < len(thresholds) else float('inf')
-            
-            # 新しい称号の判定
-            is_title_updated = False
-            if existing_user.answer_count >= current_threshold:
-                existing_user.nickname = current_nickname + 1
-                is_title_updated = True
-
-            # データベースに反映
-            session.commit()
-
-            # 更新後の情報を取得
-            updated_user = session.query(UserTable).filter(UserTable.user_id == current_user.user_id,UserTable.team_id == current_user.team_id).first()
-            nickname = session.query(TitleTable).filter(TitleTable.title_id == updated_user.nickname,TitleTable.language_id == updated_user.main_language).first()
-        # 正解数、更新後の answer_count、および称号を返す
+        # 正解数のみを返す
         return JSONResponse(content={
-            "correct_count": correct_count,
-            "updated_answer_count": updated_user.answer_count,
-            "updated_title": nickname.title_name,
-            "is_title_updated": is_title_updated
+            "correct_count": correct_count
         })
 
     except Exception as e:
@@ -2098,7 +2369,7 @@ async def get_student_inf(current_user: UserResponse = Depends(get_current_activ
             learn_language=user.learn_language,
             answer_count=user.answer_count,
             diary_count=user.diary_count if user.diary_count is not None else 0,
-            nickname=session.query(TitleTable).filter(TitleTable.title_id == user.nickname, TitleTable.language_id == user.main_language).first().title_name if user.nickname else "Unknown",
+            #nickname=session.query(TitleTable).filter(TitleTable.title_id == user.nickname, TitleTable.language_id == user.main_language).first().title_name if user.nickname else "Unknown",
             is_admin=user.is_admin
         )
         for user in users
@@ -2145,11 +2416,6 @@ async def page_not_found(request: Request, exc):
 async def internal_server_error(request: Request, exc):
     return JSONResponse(status_code=500, content={"error": "Internal server error"})
 
-import os
-import uvicorn
-
 if __name__ == "__main__":
-    HOST = os.getenv("API_HOST", "127.0.0.1")
-    PORT = int(os.getenv("API_PORT", 8000))
-
-    uvicorn.run(app, host=HOST, port=PORT)
+    import uvicorn
+    uvicorn.run(app, host="127.0.0.1", port=8000)

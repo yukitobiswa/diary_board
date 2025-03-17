@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { API_BASE_URL } from '../config';
+
 const ChatApp = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
@@ -9,6 +9,7 @@ const ChatApp = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [teamName, setTeamName] = useState(""); // チーム名を格納するステート
   const navigate = useNavigate();
+  const [userName, setUserName] = useState(""); // ← 追加
   const emojis = ["👍", "❤️", "😂", "😲", "😢"];
   const diaryContainerRef = useRef(null);
   const tokenRef = useRef(null); // Use a ref to store the token
@@ -24,6 +25,7 @@ const ChatApp = () => {
         },
       });
       setTeamName(response.data.team_name); // チーム名をステートにセット
+      setUserName(response.data.user_name); // ← 追加
     } catch (error) {
       console.error("Error fetching team name:", error);
     }
@@ -281,19 +283,19 @@ const ChatApp = () => {
   };
 
   return (
-    <div style={{ fontFamily: "Arial, sans-serif", display: "flex" }}>
+    <div style={{ fontFamily: "Arial, sans-serif", display: "flex", flexDirection: "column" }}>
       {/* Sidebar */}
       <div
         style={{
-          width: menuOpen ? "250px" : "0",
+          width: "250px",
           height: "100vh",
           backgroundColor: "#fff",
-          boxShadow: menuOpen ? "2px 0 5px rgba(0,0,0,0.2)" : "none",
-          transition: "width 0.3s",
+          boxShadow: "2px 0 5px rgba(0,0,0,0.2)",
+          transition: "transform 0.3s",
           overflowX: "hidden",
           zIndex: 1000,
           position: "fixed",
-          left: 0,
+          left: menuOpen ? "0" : "-250px", // メニューをポップアップ表示
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between", // Ensures the buttons are at the bottom
@@ -401,10 +403,10 @@ const ChatApp = () => {
         </button>
       </div>
       {/* Main Content */}
-      <div style={{ marginLeft: menuOpen ? "250px" : "0", flex: 1, padding: "10px" }}>
-        <div style={{ maxWidth: "6000px", margin: "50px auto 0" }}>
-          <h1 style={{ textAlign: "center" }}>{teamName} Diary Board！</h1>
-          <h2 style={{ textAlign: "center" }}>🌟 Let’s Share with Everyone! みんなで共有しよう! 🌟</h2>
+      <div style={{ flex: 1, padding: "10px", marginTop: "60px" }}>
+        <div style={{ maxWidth: "600px", margin: "0 auto" }}>
+        <h1 style={{ textAlign: "center" }}>{teamName} {userName || "Unknown"} {/* ← ユーザー名の表示を追加 */}</h1>
+          <h2 style={{ textAlign: "center" }}>🌟 Let’s Share with Everyone!🌟</h2>
           {/* Display Diaries */}
           {/* 日記がない場合に「日記がありません」と表示 */}
           {messages.length === 0 ? (
@@ -436,7 +438,7 @@ const ChatApp = () => {
                   >
                     <p style={{ margin: 0, color: "#333" }}>Name: {message.user_name}</p>
                     <h4>{message.title}</h4>
-                    <p>{message.content}</p>
+                    <p style={{ fontSize: "14px" }}>{message.content}</p> {/* 文字サイズを小さく */}
                     <span style={{ fontSize: "12px", color: "#999" }}>{message.diary_time}</span>
                     {/* Reaction Buttons */}
                     <div style={{ marginTop: "10px" }}>
@@ -450,7 +452,7 @@ const ChatApp = () => {
                               addReaction(message.diary_id, emoji);
                             }}
                             style={{
-                              marginRight: "5px",
+                              marginRight: "2px", // 間の空白を小さく
                               border: "none",
                               background: "none",
                               fontSize: "16px",
@@ -496,7 +498,7 @@ const ChatApp = () => {
               onChange={(e) => setNewTitle(e.target.value)}
               placeholder=""
               style={{
-                width: "100%",
+                width: "97%",
                 padding: "10px",
                 borderRadius: "5px",
                 border: "1px solid #ccc",
@@ -516,7 +518,7 @@ const ChatApp = () => {
   }}
   placeholder=""
   style={{
-    width: "100%",
+    width: "97%",
     padding: "10px",
     borderRadius: "5px",
     border: "1px solid #ccc",
@@ -526,7 +528,7 @@ const ChatApp = () => {
   rows={1}
 />
 <p style={{ color: "red", fontSize: "14px", marginTop: "5px" }}>
-Write more than 200 words！ : 200文字以上書こう！
+Write more than 100 words！ : 100文字以上書こう！
 </p>
 
           </div>

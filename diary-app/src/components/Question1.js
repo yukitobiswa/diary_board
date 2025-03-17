@@ -1,17 +1,19 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import { API_BASE_URL } from '../config';
+import Confetti from "react-confetti";
+
 const Question1 = () => {
   const { diaryId } = useParams();
   const [quiz, setQuiz] = useState(null);
   const [selectedOption, setSelectedOption] = useState(null);
   const [selectAnswer, setSelectAnswer] = useState(null);
   const [isAlreadyAnswered, setIsAlreadyAnswered] = useState(null);
+  const [showPopup, setShowPopup] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
   const navigate = useNavigate();
-  const isFetched = useRef(false); // 二重実行を防ぐフラグ
+  const isFetched = useRef(false);
 
-  // クイズが既に回答済みかを確認
   const alreadyQuiz = async () => {
     try {
       const token = localStorage.getItem("access_token");
@@ -21,16 +23,15 @@ const Question1 = () => {
       return response.data.already;
     } catch (err) {
       console.error("ERROR", err);
-      return false; // エラー時に false を返す
+      return false;
     }
   };
 
-  // クイズを取得
   const fetchQuiz = async () => {
-    if (isFetched.current) return; // 既に実行済みならスキップ
+    if (isFetched.current) return;
     isFetched.current = true;
 
-    if (isAlreadyAnswered !== null) return; // すでにチェック済みなら再実行しない
+    if (isAlreadyAnswered !== null) return;
 
     try {
       const already = await alreadyQuiz();
@@ -84,9 +85,15 @@ const Question1 = () => {
     };
 
     try {
-      await axios.post(`${API_BASE_URL}/create_answer`, answerData, {
+      const response = await axios.post(`${API_BASE_URL}/create_answer`, answerData, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
+      if (response.data.is_title_updated) {
+        setNewTitle(response.data.updated_title);
+        setShowPopup(true);
+      }
+
       return true;
     } catch (err) {
       console.error("ERROR : クイズ送信エラー", err);
@@ -94,11 +101,18 @@ const Question1 = () => {
     }
   };
 
+  useEffect(() => {
+    if (showPopup) {
+      console.log("🌟 showPopup 状態が true になりました。ポップアップを表示します。");
+      setTimeout(() => {
+        navigate(`/Answer1/${quiz.diary_id}`, { state: { selectedOption } });
+      }, 3000);
+    }
+  }, [showPopup]);
+
   const handleSubmit = async () => {
     const success = await submitAnswer();
-    if (success) {
-      navigate(`/Answer1/${quiz.diary_id}`, { state: { selectedOption } });
-    } else {
+    if (!success) {
       alert("Please select an answer. : 答えを選択してください。");
     }
   };
@@ -129,6 +143,31 @@ const Question1 = () => {
       <button onClick={handleSubmit} style={styles.submitButton}>
         Answer✅
       </button>
+
+      {showPopup && (
+        <>
+          <Confetti
+            width={window.innerWidth}
+            height={window.innerHeight}
+            numberOfPieces={400}
+            recycle={false}
+          />
+          <div style={styles.popupOverlay} onClick={() => setShowPopup(false)}>
+            <div style={styles.popupContent} onClick={(e) => e.stopPropagation()}>
+              <h2 style={styles.celebrationText}>🎉 おめでとうございます！ 🎉</h2>
+              <p style={styles.newTitleText}>
+                <span role="img" aria-label="star">⭐</span>  
+                新しい称号を獲得しました！  
+                <strong style={styles.newTitle}>{newTitle}</strong>
+                <span role="img" aria-label="star">⭐</span>  
+              </p>
+              <button style={styles.submitButton} onClick={() => setShowPopup(false)}>
+                閉じる
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };
@@ -166,6 +205,40 @@ const styles = {
     cursor: "pointer",
     fontSize: "16px",
     transition: "background-color 0.3s",
+  },
+  popupOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1000,
+  },
+  popupContent: {
+    background: "#fff",
+    color: "#333",
+    padding: "30px",
+    borderRadius: "10px",
+    textAlign: "center",
+  },
+  celebrationText: {
+    fontSize: "1.5em",
+    fontWeight: "bold",
+    color: "#ff4500",
+  },
+  newTitleText: {
+    fontSize: "1.5em",
+    fontWeight: "bold",
+    color: "#4CAF50",
+  },
+  newTitle: {
+    fontSize: "1.5em",
+    color: "#FFD700",
+    textShadow: "2px 2px 5px rgba(0,0,0,0.3)",
   },
 };
 

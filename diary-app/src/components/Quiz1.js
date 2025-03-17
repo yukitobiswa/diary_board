@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { API_BASE_URL } from '../config';
+
 const QuizCategorySelector = () => {
   const categories = [
     { id: 1, label: "culture(ぶんか)" },
@@ -85,7 +85,7 @@ const QuizCategorySelector = () => {
       style={{
         border: "1px solid #ccc",
         padding: "40px",
-        width: "500px",
+        width: "350px",
         margin: "50px auto",
         borderRadius: "10px",
         boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
@@ -127,7 +127,7 @@ const QuizCategorySelector = () => {
         style={{
           marginTop: "20px",
           padding: "15px 30px",
-          backgroundColor: isLoading ? "#ccc" : "#4CAF50",
+          backgroundColor: isLoading ? "#ccc" : "#FFA500",
           color: "#FFF",
           border: "none",
           borderRadius: "8px",

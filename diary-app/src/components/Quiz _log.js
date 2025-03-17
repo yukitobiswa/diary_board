@@ -1,43 +1,40 @@
-import { API_BASE_URL } from '../config';
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 const QuizHistoryPage = () => {
-  const [quizData, setQuizData] = useState([]);
+  const [quizData, setQuizData] = useState({});
   const [correctCount, setCorrectCount] = useState(0);
   const [totalQuiz, setTotalQuiz] = useState(0);
   const [percent, setPercent] = useState(0);
   const [openSetIndex, setOpenSetIndex] = useState(null);
   const navigate = useNavigate();
   const tokenRef = useRef(localStorage.getItem("authToken") || null);
+
   const dictionary = {
-    1: "a",
-    2: "b",
-    3: "c",
-    4: "d"
+    "1": "a",
+    "2": "b",
+    "3": "c",
+    "4": "d"
   };
+
   const fetchQuizData = async () => {
     try {
-      // クイズ履歴の取得
       const response = await axios.get(`${API_BASE_URL}/get_answer_quiz`, {
         headers: {
           Authorization: `Bearer ${tokenRef.current}`,
         },
       });
-      const formattedData = response.data.correct_count
-        .map((set) => Object.values(set)[0])
-              .sort((a, b) => new Date(b.answer_date) - new Date(a.answer_date));
-            setQuizData(formattedData);
-          } catch (error) {
-            console.error("Error fetching quiz data:", error);
-          }
-        };
 
+      const formattedData = response.data.correct_count;
+      setQuizData(formattedData);
+    } catch (error) {
+      console.error("Error fetching quiz data:", error);
+    }
+  };
 
   const fetchTotalAnswerData = async () => {
     try {
-      // 正解数や総問題数の取得
       const response = await axios.get(`${API_BASE_URL}/get_total_answer`, {
         headers: {
           Authorization: `Bearer ${tokenRef.current}`,
@@ -67,7 +64,7 @@ const QuizHistoryPage = () => {
         );
         if (response.data.valid) {
           fetchQuizData();
-          fetchTotalAnswerData(); // クイズ統計データを取得
+          fetchTotalAnswerData();
         } else {
           navigate("/startpage");
         }
@@ -78,6 +75,11 @@ const QuizHistoryPage = () => {
     };
     verifyToken();
   }, []);
+
+  const toggleQuiz = (diaryId) => {
+    setOpenSetIndex(openSetIndex === diaryId ? null : diaryId);
+  };
+
   return (
     <div style={{ padding: "30px", fontFamily: "Arial, sans-serif" }}>
       <h2 style={{ textAlign: "center" }}>My Quiz History</h2>
@@ -86,20 +88,26 @@ const QuizHistoryPage = () => {
       <div
         style={{
           textAlign: "center",
-          padding: "10px",  // Reduced padding for smaller bar
-          backgroundColor: "#ffffff",  // White background color
+          padding: "10px",
+          backgroundColor: "#ffffff",
           borderRadius: "15px",
           marginBottom: "15px",
-          fontSize: "16px",  // Smaller font size
+          fontSize: "16px",
           fontWeight: "bold",
-          display: "flex",  // Flexbox for horizontal layout
-          justifyContent: "space-around",  // Space between the items
+          display: "flex",
+          justifyContent: "space-around",
         }}
       >
         <div>
           <strong style={{ color: "#28a745", fontSize: "20px" }}>Correct Count:</strong>
           <span style={{ color: "#28a745", fontWeight: "bold", fontSize: "24px" }}>
             {correctCount}
+          </span>
+        </div>
+        <div>
+          <strong style={{ color: "#28a745", fontSize: "20px" }}>Total count:</strong>
+          <span style={{ color: "#28a745", fontWeight: "bold", fontSize: "24px" }}>
+            {totalQuiz}
           </span>
         </div>
         <div>
@@ -110,7 +118,6 @@ const QuizHistoryPage = () => {
         </div>
       </div>
 
-      {/* Back Button */}
       <button
         onClick={() => navigate("/Chat")}
         style={{
@@ -126,108 +133,107 @@ const QuizHistoryPage = () => {
         ◀ Back
       </button>
 
-      {/* Quiz History */}
-      {quizData.length === 0 ? (
-        <p style={{ textAlign: "center", color: "#777", fontSize: "16px", marginTop: "20px" }}>
-          No Quiz...😢
-        </p>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "25px", marginTop: "30px" }}>
-          {quizData.map((set, index) => (
-            <div key={index} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
-              <div
-                style={{
-                  padding: "20px",
-                  backgroundColor: "#ffcc30",
-                  border: "1px solid #ffb74d",
-                  borderRadius: "15px",
-                  boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
-                  cursor: "pointer",
-                  textAlign: "center",
-                  fontWeight: "bold",
-                  color: "#000",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  position: "relative"
-                }}
-                onClick = {() => setOpenSetIndex(openSetIndex === index ? null : index)}
-              >
-                <span style={{ fontSize: "14px", color: "#555" }}>{set.answer_date}</span>
-                <span
-                  style={{
-                    position: "absolute",
-                    left: "50%",
-                    transform: "translateX(-50%)",
-                    fontSize: "25px",
-                    fontWeight: "bold",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                  }}
-                >
-                  {set.title}
-                  <span style={{ fontSize: "16px", color: "#333", fontWeight: "normal" }}>
-                    User：{set.name}
-                  </span>
-                </span>
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <span style={{ marginRight: "10px", fontSize: "20px", fontWeight: "bold", color: "black" }}>{set.correct_set}/5</span>
-                  <span style={{ fontSize: "20px", color: "black", cursor: "pointer" }}>
-                    {openSetIndex === index ? "▲" : "▼"}
-                  </span>
-                </div>
-              </div>
-              {openSetIndex === index && (
-                <div
-                  style={{
-                    marginTop: "15px",
-                    padding: "15px",
-                    backgroundColor: "#f7f7f7",
-                    border: "1px solid #ddd",
-                    borderRadius: "10px",
-                    boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-                    fontSize: "16px",
-                  }}
-                >
-                  {set.questions.map((quiz) => (
-                    <div
-                      key={quiz.quiz_id}
+      {Object.keys(quizData).length === 0 ? (
+            <p style={{ textAlign: "center", color: "#777", marginTop: "20px" }}>
+              No Quiz...😢
+            </p>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "25px", marginTop: "30px" }}>
+              {Object.entries(quizData).map(([diaryId, diaryData]) => (
+                <div key={diaryId} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+                  <div
+                    style={{
+                      padding: "20px",
+                      backgroundColor: "#ffcc30",
+                      border: "1px solid #ffb74d",
+                      borderRadius: "15px",
+                      boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
+                      cursor: "pointer",
+                      textAlign: "center",
+                      fontWeight: "bold",
+                      color: "#000",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      position: "relative"
+                    }}
+                    onClick={() => toggleQuiz(diaryId)}
+                  >
+                    <span style={{ fontSize: "14px", color: "#555" }}>
+                      {diaryData.answer_date}
+                    </span>
+                    <span
                       style={{
-                        padding: "12px",
-                        borderBottom: "1px solid gray",
-                        marginBottom: "12px",
-                        backgroundColor: "white",
-
+                        position: "absolute",
+                        left: "50%",
+                        transform: "translateX(-50%)",
+                        fontSize: "25px",
+                        fontWeight: "bold",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
                       }}
                     >
-                      <p><strong>Q{quiz.quiz_id} :</strong> {quiz.question}</p>
-                      <div style={{ marginTop: "10px" }}>
-                        {Object.entries(quiz.choices).map(([key, value]) => {
-                          const isCorrect = key === dictionary[quiz.choices.correct];
-                          const isSelected = key === quiz.choice;
+                      {diaryData.title}
+                      <span style={{ fontSize: "16px", color: "#333", fontWeight: "normal" }}>
+                        User：{diaryData.name}
+                      </span>
+                    </span>
+                    <span style={{ fontSize: "20px", color: "black", cursor: "pointer" }}>
+                      {openSetIndex === diaryId ? "▲" : "▼"}
+                    </span>
+                  </div>
 
-                          let backgroundColor = "";
-                          if (isSelected && isCorrect) {
-                            backgroundColor = "lightgreen"; // Correct answer and selected
-                          } else if (isSelected && !isCorrect) {
-                            backgroundColor = "lightcoral"; // Incorrect answer but selected
-                          } else if (isCorrect) {
-                            backgroundColor = "lightgreen"; // Correct answer but not selected
-                          }
+                  {openSetIndex === diaryId && (
+                    <div
+                      style={{
+                        marginTop: "15px",
+                        padding: "15px",
+                        backgroundColor: "#f7f7f7",
+                        border: "1px solid #ddd",
+                        borderRadius: "10px",
+                        boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+                        fontSize: "16px",
+                      }}
+                    >
+                      {diaryData.questions.map((quiz, qIndex) => (
+                        <div
+                          key={qIndex}
+                          style={{
+                            padding: "12px",
+                            borderBottom: "1px solid gray",
+                            marginBottom: "12px",
+                            backgroundColor: "white",
+                          }}
+                        >
+                          <p>
+                            <strong>Q{qIndex + 1} :</strong> {quiz.question}
+                          </p>
+                          <div style={{ marginTop: "10px" }}>
+                            {["a", "b", "c", "d"].map((option) => {
+                              const correctAnswerKey = dictionary[quiz.correct]; // `quiz.correct` から正解データを取得
+                              const isCorrect = option === correctAnswerKey;
+                              const isSelected = option === quiz.choice;
 
-                          return (
-                            <p key={key} style={{ margin: "5px 0", backgroundColor }}>
-                              {key !== "correct" && (
-                                <>
-                                  <strong>{key}:</strong> {value}
-                                </>
-                              )}
-                            </p>
-                          );
+                              let backgroundColor = "";
+                              if (isSelected && isCorrect) {
+                                backgroundColor = "lightgreen";  // 正解かつ選択済み
+                              } else if (isSelected && !isCorrect) {
+                                backgroundColor = "lightcoral";  // 誤答だが選択済み
+                              } else if (isCorrect) {
+                                backgroundColor = "lightgreen";  // 正解で未選択
+                              }
+
+                              // 各選択肢の値を取得
+                              const choiceValue = quiz[option];
+
+                              return (
+                                <p key={option} style={{ margin: "5px 0", backgroundColor }}>
+                                  <strong>{option}:</strong> {choiceValue}
+                                </p>
+                              );
                         })}
                       </div>
-
                     </div>
                   ))}
                 </div>
@@ -239,6 +245,5 @@ const QuizHistoryPage = () => {
     </div>
   );
 };
-
 
 export default QuizHistoryPage;

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { API_BASE_URL } from '../config';
+
 const Setting = () => {
   const [username, setUsername] = useState("");
   const [language, setLanguage] = useState("");
-  const [nickname, setNickname] = useState(""); // 称号は表示専用
+  const [nickname, setNickname] = useState("");
   const navigate = useNavigate();
 
   const languageOptions = [
@@ -31,10 +31,10 @@ const Setting = () => {
             Authorization: `Bearer ${token}`,
           },
         });
-        const { user_name, learn_language, nickname } = response.data; // nickname を取得
+        const { user_name, learn_language, nickname } = response.data;
         setUsername(user_name);
         setLanguage(learn_language);
-        setNickname(nickname); // nickname をセット
+        setNickname(nickname);
       } catch (error) {
         console.error("ユーザープロファイルの取得中にエラーが発生しました:", error);
         alert("ユーザー情報の取得に失敗しました。再度ログインしてください。");
@@ -44,42 +44,27 @@ const Setting = () => {
     fetchUserProfile();
   }, [navigate]);
 
-  const handleUsernameChange = (e) => {
-    setUsername(e.target.value);
-  };
+  const handleUsernameChange = (e) => setUsername(e.target.value);
 
-  const handleLanguageChange = (e) => {
-    setLanguage(Number(e.target.value));
-  };
+  const handleLanguageChange = (e) => setLanguage(Number(e.target.value));
 
-  const handleBack = () => {
-    navigate("/Chat");
-  };
+  const handleBack = () => navigate("/Chat");
 
   const updateProfile = async () => {
     try {
       const token = localStorage.getItem("access_token");
       const response = await axios.get(`${API_BASE_URL}/get_profile`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-
       const { user_name: currentUserName, learn_language: currentLearnLanguage } = response.data;
-
       const updatedData = {
         user_name: username !== currentUserName ? username : null,
         learn_language: language !== currentLearnLanguage ? language : null,
       };
-
       const updateResponse = await axios.put(
         `${API_BASE_URL}/change_profile`,
         updatedData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       alert(updateResponse.data.message);
     } catch (error) {
@@ -92,39 +77,39 @@ const Setting = () => {
     container: {
       background: "linear-gradient(135deg, #FFA500, #4CAF50)",
       color: "#fff",
-      padding: "40px",
-      width: "600px",
-      margin: "50px auto",
-      borderRadius: "15px",
-      boxShadow: "0 6px 12px rgba(0, 0, 0, 0.2)",
+      padding: "30px 30px",
+      width: "350px",
+      margin: "20px auto",
+      borderRadius: "10px",
+      boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
       textAlign: "center",
     },
     input: {
-      width: "95%",
+      width: "88%",
       padding: "12px",
       border: "none",
       borderRadius: "8px",
       margin: "10px 0",
     },
     select: {
-      width: "100%",
+      width: "93%",
       padding: "12px",
       border: "none",
       borderRadius: "8px",
       margin: "10px 0",
     },
     displayOnly: {
-      width: "95%", // ここを90%に設定して、列が揃うように
+      width: "89%",
       padding: "12px",
       border: "none",
       borderRadius: "8px",
-      margin: "10px 0",
+      margin: "10px auto",
       backgroundColor: "#eee",
       color: "#333",
-      textAlign: "center", // 中央寄せにする
+      textAlign: "center",
     },
     button: {
-      padding: "12px 24px",
+      padding: "12px 36px",
       backgroundColor: "#FFA500",
       color: "#fff",
       border: "none",
@@ -138,17 +123,12 @@ const Setting = () => {
   return (
     <div style={styles.container}>
       <h2>My Profile</h2>
-
-      <div style={{ marginBottom: "20px" }}>
-        <div style={styles.displayOnly}>
-          <strong>Nickname:</strong> {nickname || "称号が設定されていません"}
-        </div>
+      <div style={styles.displayOnly}>
+        <strong>Nickname:</strong> {nickname || "称号が設定されていません"}
       </div>
 
       <div>
-        <label htmlFor="username" style={{ display: "block", marginBottom: "10px" }}>
-          Name
-        </label>
+        <label htmlFor="username">Name</label>
         <input
           id="username"
           type="text"
@@ -159,9 +139,7 @@ const Setting = () => {
       </div>
 
       <div>
-        <label htmlFor="language" style={{ display: "block", marginBottom: "10px" }}>
-          Learn Language
-        </label>
+        <label htmlFor="language">Learn Language</label>
         <select id="language" value={language} onChange={handleLanguageChange} style={styles.select}>
           <option value="">Please select</option>
           {languageOptions.map((option) => (
@@ -172,12 +150,8 @@ const Setting = () => {
         </select>
       </div>
 
-      <button onClick={updateProfile} style={styles.button}>
-        New！🆕
-      </button>
-      <button onClick={handleBack} style={{ ...styles.button, backgroundColor: "#4CAF50" }}>
-      ◀ Back
-      </button>
+      <button onClick={updateProfile} style={styles.button}>New！🆕</button>
+      <button onClick={handleBack} style={{ ...styles.button, backgroundColor: "#4CAF50" }}>◀ Back</button>
     </div>
   );
 };

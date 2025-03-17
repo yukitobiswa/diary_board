@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { API_BASE_URL } from '../config';
+
 const Teacher_login = () => {
     const [password, setPassword] = useState('');
     const [success, setSuccess] = useState('');
@@ -43,7 +43,7 @@ const Teacher_login = () => {
             style={{
                 border: "1px solid #ccc",
                 padding: "40px",
-                width: "500px",
+                width: "350px",
                 margin: "50px auto",
                 borderRadius: "10px",
                 boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
@@ -54,7 +54,7 @@ const Teacher_login = () => {
             <button
                 onClick={() => navigate('/StartPage')}
                 style={{
-                    padding: "10px 20px",
+                    padding: "10px 10px",
                     backgroundColor: "#007BFF",
                     color: "#FFF",
                     border: "none",
@@ -70,7 +70,7 @@ const Teacher_login = () => {
             >
                 ◀ Back
             </button>
-            <h1 style={{ fontSize: "24px", marginBottom: "20px", color: "#333" }}>Teacher Login</h1>
+            <h1 style={{ fontSize: "24px", marginBottom: "20px", color: "#333" }}>Administrator Login</h1>
             <form onSubmit={handleSubmit}>
                 <div style={{ marginBottom: "20px" }}>
                     <label style={{ fontSize: "16px", display: "block", marginBottom: "8px", color: "#555" }}>Password:</label>
@@ -79,7 +79,7 @@ const Teacher_login = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         style={{
-                            width: "100%",
+                            width: "80%",
                             padding: "10px",
                             border: "1px solid #ccc",
                             borderRadius: "5px",
@@ -91,7 +91,8 @@ const Teacher_login = () => {
                     <button
                         type="submit"
                         style={{
-                            padding: "20px 30px",
+                            width:"80%",
+                            padding: "10px",
                             backgroundColor: "#4CAF50",
                             backgroundColor: "#FF9800", // オレンジ色
                             color: "#FFF",
@@ -101,7 +102,7 @@ const Teacher_login = () => {
                             cursor: "pointer",
                             transition: "background-color 0.3s",
                             flex: "1",
-                            margin: "0 5px",
+                            margin: "5 5px",
                         }}
                     >
                         Go！🚀

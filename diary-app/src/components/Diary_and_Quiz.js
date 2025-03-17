@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
-import { API_BASE_URL } from '../config';
+
 const User_inf = () => {
   const [messages, setMessages] = useState([]);
   const [diaryCount, setDiaryCount] = useState(0);
@@ -52,6 +52,7 @@ const User_inf = () => {
             title: diary.title,
             content: diary.content,
             diary_time: diary.diary_time,
+            quizzes: diary.quizzes || []
           }));
         setMessages(formattedMessages);
       }
@@ -72,9 +73,8 @@ const User_inf = () => {
             "Content-Type": "application/json",
           },
         });
+      console.log(response.data);
       const formattedData = response.data.correct_count
-        .map((set) => Object.values(set)[0])
-        .sort((a, b) => new Date(b.answer_date) - new Date(a.answer_date));
 
       setQuizData(formattedData);
     } catch (error) {
@@ -102,6 +102,22 @@ const User_inf = () => {
       console.error("Error fetching total answer data:", error);
     }
   };
+
+  // fetch("http://localhost:8000/get_individual_quiz", {
+  //   method: "POST",
+  //   headers: {
+  //     Authorization: `Bearer ${tokenRef.current}`,
+  //     "Content-Type": "application/json",// 認証トークンを追加
+  //   },
+  //   body: JSON.stringify({ user_id: "1234" })
+  // })
+  //   .then(res => res.json())
+  //   .then(data => {
+  //     console.log(data);
+  //     console.log(JSON.stringify(data, null, 2));  // より詳細にログを表示
+  //   })
+  //   .catch(error => console.error("Error:", error));
+//
   useEffect(() => {
     const verifyToken = async () => {
       const token = localStorage.getItem("access_token");
@@ -143,7 +159,7 @@ const User_inf = () => {
 
   const deleteDiary = async (diaryId) => {
     if (!tokenRef.current) return;
-    const confirmDelete = window.confirm("本当にこの日記を消しますか？");
+    const confirmDelete = window.confirm("本当にこの日記を削除しますか？");
     if (!confirmDelete) return;
 
     try {
@@ -202,7 +218,7 @@ const User_inf = () => {
 
       {isDiaryView ? (
         <>
-          <h3 style={{ textAlign: "center",  color: "#28a745", fontSize: "20px" }}>
+          <h3 style={{ textAlign: "center", color: "#28a745", fontSize: "20px" }}>
             Diary: {diaryCount}
           </h3>
           <button
@@ -230,8 +246,8 @@ const User_inf = () => {
                   <div
                     style={{
                       padding: "15px",
-                      backgroundColor: "#ffcc30", // 薄いオレンジ
-                      border: "1px solid #ffb74d", // より薄いオレンジ
+                      backgroundColor: "#ffcc30",
+                      border: "1px solid #ffb74d",
                       borderRadius: "10px",
                       boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
                       cursor: "pointer",
@@ -299,13 +315,62 @@ const User_inf = () => {
                       style={{
                         marginTop: "10px",
                         padding: "15px",
-                        backgroundColor: "#f7f7f7",
+                        backgroundColor: "#fff",
                         border: "1px solid #ddd",
                         borderRadius: "5px",
                         boxShadow: "0 2px 3px rgba(0,0,0,0.1)",
                       }}
                     >
-                      <p><strong>Content:</strong> {message.content}</p>
+                      <h4 style={{ color: "#28a745", textAlign: "center" }}>Content</h4>
+                      <p>{message.content}</p>
+
+                      {/* クイズデータを日記詳細の下部に追加 */}
+                      {message.quizzes && message.quizzes.length > 0 && (
+                        <div
+                          style={{
+                            marginTop: "15px",
+                            padding: "15px",
+                            backgroundColor: "#ffffff",
+                            border: "1px solid #ddd",
+                            borderRadius: "10px",
+                            boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+                          }}
+                        >
+                          <h4 style={{ color: "#28a745", textAlign: "center" }}>Related Quiz</h4>
+                          {message.quizzes.map((quiz, qIndex) => (
+                            <div
+                              key={qIndex}
+                              style={{
+                                padding: "12px",
+                                borderBottom: "1px solid gray",
+                                marginBottom: "12px",
+                                backgroundColor: "white",
+                              }}
+                            >
+                              <p>
+                                <strong>Q{qIndex + 1} :</strong> {quiz.question}
+                              </p>
+                              <div style={{ marginTop: "10px" }}>
+                                {["a", "b", "c", "d"].map((option) => {
+                                  const correctAnswerKey = dictionary[quiz.correct]; // correctの値(1,2,3,4)を'dictionary'を用いてa,b,c,dに変換
+                                  const isCorrect = option === correctAnswerKey;
+
+                                  let backgroundColor = "";
+                                  if (isCorrect) {
+                                    backgroundColor = "lightgreen"; // 正解
+                                  }
+
+                                  return (
+                                    <p key={option} style={{ margin: "5px 0", backgroundColor }}>
+                                      <strong>{option}:</strong> {quiz[option]}
+                                    </p>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -358,23 +423,23 @@ const User_inf = () => {
               borderRadius: "5px",
               cursor: "pointer",
             }}
-            
+
           >
             ◀ Back
           </button>
-          {quizData.length === 0 ? (
-            <p style={{ textAlign: "center", color: "#777", fontSize: "16px", marginTop: "20px" }}>
+          {Object.keys(quizData).length === 0 ? (
+            <p style={{ textAlign: "center", color: "#777", marginTop: "20px" }}>
               No Quiz...😢
             </p>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "25px", marginTop: "30px" }}>
-              {quizData.map((set, index) => (
-                <div key={index} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+              {Object.entries(quizData).map(([diaryId, diaryData]) => (
+                <div key={diaryId} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
                   <div
                     style={{
                       padding: "20px",
-                      backgroundColor: "#ffcc30", // 薄いオレンジ
-                      border: "1px solid #ffb74d", // より薄いオレンジ
+                      backgroundColor: "#ffcc30",
+                      border: "1px solid #ffb74d",
                       borderRadius: "15px",
                       boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
                       cursor: "pointer",
@@ -386,9 +451,11 @@ const User_inf = () => {
                       alignItems: "center",
                       position: "relative"
                     }}
-                    onClick={() => toggleQuiz(index)}
+                    onClick={() => toggleQuiz(diaryId)}
                   >
-                    <span style={{ fontSize: "14px", color: "#555" }}>{set.answer_date}</span>
+                    <span style={{ fontSize: "14px", color: "#555" }}>
+                      {diaryData.answer_date}
+                    </span>
                     <span
                       style={{
                         position: "absolute",
@@ -401,19 +468,17 @@ const User_inf = () => {
                         alignItems: "center",
                       }}
                     >
-                      {set.title}
+                      {diaryData.title}
                       <span style={{ fontSize: "16px", color: "#333", fontWeight: "normal" }}>
-                        User：{set.name}
+                        User：{diaryData.name}
                       </span>
                     </span>
-                    <div style={{ display: "flex", alignItems: "center" }}>
-                      <span style={{ marginRight: "10px", fontSize: "20px", fontWeight: "bold", color: "black" }}>{set.correct_set}/5</span>
-                      <span style={{ fontSize: "20px", color: "black", cursor: "pointer" }}>
-                        {openSetIndex === index ? "▲" : "▼"}
-                      </span>
-                    </div>
+                    <span style={{ fontSize: "20px", color: "black", cursor: "pointer" }}>
+                      {openSetIndex === diaryId ? "▲" : "▼"}
+                    </span>
                   </div>
-                  {openSetIndex === index && (
+
+                  {openSetIndex === diaryId && (
                     <div
                       style={{
                         marginTop: "15px",
@@ -425,39 +490,40 @@ const User_inf = () => {
                         fontSize: "16px",
                       }}
                     >
-                      {set.questions.map((quiz) => (
+                      {diaryData.questions.map((quiz, qIndex) => (
                         <div
-                          key={quiz.quiz_id}
+                          key={qIndex}
                           style={{
                             padding: "12px",
                             borderBottom: "1px solid gray",
                             marginBottom: "12px",
                             backgroundColor: "white",
-
                           }}
                         >
-                          <p><strong>Q{quiz.quiz_id} :</strong> {quiz.question}</p>
+                          <p>
+                            <strong>Q{qIndex + 1} :</strong> {quiz.question}
+                          </p>
                           <div style={{ marginTop: "10px" }}>
-                            {Object.entries(quiz.choices).map(([key, value]) => {
-                              const isCorrect = key === dictionary[quiz.choices.correct];
-                              const isSelected = key === quiz.choice;
+                            {["a", "b", "c", "d"].map((option) => {
+                              const correctAnswerKey = dictionary[quiz.correct]; // `quiz.correct` から正解データを取得
+                              const isCorrect = option === correctAnswerKey;
+                              const isSelected = option === quiz.choice;
 
                               let backgroundColor = "";
                               if (isSelected && isCorrect) {
-                                backgroundColor = "lightgreen"; // Correct answer and selected
+                                backgroundColor = "lightgreen";  // 正解かつ選択済み
                               } else if (isSelected && !isCorrect) {
-                                backgroundColor = "lightcoral"; // Incorrect answer but selected
+                                backgroundColor = "lightcoral";  // 誤答だが選択済み
                               } else if (isCorrect) {
-                                backgroundColor = "lightgreen"; // Correct answer but not selected
+                                backgroundColor = "lightgreen";  // 正解で未選択
                               }
 
+                              // 各選択肢の値を取得
+                              const choiceValue = quiz[option];
+
                               return (
-                                <p key={key} style={{ margin: "5px 0", backgroundColor }}>
-                                  {key !== "correct" && (
-                                    <>
-                                      <strong>{key}:</strong> {value}
-                                    </>
-                                  )}
+                                <p key={option} style={{ margin: "5px 0", backgroundColor }}>
+                                  <strong>{option}:</strong> {choiceValue}
                                 </p>
                               );
                             })}
@@ -467,14 +533,16 @@ const User_inf = () => {
                       ))}
                     </div>
                   )}
+
+
                 </div>
               ))}
-
             </div>
           )}
         </div>
-      )}
-    </div>
+      )
+      }
+    </div >
   );
 };
 

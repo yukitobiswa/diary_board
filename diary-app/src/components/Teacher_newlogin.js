@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { API_BASE_URL } from '../config';
 const Teacher_newlogin = () => {
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
@@ -77,7 +76,7 @@ const Teacher_newlogin = () => {
   };
   return (
     <div className="container add-course" style={{ maxWidth: "400px", margin: "0 auto", padding: "20px" }}>
-      <h1 style={{ textAlign: "center" }}>Create a New Account✨</h1>
+      <h1 style={{ textAlign: "center" }}>Create Teacher✨</h1>
       <form onSubmit={handleRegister} style={{ backgroundColor: "#F9F9F9", padding: "20px", borderRadius: "8px" }}>
         <div style={{ marginBottom: "15px" }}>
           <label>User ID:</label>
