@@ -91,7 +91,7 @@ const Member = () => {
                                             }}
                                         >
                                             <span>{user.is_admin === 1 ? "Teacher" : "Student"}: {user.user_id}</span>
-
+                                            <span>username: {user.name}</span>
                                             <span>{expandedUser === user.user_id ? "▲" : "▼"}</span>
                                         </div>
                                         {expandedUser === user.user_id && (
