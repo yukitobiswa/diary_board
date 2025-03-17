@@ -26,11 +26,12 @@ const Setting = () => {
     const fetchUserProfile = async () => {
       try {
         const token = localStorage.getItem("access_token");
-        const response = await axios.get(`${API_BASE_URL}/get_profile`, {
-          headers: {
+        const response = await axios.post(`${API_BASE_URL}/verify_token`, {},
+          {headers: {
             Authorization: `Bearer ${token}`,
           },
-        });
+        }
+        );
         const { user_name, learn_language, nickname } = response.data;
         setUsername(user_name);
         setLanguage(learn_language);
@@ -38,7 +39,7 @@ const Setting = () => {
       } catch (error) {
         console.error("ユーザープロファイルの取得中にエラーが発生しました:", error);
         alert("ユーザー情報の取得に失敗しました。再度ログインしてください。");
-        navigate("/login");
+        navigate("/");
       }
     };
     fetchUserProfile();
